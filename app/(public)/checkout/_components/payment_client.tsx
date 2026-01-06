@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import Image from 'next/image';
 import { fetchApi } from '@/lib/client-fetch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { v4 } from 'uuid';
 
 export const PaymentClient = ({ draftId }: { draftId: string }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -40,6 +41,7 @@ export const PaymentClient = ({ draftId }: { draftId: string }) => {
       return;
     }
     try {
+      const idenpotencyKey = v4();
       setIsLoading(true);
       const res = await fetchApi<{ url: string }>(urlPath, {
         method: 'POST',
@@ -49,6 +51,7 @@ export const PaymentClient = ({ draftId }: { draftId: string }) => {
           body: {
             bankCode: paymentProvider === 'VNPAY' ? bankCode : '',
             language: 'vn',
+            idenpotencyKey: idenpotencyKey,
           },
         }),
       });

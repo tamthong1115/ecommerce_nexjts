@@ -11,6 +11,7 @@ export const CreatePaymentSchema = z.object({
   status: z.enum(PaymentStatus).default('PENDING'),
   currency: z.enum(Currency),
   externalId: z.string().optional(),
+  idempotencyKey: z.string().optional(),
   rawPayload: z.record(z.string(), z.any()).optional(),
 });
 

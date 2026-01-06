@@ -10,6 +10,7 @@ export const createOrderPaidLedger = async (
     shopId: string;
     amount: Decimal;
     orderId: string;
+    idempotencyKey?: string;
     paymentId?: string;
     balanceBefore: Decimal;
     balanceAfter: Decimal;
@@ -26,6 +27,7 @@ export const createOrderPaidLedger = async (
       balanceBefore: params.balanceBefore,
       balanceAfter: params.balanceAfter,
       orderId: params.orderId,
+      idempotencyKey: params.idempotencyKey,
       paymentId: params.paymentId,
       transactionGroup: `order_paid_${params.orderId}`,
     },

@@ -131,7 +131,7 @@ enum LedgerType {
   PLATFORM_FEE // phí sàn
   SHIPPING_FEE // phí ship
   PAYOUT
-  SETTLEMENT   // pending -> available
+  SETTLEMENT // pending -> available
   REFUND // hoàn tiền cho khách
   ADJUSTMENT_OUT // chỉnh tay -
 }
@@ -631,7 +631,7 @@ model OrderDraft {
 
 model Payment {
   id             String          @id @default(uuid()) @db.Uuid
-  userId         String?          @db.Uuid
+  userId         String?         @db.Uuid
   provider       PaymentProvider
   method         String?
   amount         Decimal         @db.Decimal(19, 4)
@@ -657,7 +657,7 @@ model OrderPayment {
   id        String  @id @default(uuid())
   orderId   String  @db.Uuid
   paymentId String  @db.Uuid
-  amount    Decimal @db.Decimal(19, 4) @default(0)
+  amount    Decimal @default(0) @db.Decimal(19, 4)
 
   order   Order   @relation(fields: [orderId], references: [id])
   payment Payment @relation(fields: [paymentId], references: [id])
@@ -667,19 +667,21 @@ model OrderPayment {
 }
 
 enum IntentStatus {
-  ACTIVE      // đang chờ thanh toán
-  SUCCEEDED   // thanh toán thành công
-  FAILED      // gateway báo fail
-  EXPIRED     // quá hạn
-  CANCELLED   // user hủy
+  ACTIVE // đang chờ thanh toán
+  SUCCEEDED // thanh toán thành công
+  FAILED // gateway báo fail
+  EXPIRED // quá hạn
+  CANCELLED // user hủy
 }
+
 model PaymentIntent {
   id         String          @id @default(uuid()) @db.Uuid
-  gatewayRef String          @unique
+  gatewayRef String?         @unique
   status     IntentStatus
   provider   PaymentProvider
   orderIds   Json
   amount     Decimal
+  currency   Currency?
   expiresAt  DateTime
   createdAt  DateTime        @default(now())
 
@@ -698,6 +700,7 @@ model LedgerEntry {
   description   String?
 
   transactionGroup String?
+  idempotencyKey   String? @unique
   paymentId        String? @db.Uuid
   orderId          String? @db.Uuid
 
@@ -759,9 +762,9 @@ enum PayoutStatus {
 }
 
 model PayoutRequest {
-  id     String  @id @default(uuid())
-  shopId String  @db.Uuid
-  amount Decimal @db.Decimal(19, 4)
+  id     String       @id @default(uuid())
+  shopId String       @db.Uuid
+  amount Decimal      @db.Decimal(19, 4)
   status PayoutStatus // REQUESTED, PROCESSING, COMPLETED, REJECTED
 
   bankInfo Json // Thông tin TK ngân hàng nhận tiền

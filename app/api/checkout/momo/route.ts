@@ -11,20 +11,41 @@ import { $Enums } from '@/lib/generated/prisma';
 import PaymentProvider = $Enums.PaymentProvider;
 import PaymentStatus = $Enums.PaymentStatus;
 import Currency = $Enums.Currency;
-import { createPaymentIntentService } from '@/features/payment/services/payment_intent.service';
+import {
+  createPaymentIntentService,
+  updatePaymentIntentService,
+} from '@/features/payment/services/payment_intent.service';
 import IntentStatus = $Enums.IntentStatus;
-import { ServiceError } from '@/lib/service-error';
 
+type CheckoutPayload = {
+  id: string;
+  url: string;
+  amount_total: number | null;
+  metadata?: Record<string, string>;
+};
 export async function POST(req: NextRequest) {
+  let localIntent: { id: string } | null = null;
   try {
     const bodyJson = await req.json();
-    const { draftId } = bodyJson;
+    const { draftId, body } = bodyJson;
+    const idenKey = body.idempotencyKey;
 
-    console.log(
-      `[MOMO-DEBUG] --- Bắt đầu tạo thanh toán cho Draft: ${draftId} ---`
-    );
+    //Check idenKey tránh double click
+    const existed = await prisma.payment.findUnique({
+      where: { idempotencyKey: idenKey },
+    });
+    if (existed) {
+      const payload = existed.rawPayload as CheckoutPayload | null;
+      if (payload?.url) {
+        return ResponseFactory.toNextResponse(
+          ResponseFactory.success({
+            data: { url: payload.url, reused: true },
+          })
+        );
+      }
+    }
+
     const result = await createOrder(draftId);
-
     if (!result.success) {
       return ResponseFactory.toNextResponse(
         ResponseFactory.error({ message: result.error, code: 400 })
@@ -32,9 +53,7 @@ export async function POST(req: NextRequest) {
     }
 
     const orderList = result.order;
-
     if (orderList.some((o) => o.paymentStatus === 'PAID')) {
-      console.warn('--- [VNPAY-DEBUG] Order already PAID');
       return ResponseFactory.toNextResponse(
         ResponseFactory.error({
           message: 'Đơn hàng đã được thanh toán',
@@ -48,32 +67,21 @@ export async function POST(req: NextRequest) {
       new Decimal(0)
     );
 
-    const date = new Date();
-
     //MOMO Infor
     const partnerCode = process.env.MOMO_PARTNER_CODE!;
     const accessKey = process.env.MOMO_ACCESS_KEY!;
     const secretKey = process.env.MOMO_SECRET_KEY!;
     const requestId = v4();
+    const date = new Date();
     const orderId = `${draftId}_${date.getTime()}`;
     const orderInfo = `Thanh_toan_don_hang_qua_MOMO`;
     const redirectUrl = `${process.env.NEXT_PUBLIC_BASE_URL!}success`;
     const ipnUrl = `${process.env.NEXT_PUBLIC_BASE_URL!}api/checkout/momo/ipn`;
     const requestType = 'captureWallet';
     const extraData = '';
-    //Buffer.from(JSON.stringify(data)).toString('base64');
-
     const amount = Number(amountMOMO);
-    const createDate = dayjs(date).format('YYYYMMDDHHmmss');
     const lang = 'en';
     const autoCapture = true;
-
-    console.log('[MOMO-DEBUG] 1. Kiểm tra tham số:');
-    console.log(`- Amount (Integer): ${amount}`);
-    console.log(`- OrderId: ${orderId} (Length: ${orderId.length})`); // Phải < 50
-    console.log(`- RedirectUrl: ${redirectUrl}`);
-    console.log(`- IpnUrl: ${ipnUrl}`);
-    console.log(`- ExtraData: '${extraData}'`);
 
     const rawSignature =
       'accessKey=' +
@@ -97,48 +105,24 @@ export async function POST(req: NextRequest) {
       '&requestType=' +
       requestType;
 
-    console.log('[MOMO-DEBUG] 2. Chuỗi Raw Signature:');
-    console.log(rawSignature);
-
     const hashSignature = crypto
       .createHmac('sha256', secretKey)
       .update(rawSignature)
       .digest('hex');
 
-    console.log(`[MOMO-DEBUG] 3. Hash Signature: ${hashSignature}`);
-
-    await createCheckoutRequestUseCase(prisma, {
-      params: {
-        provider: PaymentProvider.MOMO,
-        method: 'QR',
-        amount: amount,
-        status: PaymentStatus.PENDING,
-        currency: Currency.VND,
-        externalId: orderId,
-        rawPayload: {
-          provider: 'MOMO',
-          orderId,
-          amount,
-          orderInfo,
-          requestType,
-          requestId,
-          orderIds,
-          draftId,
-        },
-      },
-      orderList: orderIds,
-    });
-
+    //Create local payment intent
     const expiresAt = dayjs().add(15, 'minute').toDate();
-    await createPaymentIntentService(prisma, {
-      gatewayRef: orderId,
+    localIntent = await createPaymentIntentService(prisma, {
+      gatewayRef: null,
       provider: PaymentProvider.MOMO,
       orderIds: { orderIds: orderIds },
       status: IntentStatus.ACTIVE,
       amount: new Decimal(amount),
+      currency: Currency.VND,
       expiresAt: expiresAt,
     });
 
+    //Init body for req of MOMO api
     const requestBody = JSON.stringify({
       partnerCode: partnerCode,
       partnerName: 'Test',
@@ -156,8 +140,6 @@ export async function POST(req: NextRequest) {
       signature: hashSignature,
     });
 
-    console.log('[MOMO-DEBUG] 4. Gửi Request sang MoMo:', requestBody);
-
     const momoRes = await fetch(process.env.MOMO_API_END_POINT!, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -165,14 +147,7 @@ export async function POST(req: NextRequest) {
     });
 
     const momoData = await momoRes.json();
-
-    console.log(
-      '[MOMO-DEBUG] 5. Kết quả từ MoMo:',
-      JSON.stringify(momoData, null, 2)
-    );
-
     if (momoData.resultCode !== 0) {
-      console.error('[MOMO-DEBUG] ❌ THẤT BẠI: resultCode khác 0');
       return ResponseFactory.toNextResponse(
         ResponseFactory.error({
           message: momoData.message || 'MoMo create payment failed',
@@ -181,7 +156,37 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log('[MOMO-DEBUG] ✅ THÀNH CÔNG: Đã nhận payUrl');
+    //Update gatewayRef to local intent
+    await updatePaymentIntentService(localIntent.id, {
+      gatewayRef: momoData.requestId,
+    });
+
+    await createCheckoutRequestUseCase(prisma, {
+      params: {
+        provider: PaymentProvider.MOMO,
+        method: 'QR',
+        amount: amount,
+        status: PaymentStatus.PENDING,
+        idempotencyKey: idenKey,
+        currency: Currency.VND,
+        externalId: orderId,
+        rawPayload: {
+          id: requestId,
+          url: momoData.payUrl,
+          amount_total: amount,
+          metadata: {
+            provider: 'MOMO',
+            orderId,
+            orderInfo,
+            requestType,
+            orderIds,
+            draftId,
+          },
+        },
+      },
+      orderList: orderIds,
+    });
+
     return ResponseFactory.toNextResponse(
       ResponseFactory.success({
         data: { url: momoData.payUrl },
@@ -189,13 +194,9 @@ export async function POST(req: NextRequest) {
       })
     );
   } catch (error) {
-    console.error(error);
     return ResponseFactory.toNextResponse(
       ResponseFactory.error({
-        message:
-          error instanceof ServiceError
-            ? error.message
-            : 'Internal Server Error',
+        message: error + 'Internal Server Error',
         code: 500,
       })
     );

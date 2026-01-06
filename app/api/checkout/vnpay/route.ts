@@ -30,36 +30,46 @@ export function sortObject(
   return sorted;
 }
 
+type CheckoutPayload = {
+  id: string;
+  url: string;
+  vnp_BankCode: string | null;
+  amount_total: number | null;
+  metadata?: Record<string, string>;
+};
+
 export async function POST(req: NextRequest) {
-  // [DEBUG] 1. Bắt đầu request
-  console.log('--- [VNPAY-DEBUG] START POST REQUEST ---');
-
+  const localIntent: { id: string } | null = null;
   try {
-    const bodyJson = await req.json();
-    const { draftId, body } = bodyJson;
+    const { draftId, body } = await req.json();
+    const idenKey = body.idempotencyKey;
 
-    // [DEBUG] 2. Check input
-    console.log('--- [VNPAY-DEBUG] Input received:', {
-      draftId,
-      bankCode: body?.bankCode,
+    //Check idenKey tránh double click
+    const existed = await prisma.payment.findUnique({
+      where: { idempotencyKey: idenKey },
     });
+
+    if (existed) {
+      const payload = existed.rawPayload as CheckoutPayload | null;
+      if (payload?.url) {
+        return ResponseFactory.toNextResponse(
+          ResponseFactory.success({
+            data: { url: payload.url, reused: true },
+          })
+        );
+      }
+    }
 
     const result = await createOrder(draftId);
 
-    // [DEBUG] 3. Check createOrder result
-    console.log('--- [VNPAY-DEBUG] createOrder success:', result.success);
-
     if (!result.success) {
-      console.error('--- [VNPAY-DEBUG] createOrder Failed:', result.error);
       return ResponseFactory.toNextResponse(
         ResponseFactory.error({ message: result.error, code: 400 })
       );
     }
 
     const orderList = result.order;
-
     if (orderList.some((o) => o.paymentStatus === 'PAID')) {
-      console.warn('--- [VNPAY-DEBUG] Order already PAID');
       return ResponseFactory.toNextResponse(
         ResponseFactory.error({
           message: 'Đơn hàng đã được thanh toán',
@@ -73,22 +83,13 @@ export async function POST(req: NextRequest) {
       (total, order) => total.plus(order.grandTotal),
       new Decimal(0)
     );
-    console.log('--- [VNPAY-DEBUG] Amount calculated:', amountVNPay.toString());
 
     const random = Math.random().toString(36).substring(2, 6).toUpperCase();
 
-    // [DEBUG] 4. Check Environment Variables (Rất hay lỗi ở đây)
     const tmnCode = process.env.VNPAY_TERMINAL_ID!;
     const secretKey = process.env.VNPAY_SECRET_KEY!;
     let vnpUrl = process.env.VNPAY_URL!;
     const returnUrl = process.env.VNPAY_RETURN_URL!;
-
-    console.log('--- [VNPAY-DEBUG] ENV Check:', {
-      HasTmnCode: !!tmnCode,
-      HasSecretKey: !!secretKey, // Không log giá trị thật để bảo mật
-      vnpUrl: vnpUrl,
-      returnUrl: returnUrl,
-    });
 
     if (!tmnCode || !secretKey || !vnpUrl || !returnUrl) {
       throw new Error(
@@ -114,13 +115,12 @@ export async function POST(req: NextRequest) {
     vnp_Params['vnp_Version'] = '2.1.0';
     vnp_Params['vnp_Command'] = 'pay';
     vnp_Params['vnp_TmnCode'] = tmnCode;
-    // vnp_Params['vnp_Merchant'] = ''
     vnp_Params['vnp_Locale'] = locale;
     vnp_Params['vnp_CurrCode'] = currency;
     vnp_Params['vnp_TxnRef'] = TxnRef;
     vnp_Params['vnp_OrderInfo'] = orderInfo;
     vnp_Params['vnp_OrderType'] = orderType;
-    vnp_Params['vnp_Amount'] = amount * 100;
+    vnp_Params['vnp_Amount'] = Math.floor(amount * 100);
     vnp_Params['vnp_ReturnUrl'] = returnUrl;
     vnp_Params['vnp_IpAddr'] = ipAddr;
     vnp_Params['vnp_CreateDate'] = createDate;
@@ -128,54 +128,48 @@ export async function POST(req: NextRequest) {
       vnp_Params['vnp_BankCode'] = bankCode;
     }
 
-    // [DEBUG] 5. Trước khi gọi sortObject
-    console.log('--- [VNPAY-DEBUG] Params prepared. Calling sortObject...');
     // Lưu ý: Nếu hàm sortObject chưa import hoặc chưa khai báo, nó sẽ Crash tại đây
     vnp_Params = sortObject(vnp_Params);
 
-    // [DEBUG] 6. Tạo Hash
-    console.log('--- [VNPAY-DEBUG] sortObject done. Creating Hash...');
     const signData = qs.stringify(vnp_Params, { encode: false });
     const hmac = crypto.createHmac('sha512', secretKey);
     vnp_Params['vnp_SecureHash'] = hmac
       .update(Buffer.from(signData, 'utf-8'))
       .digest('hex');
 
-    // [DEBUG] 7. Lưu DB
-    console.log('--- [VNPAY-DEBUG] Hash done. Saving to DB...');
-
+    vnpUrl += '?' + qs.stringify(vnp_Params, { encode: false });
     await createCheckoutRequestUseCase(prisma, {
       params: {
         provider: PaymentProvider.VNPAY,
         method: 'CARD',
+        idempotencyKey: idenKey,
         amount: amount,
         status: PaymentStatus.PENDING,
         currency: Currency.VND,
         externalId: TxnRef,
         rawPayload: {
-          provider: 'VNPAY',
-          vnp_TxnRef: TxnRef,
-          vnp_Amount: amount * 100,
-          vnp_OrderInfo: orderInfo,
-          vnp_OrderType: orderType,
-          vnp_TmnCode: tmnCode,
-          vnp_CurrCode: 'VND',
-          vnp_Locale: locale,
-          vnp_IpAddr: ipAddr,
+          id: TxnRef,
+          url: vnpUrl,
           vnp_BankCode: bankCode,
-          vnp_CreateDate: createDate,
-          vnp_ReturnUrl: returnUrl,
-
-          orderIds: orderIds,
-          draftId,
+          vnp_Amount: amount * 100,
+          metadata: {
+            provider: 'VNPAY',
+            vnp_TxnRef: TxnRef,
+            vnp_OrderInfo: orderInfo,
+            vnp_OrderType: orderType,
+            vnp_TmnCode: tmnCode,
+            vnp_CurrCode: 'VND',
+            vnp_Locale: locale,
+            vnp_IpAddr: ipAddr,
+            vnp_CreateDate: createDate,
+            vnp_ReturnUrl: returnUrl,
+            orderIds: orderIds,
+            draftId,
+          },
         },
       },
       orderList: orderIds,
     });
-
-    console.log(
-      '--- [VNPAY-DEBUG] Saved CheckoutRequest. Saving PaymentIntent...'
-    );
 
     const expiresAt = dayjs().add(15, 'minute').toDate();
     await createPaymentIntentService(prisma, {
@@ -184,22 +178,14 @@ export async function POST(req: NextRequest) {
       orderIds: { orderIds: orderIds },
       status: IntentStatus.ACTIVE,
       amount: new Decimal(amount),
+      currency: Currency.VND,
       expiresAt: expiresAt,
     });
-
-    vnpUrl += '?' + qs.stringify(vnp_Params, { encode: false });
-
-    console.log('--- [VNPAY-DEBUG] SUCCESS. URL created:', vnpUrl);
 
     return ResponseFactory.toNextResponse(
       ResponseFactory.success({ data: { url: vnpUrl } })
     );
-  } catch (error: any) {
-    // [DEBUG] CATCH BLOCK - QUAN TRỌNG NHẤT
-    console.error('--- [VNPAY-DEBUG] CRITICAL ERROR 500 ---');
-    console.error('Message:', error.message);
-    console.error('Stack Trace:', error.stack); // Xem dòng nào gây lỗi ở đây
-
+  } catch (error) {
     return ResponseFactory.toNextResponse(
       ResponseFactory.error({
         message:
@@ -213,7 +199,6 @@ export async function POST(req: NextRequest) {
 }
 //Get webhook
 export async function GET(req: NextRequest) {
-  console.log('--- [IPN-DEBUG] START IPN HANDLER ---');
   try {
     const searchParams = req.nextUrl.searchParams;
     const vnp_Params: Record<string, string> = {};
@@ -224,12 +209,7 @@ export async function GET(req: NextRequest) {
     const secureHash = vnp_Params['vnp_SecureHash'];
     const rspCode = vnp_Params['vnp_ResponseCode'];
     const txnRef = vnp_Params['vnp_TxnRef'];
-
-    console.log('[IPN-DEBUG] Received Params:', {
-      rspCode,
-      txnRef,
-      secureHash,
-    });
+    const vnpTransactionNo = vnp_Params['vnp_TransactionNo'];
 
     delete vnp_Params['vnp_SecureHash'];
     delete vnp_Params['vnp_SecureHashType'];
@@ -247,21 +227,14 @@ export async function GET(req: NextRequest) {
     const hmac = crypto.createHmac('sha512', secretKey);
     const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
 
-    console.log('[IPN-DEBUG] Checksum Verify:', {
-      MySign: signed,
-      VnpSign: secureHash,
-      Match: signed === secureHash,
-    });
-
     if (secureHash !== signed) {
-      console.error('[IPN-DEBUG] ❌ Checksum Failed!');
       return NextResponse.json({ RspCode: '97', Message: 'Fail checksum' });
     }
 
     const payment = await prisma.payment.findFirst({
       where: {
         externalId: txnRef,
-        provider: 'VNPAY',
+        provider: PaymentProvider.VNPAY,
       },
       include: {
         orders: {
@@ -290,10 +263,24 @@ export async function GET(req: NextRequest) {
     if (rspCode === '00') {
       await prisma.$transaction(async (tx) => {
         // A. Update Payment Status
-        await tx.payment.update({
-          where: { id: payment.id },
-          data: { status: 'PAID', updatedAt: new Date() },
+        const updateResult = await tx.payment.updateMany({
+          where: {
+            id: payment.id,
+            status: PaymentStatus.PENDING,
+          },
+          data: {
+            status: PaymentStatus.PAID,
+            rawPayload: vnp_Params,
+            updatedAt: new Date(),
+          },
         });
+
+        if (updateResult.count === 0) {
+          console.log(
+            `Duplicate webhook detected for Payment ${payment.id}. Ignoring.`
+          );
+          return;
+        }
 
         // B. Update Order Status
         await tx.order.updateMany({
@@ -318,7 +305,8 @@ export async function GET(req: NextRequest) {
               order.shopId!,
               order.grandTotal,
               order.id,
-              payment.id
+              payment.id,
+              vnpTransactionNo
             );
           } catch (e) {
             console.error(`Lỗi cộng tiền ví cho order ${order}:`, e);

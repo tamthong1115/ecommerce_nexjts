@@ -25,6 +25,7 @@ import { $Enums, Prisma } from '@/lib/generated/prisma';
 import InputJsonValue = Prisma.InputJsonValue;
 import PayoutStatus = $Enums.PayoutStatus;
 import { getPaymentId } from '@/features/payment/services/order_payment.service';
+import LedgerType = $Enums.LedgerType;
 
 const toDecimal = (val: Decimal | number) => new Decimal(val);
 
@@ -32,10 +33,25 @@ export const customerPaidOrderSuccessUsecase = async (
   shopId: string,
   amountInput: Decimal | number,
   orderId: string,
-  paymentId?: string
+  paymentId?: string,
+  idempotencyKey?: string
 ) => {
   const amount = toDecimal(amountInput);
   return prisma.$transaction(async (tx) => {
+    const existingLedger = await tx.ledgerEntry.findFirst({
+      where: {
+        idempotencyKey: idempotencyKey,
+        type: LedgerType.ORDER_PAID,
+      },
+    });
+
+    if (existingLedger) {
+      console.warn(
+        `Transaction ${idempotencyKey} already processed in Ledger.`
+      );
+      return;
+    }
+
     const updatedBalance = await upsertPendingBalance(tx, shopId, amount);
 
     const balanceAfter = updatedBalance.pending;
@@ -45,6 +61,7 @@ export const customerPaidOrderSuccessUsecase = async (
       shopId,
       amount,
       orderId,
+      idempotencyKey,
       paymentId,
       balanceBefore,
       balanceAfter,

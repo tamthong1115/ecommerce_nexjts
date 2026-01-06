@@ -1,8 +1,6 @@
-import { DbClient } from '@/types/api';
 import { CreatePaymentInput } from '@/features/payment/payment.dto';
 import { PrismaClient } from '@/lib/generated/prisma';
 import { createPaymentService } from '@/features/payment/services/payment.service';
-import { OrderDTO } from '@/types/dtos/order.dto';
 
 export const createCheckoutRequestUseCase = async (
   prisma: PrismaClient,
@@ -19,6 +17,7 @@ export const createCheckoutRequestUseCase = async (
       status: input.params.status,
       currency: input.params.currency,
       externalId: input.params.externalId,
+      idempotencyKey: input.params.idempotencyKey,
       rawPayload: input.params.rawPayload,
     });
 
