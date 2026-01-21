@@ -9,7 +9,7 @@ export const upsertPendingBalance = async (
   const rows = await db.$queryRaw<{ pending: Decimal }[]>`
     SELECT pending
     FROM "ShopBalance"
-    WHERE "shopId" = ${shopId}
+    WHERE "shopId" = ${shopId}::uuid
       FOR UPDATE
   `;
 

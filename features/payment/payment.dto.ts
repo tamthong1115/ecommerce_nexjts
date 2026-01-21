@@ -16,3 +16,30 @@ export const CreatePaymentSchema = z.object({
 });
 
 export type CreatePaymentInput = z.infer<typeof CreatePaymentSchema>;
+
+export interface StripePaymentParams {
+  orderIds: string[];
+  amount: number;
+  metadata: Record<string, string>;
+  idempotencyKey: string;
+  origin: string;
+}
+
+export interface VnpayPaymentParams {
+  amount: number;
+  orderIds: string[];
+  ipAddr: string;
+  draftId: string;
+  bankCode: string;
+  language: string;
+}
+
+export interface MomoPaymentParams {
+  amount: number;
+  orderIds: string[];
+  idempotencyKey: string;
+  draftId: string;
+  orderInfo: string;
+  requestType: string;
+  origin: string;
+}

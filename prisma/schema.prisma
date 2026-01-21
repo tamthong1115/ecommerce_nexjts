@@ -600,7 +600,7 @@ model OrderDraft {
   id          String   @id @default(uuid()) @db.Uuid
   orderNumber String   @unique
   orderId     String?  @unique @db.Uuid
-  userId      String   @unique @db.Uuid
+  userId      String   @db.Uuid
   placedAt    DateTime @default(now())
   updatedAt   DateTime @default(now()) @updatedAt
 
@@ -638,7 +638,7 @@ model Payment {
   currency       Currency        @default(VND)
   status         PaymentStatus   @default(PENDING)
   idempotencyKey String?         @unique
-  externalId     String?
+  externalId     String?         @unique
   reference      String?
   rawPayload     Json?
   createdAt      DateTime        @default(now())

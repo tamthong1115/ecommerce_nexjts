@@ -92,7 +92,7 @@ export const fetchProductById = async (id: string) => {
     const response = await fetch(`/api/product/${id}`);
     if (response && response.ok) {
       const data = await response.json();
-      return data.data;
+      return data.productData;
     } else return null;
   } catch (error) {
     console.error('Error fetching product by ID:', error);

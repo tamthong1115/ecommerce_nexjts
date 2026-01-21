@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import getRedisClient from '@/lib/redis';
+import { redisClient } from '@/lib/redis';
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
@@ -16,8 +16,7 @@ export async function GET(req: NextRequest) {
 
     if (!rate) throw new Error('Not found rate VND in api');
 
-    const client = await getRedisClient();
-    await client.setEx('currency-rate', 172800, rate.toString());
+    await redisClient.setex('currency-rate', 604800, rate.toString());
 
     console.log(`Đã cập nhật tỉ giá: ${rate}`);
 

@@ -1,25 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { Stripe } from 'stripe';
-import { createOrder } from '@/app/actions/order';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { Decimal } from '@/lib/generated/prisma/runtime/library';
-import getRedisClient from '@/lib/redis';
 import { vndToUsdCents } from '@/lib/currency-helper';
-import { createCheckoutRequestUseCase } from '@/features/payment/payment.usecases';
 import { $Enums } from '@/lib/generated/prisma';
 import PaymentProvider = $Enums.PaymentProvider;
-import PaymentStatus = $Enums.PaymentStatus;
 import Currency = $Enums.Currency;
-import {
-  createPaymentIntentService,
-  getActiveIntent,
-  updatePaymentIntentService,
-} from '@/features/payment/services/payment_intent.service';
+import { createPaymentIntentService } from '@/features/payment/services/payment_intent.service';
 import IntentStatus = $Enums.IntentStatus;
 import dayjs from 'dayjs';
 import { ResponseFactory } from '@/lib/api-response';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+import redisClient from '@/lib/redis';
+import { paymentQueue } from '@/worker/config';
+import { prepareOrderForCheckout } from '@/features/payment/payment.usecases';
 
 type CheckoutPayload = {
   id: string;
@@ -31,20 +23,23 @@ type CheckoutPayload = {
 
 export async function POST(req: NextRequest) {
   let localIntent: { id: string } | null = null;
+  let inventoryReserved = false;
+  let draftItems: { variantId: string; quantity: number }[] = [];
+
   try {
     //lấy đơn hàng nháp
     const { draftId, body } = await req.json();
     const origin = process.env.NEXT_PUBLIC_BASE_URL!;
     const idenKey = body.idempotencyKey;
 
-    //Check idenKey tránh double click
+    //Check idenKey avoid double click
     const existed = await prisma.payment.findUnique({
       where: { idempotencyKey: idenKey },
     });
 
-    if (existed) {
-      const payload = existed.rawPayload as CheckoutPayload | null;
-      if (payload?.url) {
+    if (existed && existed.rawPayload) {
+      const payload = existed.rawPayload as CheckoutPayload;
+      if (payload.url) {
         return ResponseFactory.toNextResponse(
           ResponseFactory.success({
             data: { url: payload.url, reused: true },
@@ -53,43 +48,21 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    //tạo đơn
-    const result = await createOrder(draftId);
-    if (!result.success) {
-      return ResponseFactory.toNextResponse(
-        ResponseFactory.error({
-          message: result.error,
-          code: 400,
-        })
-      );
-    }
-
-    const orderList = result.order;
-    const orderIds = Array.from(orderList.map((o) => o.id));
-
-    //Kiểm tra xem có giao dịch nào đang thực hiện ko
-    const activeIntent = await getActiveIntent(prisma, {
-      provider: PaymentProvider.STRIPE,
-      status: IntentStatus.ACTIVE,
-      orderIds: orderIds,
-    });
-
-    if (activeIntent) {
-      return ResponseFactory.toNextResponse(
-        ResponseFactory.error({ message: 'Payment is already in progress' })
-      );
-    }
+    const preparedData = await prepareOrderForCheckout(
+      draftId,
+      PaymentProvider.STRIPE
+    );
+    draftItems = preparedData.draftItems;
+    inventoryReserved = preparedData.inventoryReserved;
+    const { orderList, orderIds } = preparedData;
 
     //gọi redis lấy tỉ giá && tính các thông tin
-    const client = await getRedisClient();
-    const rate = await client.get('currency-rate');
-    if (!rate)
-      return NextResponse.json({ error: 'redis error' }, { status: 400 });
-
+    const rate = await redisClient.get('currency-rate');
+    if (!rate) throw new Error('Redis currency rate missing');
     const rateDcm = new Decimal(rate);
 
     const metadata: Record<string, string> = {
-      orderId: orderList.map((o) => o.id).join(','),
+      orderId: orderIds.join(','),
     };
 
     let totalUsdCent = 0;
@@ -116,79 +89,65 @@ export async function POST(req: NextRequest) {
       expiresAt: expiresAt,
     });
 
-    //Tạo session stripe payment
-    const session = await stripe.checkout.sessions.create(
+    //Đẩy vao queue xử lý (worker sẽ tạo session stripe)
+    await paymentQueue().add(
+      'create-payment-url',
       {
-        payment_method_types: ['card'],
-        mode: 'payment',
-        success_url: `${origin}/success`,
-        cancel_url: `${origin}/cancel`,
+        provider: PaymentProvider.STRIPE,
+        intentId: localIntent.id,
+        orderIds: orderIds,
+        amount: totalUsdCent,
+        currency: Currency.USD,
         metadata: metadata,
-        payment_intent_data: {
-          transfer_group: metadata.orderId,
-          metadata: metadata,
-        },
-        line_items: [
-          {
-            price_data: {
-              currency: 'usd',
-              product_data: {
-                name: `Thanh toán ${orderList.length} đơn hàng`,
-              },
-              unit_amount: totalUsdCent,
-            },
-            quantity: 1,
-          },
-        ],
+        idempotencyKey: idenKey,
+        draftItems: draftItems,
+        method: 'CARD',
+        origin: origin,
       },
-      { idempotencyKey: idenKey }
+      {
+        jobId: `checkout-${idenKey}`,
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 1000 },
+        removeOnComplete: true,
+      }
     );
 
-    await updatePaymentIntentService(localIntent.id, {
-      gatewayRef: session.payment_intent as string,
-    });
-
-    //Tạo data payment && order
-    try {
-      await createCheckoutRequestUseCase(prisma, {
-        params: {
-          provider: PaymentProvider.STRIPE,
-          method: 'CARD',
-          amount: totalUsdCent,
-          status: PaymentStatus.PENDING,
-          currency: Currency.USD,
-          externalId: session.payment_intent as string,
-          idempotencyKey: idenKey, // Unique field
-          rawPayload: {
-            id: session.id,
-            url: session.url,
-            payment_status: session.payment_status,
-            amount_total: session.amount_total,
-            metadata: session.metadata,
-          },
-        },
-        orderList: orderIds,
-      });
-    } catch (dbError: any) {
-      if (dbError.code === 'P2002') {
-        console.log('Race condition detected, returning existing payment');
-        return ResponseFactory.toNextResponse(
-          ResponseFactory.success({ data: { url: session.url } })
-        );
-      }
-      console.error('💥 DB Error in checkout:', dbError);
-      throw dbError;
-    }
-
     return ResponseFactory.toNextResponse(
-      ResponseFactory.success({ data: { url: session.url } })
+      ResponseFactory.success({
+        message: 'Order created. Payment processing...',
+        data: {
+          isProcessing: true,
+          intentId: localIntent.id,
+        },
+      })
     );
   } catch (err) {
     console.error('Error creating Stripe session:', err);
+    if (inventoryReserved && draftItems.length > 0) {
+      console.log('🔄 Triggering Inventory Rollback...');
+      await prisma
+        .$transaction(
+          draftItems.map(({ variantId, quantity }) =>
+            prisma.productVariant.update({
+              where: { id: variantId },
+              data: { stock: { increment: quantity } },
+            })
+          )
+        )
+        .catch((e) => console.error('🔥 Rollback failed!', e));
+    }
+    const message =
+      err instanceof Error ? err.message : 'Internal Server Error';
+    const isBadReq =
+      message.includes('không đủ tồn kho') ||
+      message.includes('failed') ||
+      message.includes('Invalid Draft') ||
+      message.includes('already in progress');
+
     return ResponseFactory.toNextResponse(
       ResponseFactory.error({
-        message: err instanceof Error ? err.message : 'Internal Server Error',
-        code: 500,
+        message: message,
+        code: isBadReq ? 400 : 500, // Tự động phân loại 400/500 dựa vào message
       })
     );
   }

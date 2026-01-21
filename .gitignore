@@ -48,3 +48,5 @@ next-env.d.ts
 
 #...local compose
 docker-compose-hoang.yml
+
+start-dev.sh

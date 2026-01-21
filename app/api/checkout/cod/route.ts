@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   try {
     const { draftId } = await req.json();
 
-    const result = await createOrder(draftId);
+    const result = await createOrder(prisma, draftId);
     if (!result.success) {
       return ResponseFactory.toNextResponse(
         ResponseFactory.error({

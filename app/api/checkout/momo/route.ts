@@ -1,21 +1,15 @@
 import { NextRequest } from 'next/server';
-import { createOrder } from '@/app/actions/order';
 import { ResponseFactory } from '@/lib/api-response';
 import { Decimal } from '@prisma/client/runtime/library';
-import { v4 } from 'uuid';
 import dayjs from 'dayjs';
-import crypto from 'crypto';
-import { createCheckoutRequestUseCase } from '@/features/payment/payment.usecases';
+import { prepareOrderForCheckout } from '@/features/payment/payment.usecases';
 import { prisma } from '@/lib/db';
 import { $Enums } from '@/lib/generated/prisma';
 import PaymentProvider = $Enums.PaymentProvider;
-import PaymentStatus = $Enums.PaymentStatus;
 import Currency = $Enums.Currency;
-import {
-  createPaymentIntentService,
-  updatePaymentIntentService,
-} from '@/features/payment/services/payment_intent.service';
+import { createPaymentIntentService } from '@/features/payment/services/payment_intent.service';
 import IntentStatus = $Enums.IntentStatus;
+import { paymentQueue } from '@/worker/config';
 
 type CheckoutPayload = {
   id: string;
@@ -25,16 +19,18 @@ type CheckoutPayload = {
 };
 export async function POST(req: NextRequest) {
   let localIntent: { id: string } | null = null;
+  let draftItems: { variantId: string; quantity: number }[] = [];
+  let inventoryReserved = false;
   try {
-    const bodyJson = await req.json();
-    const { draftId, body } = bodyJson;
+    const { draftId, body } = await req.json();
+    const origin = process.env.NEXT_PUBLIC_BASE_URL!;
     const idenKey = body.idempotencyKey;
 
     //Check idenKey tránh double click
     const existed = await prisma.payment.findUnique({
       where: { idempotencyKey: idenKey },
     });
-    if (existed) {
+    if (existed && existed.rawPayload) {
       const payload = existed.rawPayload as CheckoutPayload | null;
       if (payload?.url) {
         return ResponseFactory.toNextResponse(
@@ -45,70 +41,21 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const result = await createOrder(draftId);
-    if (!result.success) {
-      return ResponseFactory.toNextResponse(
-        ResponseFactory.error({ message: result.error, code: 400 })
-      );
-    }
+    const preparedData = await prepareOrderForCheckout(
+      draftId,
+      PaymentProvider.MOMO
+    );
 
-    const orderList = result.order;
-    if (orderList.some((o) => o.paymentStatus === 'PAID')) {
-      return ResponseFactory.toNextResponse(
-        ResponseFactory.error({
-          message: 'Đơn hàng đã được thanh toán',
-          code: 400,
-        })
-      );
-    }
-    const orderIds = Array.from(orderList, (item) => item.id);
+    draftItems = preparedData.draftItems;
+    inventoryReserved = preparedData.inventoryReserved;
+    const { orderList, orderIds } = preparedData;
+
     const amountMOMO = orderList.reduce(
       (total, item) => total.plus(item.grandTotal),
       new Decimal(0)
     );
 
-    //MOMO Infor
-    const partnerCode = process.env.MOMO_PARTNER_CODE!;
-    const accessKey = process.env.MOMO_ACCESS_KEY!;
-    const secretKey = process.env.MOMO_SECRET_KEY!;
-    const requestId = v4();
-    const date = new Date();
-    const orderId = `${draftId}_${date.getTime()}`;
-    const orderInfo = `Thanh_toan_don_hang_qua_MOMO`;
-    const redirectUrl = `${process.env.NEXT_PUBLIC_BASE_URL!}success`;
-    const ipnUrl = `${process.env.NEXT_PUBLIC_BASE_URL!}api/checkout/momo/ipn`;
-    const requestType = 'captureWallet';
-    const extraData = '';
-    const amount = Number(amountMOMO);
-    const lang = 'en';
-    const autoCapture = true;
-
-    const rawSignature =
-      'accessKey=' +
-      accessKey +
-      '&amount=' +
-      amount +
-      '&extraData=' +
-      extraData +
-      '&ipnUrl=' +
-      ipnUrl +
-      '&orderId=' +
-      orderId +
-      '&orderInfo=' +
-      orderInfo +
-      '&partnerCode=' +
-      partnerCode +
-      '&redirectUrl=' +
-      redirectUrl +
-      '&requestId=' +
-      requestId +
-      '&requestType=' +
-      requestType;
-
-    const hashSignature = crypto
-      .createHmac('sha256', secretKey)
-      .update(rawSignature)
-      .digest('hex');
+    const metadata = { orderId: orderIds.join(',') };
 
     //Create local payment intent
     const expiresAt = dayjs().add(15, 'minute').toDate();
@@ -117,87 +64,73 @@ export async function POST(req: NextRequest) {
       provider: PaymentProvider.MOMO,
       orderIds: { orderIds: orderIds },
       status: IntentStatus.ACTIVE,
-      amount: new Decimal(amount),
+      amount: amountMOMO,
       currency: Currency.VND,
       expiresAt: expiresAt,
     });
 
-    //Init body for req of MOMO api
-    const requestBody = JSON.stringify({
-      partnerCode: partnerCode,
-      partnerName: 'Test',
-      storeId: 'MomoTestStore',
-      requestId: requestId,
-      amount: amount,
-      orderId: orderId,
-      orderInfo: orderInfo,
-      redirectUrl: redirectUrl,
-      ipnUrl: ipnUrl,
-      lang: lang,
-      requestType: requestType,
-      autoCapture: autoCapture,
-      extraData: extraData,
-      signature: hashSignature,
-    });
-
-    const momoRes = await fetch(process.env.MOMO_API_END_POINT!, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: requestBody,
-    });
-
-    const momoData = await momoRes.json();
-    if (momoData.resultCode !== 0) {
-      return ResponseFactory.toNextResponse(
-        ResponseFactory.error({
-          message: momoData.message || 'MoMo create payment failed',
-          code: 400,
-        })
-      );
-    }
-
-    //Update gatewayRef to local intent
-    await updatePaymentIntentService(localIntent.id, {
-      gatewayRef: momoData.requestId,
-    });
-
-    await createCheckoutRequestUseCase(prisma, {
-      params: {
+    await paymentQueue().add(
+      'create-payment-url',
+      {
         provider: PaymentProvider.MOMO,
-        method: 'QR',
-        amount: amount,
-        status: PaymentStatus.PENDING,
-        idempotencyKey: idenKey,
+        intentId: localIntent.id,
+        orderIds: orderIds,
+        amount: amountMOMO.toNumber(),
         currency: Currency.VND,
-        externalId: orderId,
-        rawPayload: {
-          id: requestId,
-          url: momoData.payUrl,
-          amount_total: amount,
-          metadata: {
-            provider: 'MOMO',
-            orderId,
-            orderInfo,
-            requestType,
-            orderIds,
-            draftId,
-          },
-        },
+        idempotencyKey: idenKey,
+        origin: origin,
+        draftItems: draftItems,
+        metadata: metadata,
+        method: 'QR',
+        draftId: draftId,
       },
-      orderList: orderIds,
-    });
+      {
+        jobId: `checkout-${idenKey}`,
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 1000 },
+        removeOnComplete: true,
+      }
+    );
 
     return ResponseFactory.toNextResponse(
       ResponseFactory.success({
-        data: { url: momoData.payUrl },
-        code: 200,
+        message: 'Order created. Redirecting to MoMo...',
+        data: {
+          isProcessing: true,
+          intentId: localIntent.id,
+        },
       })
     );
   } catch (error) {
+    console.error('Error creating MOMO session:', error);
+
+    // Logic Rollback kho nếu lỗi xảy ra trước khi vào Queue
+    if (inventoryReserved && draftItems.length > 0) {
+      console.log('Triggering Inventory Rollback...');
+      await prisma
+        .$transaction(
+          draftItems.map(({ variantId, quantity }) =>
+            prisma.productVariant.update({
+              where: { id: variantId },
+              data: { stock: { increment: quantity } },
+            })
+          )
+        )
+        .catch((e) => console.error('Rollback failed!', e));
+    }
+
+    const message =
+      error instanceof Error ? error.message : 'Internal Server Error';
+    const isBadReq =
+      message.includes('không đủ tồn kho') ||
+      message.includes('failed') ||
+      message.includes('Invalid Draft') ||
+      message.includes('already in progress');
+
     return ResponseFactory.toNextResponse(
       ResponseFactory.error({
-        message: error + 'Internal Server Error',
-        code: 500,
+        message: message,
+        code: isBadReq ? 400 : 500,
       })
     );
   }

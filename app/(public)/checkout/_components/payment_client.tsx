@@ -35,15 +35,18 @@ export const PaymentClient = ({ draftId }: { draftId: string }) => {
       urlPath = urlPath + '/cod';
   }
 
+  const delay = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
+
   const handlePayment = async () => {
     if (paymentProvider === 'VNPAY' && !bankCode) {
       toast.error('Vui lòng chọn phương thức thanh toán VNPAY (QR, Thẻ...)');
       return;
     }
     try {
-      const idenpotencyKey = v4();
+      const idempotencyKey = v4();
       setIsLoading(true);
-      const res = await fetchApi<{ url: string }>(urlPath, {
+      const res = await fetchApi<{ intentId: string }>(urlPath, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -51,7 +54,7 @@ export const PaymentClient = ({ draftId }: { draftId: string }) => {
           body: {
             bankCode: paymentProvider === 'VNPAY' ? bankCode : '',
             language: 'vn',
-            idenpotencyKey: idenpotencyKey,
+            idempotencyKey: idempotencyKey,
           },
         }),
       });
@@ -62,12 +65,41 @@ export const PaymentClient = ({ draftId }: { draftId: string }) => {
         );
       }
 
-      if (res.data!.url) {
+      const MAX_RETRIES = 30;
+      const POLL_INTERVAL = 2000; // 2000ms = 2s
+      let paymentUrl: string | null = null;
+
+      for (let i = 0; i < MAX_RETRIES; i++) {
+        try {
+          console.log(`Checking status... Attempt ${i + 1}/${MAX_RETRIES}`);
+
+          const statusRes = await fetchApi<{ url: string }>(
+            `/api/checkout/status?intent_id=${res.data?.intentId}`,
+            {
+              method: 'GET',
+              headers: { 'Content-Type': 'application/json' },
+            }
+          );
+
+          console.log(statusRes.data);
+
+          if (statusRes.success && statusRes.data) {
+            paymentUrl = statusRes.data.url;
+            break;
+          }
+        } catch (e) {
+          console.log(e);
+        }
+
+        await delay(POLL_INTERVAL);
+      }
+
+      if (paymentUrl) {
         toast.success(t('t_payment_direct'), {
           position: 'top-right',
           duration: 3000,
         });
-        window.location.href = res.data!.url;
+        window.location.href = paymentUrl;
       }
     } catch (err) {
       toast.error(t('t_payment_create_session_failed'));

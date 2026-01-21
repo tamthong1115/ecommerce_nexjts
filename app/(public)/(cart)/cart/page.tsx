@@ -182,15 +182,15 @@ export default function Cart() {
     const vouchers = await getTwoRandomVoucherCodes();
 
     try {
-      const existing = await getOrderDrafts();
-      if (existing.success && existing.draft) {
-        toast.info(t('t_pending_payment'), {
-          duration: 4000,
-          position: 'top-right',
-        });
-        router.push('/checkout');
-        return;
-      }
+      // const existing = await getOrderDrafts();
+      // if (existing.success && existing.draft) {
+      //   toast.info(t('t_pending_payment'), {
+      //     duration: 4000,
+      //     position: 'top-right',
+      //   });
+      //   router.push('/checkout');
+      //   return;
+      // }
 
       const data = {
         notes: '',
