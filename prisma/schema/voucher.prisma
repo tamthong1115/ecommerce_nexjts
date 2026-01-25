@@ -1,0 +1,64 @@
+model Voucher {
+  id           String              @id @default(uuid()) @db.Uuid
+  code         String              @unique
+  type         VoucherType
+  value        Decimal             @db.Decimal(14, 2)
+  maxDiscount  Decimal?            @db.Decimal(14, 2)
+  minSubtotal  Decimal?            @db.Decimal(14, 2)
+  currency     Currency            @default(VND)
+  startAt      DateTime
+  endAt        DateTime
+  usageLimit   Int?
+  perUserLimit Int?
+  shopId       String?             @db.Uuid
+  isActive     Boolean             @default(true)
+  createdAt    DateTime            @default(now())
+  orders       OrderVoucher[]
+  shop         Shop?               @relation(fields: [shopId], references: [id])
+  categories   VoucherCategory[]
+  products     VoucherProduct[]
+  redemptions  VoucherRedemption[]
+
+  @@index([shopId, isActive, startAt, endAt])
+  @@map("voucher")
+}
+
+model VoucherCategory {
+  voucherId  String   @db.Uuid
+  categoryId String   @db.Uuid
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  voucher    Voucher  @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+
+  @@id([voucherId, categoryId])
+  @@map("voucher_category")
+}
+
+model VoucherProduct {
+  voucherId String  @db.Uuid
+  productId String  @db.Uuid
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  voucher   Voucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+
+  @@id([voucherId, productId])
+  @@map("voucher_product")
+}
+
+model VoucherRedemption {
+  id        String   @id @default(uuid()) @db.Uuid
+  voucherId String   @db.Uuid
+  orderId   String   @db.Uuid
+  userId    String   @db.Uuid
+  usedAt    DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  voucher   Voucher  @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+
+  @@unique([voucherId, orderId, userId])
+  @@map("voucher_redemption")
+}
+
+enum VoucherType {
+  PERCENT
+  FIXED
+  SHIPPING
+}

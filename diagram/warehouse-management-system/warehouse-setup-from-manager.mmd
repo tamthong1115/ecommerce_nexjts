@@ -1,0 +1,13 @@
+sequenceDiagram
+    actor Manager
+    participant App as Warehouse Service
+    participant DB as Database (Warehouse/Slot)
+
+    Manager->>App: Tạo thông tin Warehouse (City, District)
+    App->>DB: Lưu Warehouse
+    Manager->>App: Định nghĩa StorageAreas (Cold, Dry, etc.)
+    App->>DB: Lưu StorageAreas
+    Manager->>App: Khởi tạo Slot tự động (theo Row, Floor)
+    Note right of App: Dựa trên maxWidth, maxWeight...
+    App->>DB: Bulk Insert Slots
+    DB-->>Manager: Kho đã sẵn sàng (Status: OPEN)

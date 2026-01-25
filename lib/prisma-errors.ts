@@ -1,4 +1,4 @@
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { PrismaClientKnownRequestError } from './generated/prisma/runtime/client';
 
 class BaseError extends PrismaClientKnownRequestError {
   constructor(error: PrismaClientKnownRequestError) {

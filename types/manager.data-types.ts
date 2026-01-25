@@ -245,3 +245,44 @@ export interface userDetail {
     };
   }[];
 }
+
+export interface warehouseDataResponse {
+  data: warehouseData[];
+  pagination: pagination;
+}
+
+export interface warehouseData {
+  id: string;
+  name: string;
+  region: string;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface warehouseDetail {
+  id: string;
+  name: string;
+  address: string;
+  street: string;
+  ward: string;
+  district: string;
+  city: string;
+  size: number;
+  totalStorageArea: number;
+  totalSlot: number;
+  region: string;
+  status: string;
+  storageArea: storageAreaDetail[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+export interface storageAreaDetail {
+  id: string;
+  name: string;
+  type: string;
+  status: string;
+  totalSlots: number;
+  totalFloors: number;
+  totalRows: number;
+}

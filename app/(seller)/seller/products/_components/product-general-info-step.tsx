@@ -14,7 +14,7 @@ import { ManageProductFormInput } from './productSchema';
 import { useCategories } from '@/hooks/use-categories';
 import { CategoryCascader } from './category-cascader';
 import { useState } from 'react';
-import { generateClientSlug, isSlugTaken } from '@/helpers/slug-helper';
+import { generateClientSlug } from '@/helpers/slug-helper';
 import { IconRefresh } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import {

@@ -1,21 +1,17 @@
 {
-
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.fontFamily": "CaskaydiaCove NF",
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
-
   "eslint.validate": [
-  "javascript",
-  "javascriptreact",
-  "typescript",
-  "typescriptreact"
-],
-"prisma.pinToPrisma6": true,
-"[prisma]": {
-  "editor.defaultFormatter": "Prisma.prisma"
-},
-
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "prisma.pinToPrisma6": false,
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  },
 }

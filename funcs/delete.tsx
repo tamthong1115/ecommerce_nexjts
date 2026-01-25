@@ -4,7 +4,7 @@ export const deleteData = async ({ url }: { url: string }) => {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+        Authorization: `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('token') || '' : ''}`,
       },
     });
     if (!response.ok) {

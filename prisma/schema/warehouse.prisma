@@ -1,0 +1,287 @@
+//================== Prisma Schema =================//
+// File: prisma/warehouse.prisma
+// Schema for Warehouse model in Prisma
+//==================================================//
+
+//=================== ENUMS ===================//
+enum WarehouseStatus {
+  OPEN
+  READY
+  CLOSED
+  UNDER_MAINTENANCE
+  FULL
+}
+
+enum Region {
+  NORTHERN_REGION
+  CENTRAL_REGION
+  SOURTHERN_REGION
+}
+
+enum StorageAreaType {
+  COLD_STORAGE
+  DRY_STORAGE
+  HAZARDOUS_MATERIALS
+  GENERAL_STORAGE
+  ELECTRICAL_EQUIPMENT
+}
+
+enum SlotStatus {
+  AVAILABLE
+  OCCUPIED
+  RESERVED
+  DAMAGED
+}
+
+enum SpecialLabelDelivery {
+  FRAGILE
+  DRY_STOGARE
+  COLD_STORAGE
+  AVOID_STATIC_ELECTRICITY
+  NONE
+  FLAMMABLE
+}
+
+//==================== MODELS ===================//
+model Warehouse {
+  id               String          @id @default(uuid()) @db.Uuid
+  name             String
+  street           String
+  ward             String //storing id
+  district         String //storing id
+  city             String //storing id
+  address          String
+  size             Int
+  status           WarehouseStatus @default(CLOSED)
+  totalStorageArea Int
+  region           Region
+  totalSlot        Int
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  //Relations
+  storageArea StorageArea[]
+
+  @@index([status, id])
+  @@map("warehouses")
+}
+
+model StorageArea {
+  id          String          @id @default(uuid()) @db.Uuid
+  warehouseId String          @db.Uuid
+  name        String
+  type        StorageAreaType @default(GENERAL_STORAGE)
+  status      WarehouseStatus @default(OPEN)
+  totalSlots  Int //Tổng số ô
+  totalRows   Int //Tổng số dãy
+  totalFloors Int //Tổng số tầng
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  //Relations
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  slots     Slot[]
+
+  @@index([warehouseId, type])
+  @@map("storage_areas")
+}
+
+model Slot {
+  id          String     @id @default(uuid()) @db.Uuid
+  areaId      String     @db.Uuid
+  warehouseId String     @db.Uuid
+  serial      String //Số ô
+  row         String //Số dãy
+  floor       String //Số tầng
+  maxWeight   Float // Khối lượng tối đa (kg)
+  volume      Float? // Thể tích tối đa (m3) hoặc dùng kích thước dài/rộng/cao
+  maxWidth    Float
+  maxHeight   Float
+  maxLength   Float
+  productId   String?    @db.Uuid
+  ownerId     String?    @db.Uuid
+  shopId      String?    @db.Uuid
+  status      SlotStatus @default(AVAILABLE)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  //Relations
+  area           StorageArea     @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  shop           Shop?           @relation(fields: [shopId], references: [id])
+  user           User?           @relation(fields: [ownerId], references: [id])
+  orderSlots     OrderSlot[]
+  inventory      Inventory[]
+  putAwayHistory PutAwayDetail[]
+
+  @@index([id, status])
+  @@map("slots")
+}
+
+enum InventoryStatus {
+  AVAILABLE // Sẵn sàng bán
+  DAMAGED // Hàng hỏng (chờ xử lý)
+  RETURNED // Hàng khách trả về (cần kiểm định)
+  EXPIRED // Hết hạn
+}
+
+// Cập nhật Inventory để hỗ trợ quản lý theo lô và trạng thái tốt hơn
+model Inventory {
+  id          String          @id @default(uuid()) @db.Uuid
+  slotId      String          @db.Uuid
+  shopId      String          @db.Uuid
+  productId   String          @db.Uuid
+  variantId   String          @db.Uuid
+  uomId       String          @db.Uuid
+  status      InventoryStatus @default(AVAILABLE)
+  quantity    Int             @default(0)
+  reservedQty Int             @default(0) // Quan trọng: Giữ hàng khi khách vừa đặt mua
+
+  slot Slot @relation(fields: [slotId], references: [id])
+  uom  Uom  @relation(fields: [uomId], references: [id])
+
+  @@index([productId, variantId, shopId])
+  @@map("inventories")
+}
+
+// Thêm bảng Outbound để hoàn thiện vòng đời hàng hóa
+enum OutboundStatus {
+  PENDING // Chờ xử lý đơn hàng
+  PICKING // Staff đang đi lấy hàng tại kệ
+  PACKED // Đã đóng gói
+  SHIPPED // Đã giao cho đơn vị vận chuyển
+  CANCELLED
+}
+
+model OutboundOrder {
+  id          String         @id @default(uuid()) @db.Uuid
+  orderId     String         @unique // ID đơn hàng từ sàn TMĐT
+  warehouseId String         @db.Uuid
+  status      OutboundStatus @default(PENDING)
+  priority    Int            @default(1) // Độ ưu tiên (Giao hàng hỏa tốc)
+
+  items     OutboundItem[]
+  createdAt DateTime       @default(now())
+}
+
+model OutboundItem {
+  id              String @id @default(uuid()) @db.Uuid
+  outboundOrderId String @db.Uuid
+  productId       String @db.Uuid
+  variantId       String @db.Uuid
+  quantity        Int // Số lượng khách mua
+
+  // Lưu vết lấy hàng từ đâu
+  pickDetails PickDetail[]
+
+  outboundOrder OutboundOrder @relation(fields: [outboundOrderId], references: [id])
+}
+
+model PickDetail {
+  id             String @id @default(uuid()) @db.Uuid
+  outboundItemId String @db.Uuid
+  slotId         String @db.Uuid // Lấy từ ô nào
+  quantity       Int // Lấy bao nhiêu
+  staffId        String @db.Uuid
+
+  outboundItem OutboundItem @relation(fields: [outboundItemId], references: [id])
+}
+
+//===================
+//Store Order to use warehouse slots
+//===================
+model OrderSlot {
+  id             String                 @id @default(uuid()) @db.Uuid
+  ownerId        String                 @db.Uuid
+  orderId        String                 @db.Uuid
+  warehouseId    String                 @db.Uuid
+  storageAreaId  String                 @db.Uuid
+  slotOrder      Int                    @default(1)
+  productId      String                 @db.Uuid
+  variantId      String                 @db.Uuid
+  baseUnitId     String                 @db.Uuid
+  packUnitId     String                 @db.Uuid
+  shippingUnitId String                 @db.Uuid
+  quantity       Int
+  description    String
+  notice         String
+  specialLabel   SpecialLabelDelivery[]
+  createdAt      DateTime               @default(now())
+  expiredAt      DateTime
+  updatedAt      DateTime               @updatedAt
+
+  //Relations
+  order  Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user   User    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  slot   Slot?   @relation(fields: [slotId], references: [id])
+  slotId String? @db.Uuid
+
+  @@map("order_slots")
+}
+
+//===================
+//UOM (unit of measure)
+//===================
+model Uom {
+  id           String @id @default(uuid()) @db.Uuid
+  name         String // Ví dụ: Piece, Box, Carton
+  abbreviation String // Viết tắt: pcs, bx, ctn
+
+  levelBaseUnit    Int   @default(1) // Có phải đơn vị nhỏ nhất không?
+  conversionFactor Float @default(1.0) // Tỷ lệ so với đơn vị gốc
+
+  inventory Inventory[]
+
+  @@map("uoms")
+}
+
+//====================
+//Inbound
+//====================
+enum InboundStatus {
+  REQUESTED
+  SHIPPED
+  RECEIVED
+  PUT_AWAY // Đã xếp vào chỗ
+  CANCELLED
+}
+
+model InboundOrder {
+  id           String        @id @default(uuid()) @db.Uuid
+  shopId       String        @db.Uuid
+  warehouseId  String        @db.Uuid
+  status       InboundStatus @default(REQUESTED)
+  expectedDate DateTime
+  actualDate   DateTime?
+  staffId      String?       @db.Uuid // Staff chịu trách nhiệm nhận hàng
+  items        InboundItem[]
+}
+
+model InboundItem {
+  id             String @id @default(uuid()) @db.Uuid
+  inboundOrderId String @db.Uuid
+  productId      String @db.Uuid
+  variantId      String @db.Uuid
+  uomId          String @db.Uuid // Nhập theo đơn vị nào? (Thùng/Cái)
+  quantity       Int
+  receivedQty    Int?
+
+  // Thêm quan hệ để biết item này được xếp vào những slot nào
+  putAwayDetails PutAwayDetail[]
+
+  inboundOrder InboundOrder @relation(fields: [inboundOrderId], references: [id])
+}
+
+//====================
+//Put away history: chi tiết xếp hàng
+//====================
+model PutAwayDetail {
+  id            String   @id @default(uuid()) @db.Uuid
+  inboundItemId String   @db.Uuid
+  slotId        String   @db.Uuid
+  staffId       String   @db.Uuid
+  quantity      Int // Số lượng xếp vào slot này
+  createdAt     DateTime @default(now())
+
+  inboundItem InboundItem @relation(fields: [inboundItemId], references: [id])
+  slot        Slot        @relation(fields: [slotId], references: [id])
+}

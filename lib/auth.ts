@@ -6,8 +6,11 @@ import { admin, emailOTP } from 'better-auth/plugins';
 import { prisma } from '@/lib/db';
 import { headers } from 'next/headers';
 import { nextCookies } from 'better-auth/next-js';
-import { sendPasswordResetEmail, sendVerificationEmail } from '@/lib/mailer';
 import { getUserNameOrEmailPrefix } from '@/lib/utils';
+import { NotificationRole, NotificationType } from '@/lib/generated/prisma';
+import { sendNotification } from '@/features/notification/server/controller/notification.action';
+
+import { ChannelType } from '@/features/notification/types/notification.type';
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -43,11 +46,19 @@ export const auth = betterAuth({
     minPasswordLength: 8,
     requireEmailVerification: true,
     sendResetPassword: async ({ user, url, token }, request) => {
-      await sendPasswordResetEmail(
-        user.email,
-        url,
-        getUserNameOrEmailPrefix(user)
-      );
+      await sendNotification({
+        to: user.email,
+        recipientRole: NotificationRole.BUYER,
+        type: NotificationType.SECURITY,
+        channels: [ChannelType.EMAIL],
+        subject: 'Reset your password',
+        body: 'A password reset was requested for your account.',
+        metadata: {
+          userName: getUserNameOrEmailPrefix(user),
+          resetLink: url,
+          ipAddress: request?.headers.get('x-forwarded-for') || 'Unknown',
+        },
+      });
     },
   },
   emailVerification: {
@@ -87,7 +98,18 @@ export const auth = betterAuth({
   plugins: [
     emailOTP({
       async sendVerificationOTP({ email, otp }) {
-        await sendVerificationEmail(email, otp);
+        await sendNotification({
+          to: email,
+          recipientRole: NotificationRole.BUYER,
+          type: NotificationType.VERIFICATION,
+          channels: [ChannelType.EMAIL],
+          subject: 'Verify your email address',
+          body: `Your verification code is ${otp}`,
+          metadata: {
+            otp: otp,
+            validityInMinutes: 5,
+          },
+        });
       },
       allowedAttempts: 5,
       expiresIn: 300, // 5 minutes

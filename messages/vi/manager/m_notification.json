@@ -1,0 +1,30 @@
+{
+  "admin_notification": {
+    "t_action_noti": "Hành động",
+    "t_success_desc_noti": "Tải tài nguyên thành công",
+    "t_copy_desc_noti": "Sao chép thông tin thành công!",
+    "t_del_desc_noti": "Xóa đối tượng thành công!",
+
+    "t_update_desc_noti": "Cập nhật thông tin thành công!",
+    "t_update_failed_desc_noti": "Cập nhật thông tin không thành công!",
+
+    "t_action_failed_noti": "Hành động thất bại",
+    "t_unauthorized_desc_noti": "Xác thực tài khoản thất bại",
+    "t_success_failed_desc_noti": "Tải tài nguyên không thành công.",
+    "t_copy_failed_desc_noti": "Sao chép thông tin không thành công!",
+    "t_del_failed_desc_noti": "Xóa đối tượng không thành công!",
+    "t_del_warehouse_failed_desc_noti": "Xóa thất bại do nhà kho chưa trống hoàn toàn hoặc chưa bị ngừng hoạt động",
+    "t_process_failed_noti": "Tiến trình thất bại",
+    "t_conn_failed_desc_noti": "Không thể kết nối đến server!",
+    "t_not_found": "Không có dữ liệu",
+
+    "t_create_desc_noti": "Tạo mới đối tượng thành công!",
+    "t_create_failed_desc_noti": "Tạo mới đối tượng không thành công",
+
+    "t_missing_query": "Thiếu dữ liệu truy vấn.",
+    "t_missing_data": "Thiếu dữ liệu biểu mẫu",
+
+    "t_slot_invalid": "Tổng ô chứa phái lớn tổng phân vùng",
+    "t_number_invalid": "Sai định dạng: yêu cầu số, nhận chuỗi kí tự"
+  }
+}

@@ -92,6 +92,7 @@ const ProductsPage = () => {
   );
 
   const t = useTranslations('admin_product_page');
+  const n = useTranslations('adin_notification');
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -111,7 +112,7 @@ const ProductsPage = () => {
     useSensor(KeyboardSensor, {})
   );
 
-  const handleCopy = useCopyToClipboard({ t: t });
+  const handleCopy = useCopyToClipboard({ t: n });
 
   const columns: ColumnDef<productItemData>[] = [
     {

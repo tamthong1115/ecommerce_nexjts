@@ -1,0 +1,28 @@
+{
+  "admin_dashboard": {
+    "section_card": {
+      "t_total_revenue": "Total Revenue",
+      "t_revenue_desc_1": "Growth this month",
+      "t_revenue_desc_2": "Visitors in last 6 months",
+      "t_new_customers": "New Customers",
+      "t_customers_desc_1": "Decrease",
+      "t_customers_desc_1_1": "vs last period",
+      "t_customers_desc_2": "Growth focus needed",
+      "t_active_customers": "Active Accounts",
+      "t_active_customer_desc_1": "Long-term users",
+      "t_active_customer_desc_2": "Target exceeded",
+      "t_growth_rate": "Growth Rate",
+      "t_growth_rate_desc_1": "Stable performance",
+      "t_growth_rate_desc_2": "Growth target met"
+    },
+    "chart_area_interactive": {
+      "t_total_customer": "Total Visitors",
+      "t_3m": "Last 3 months data",
+      "t_30d": "Last 30 days data",
+      "t_7d": "Last 7 days data",
+      "t_3m_toggle": "Last 3 months",
+      "t_30d_toggle": "Last 30 days",
+      "t_7d_toggle": "Last 7 days"
+    }
+  }
+}

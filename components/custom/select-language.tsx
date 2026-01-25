@@ -21,40 +21,22 @@ export const SelectLanguage = () => {
     document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000`; // 1 year
     router.refresh();
   };
-
-  const [width, setWidth] = useState<number>(0);
-
-  useEffect(() => {
-    // Hàm cập nhật kích thước
-    const handleResize = () => setWidth(window.innerWidth);
-
-    // Lấy kích thước ban đầu
-    handleResize();
-
-    // Lắng nghe sự kiện resize
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          size={width > 1000 ? 'default' : 'icon'}
-          className={'text-primary hover:cursor-pointer'}
+          size={'icon'}
+          className={'text-primary w-fit px-1.5 py-1 hover:cursor-pointer'}
         >
-          {width > 1000 ? (
-            t('language')
-          ) : (
-            <Image
-              src={t('icon')}
-              alt="flag-country"
-              width={0}
-              height={0}
-              className="object-contain"
-            />
-          )}
+          <span className="hidden lg:inline">{t('language')}</span>
+          <Image
+            src={t('icon')}
+            alt="flag-country"
+            width={50}
+            height={50}
+            className="object-contain lg:hidden"
+          />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56 drop-shadow-md drop-shadow-secondary">

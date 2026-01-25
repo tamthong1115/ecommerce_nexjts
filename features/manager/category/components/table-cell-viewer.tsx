@@ -35,6 +35,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { handleDelete } from '@/features/manager/category/funcs/funcs';
+import { fetchData } from '@/funcs/fetch';
 import { putData } from '@/funcs/put';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -96,6 +97,7 @@ function TableCellViewer({
     },
   });
   const t = useTranslations('admin_category_page.category_drawer');
+  const n = useTranslations('admin_notification');
 
   // This effect runs when 'openIndex' changes
   useEffect(() => {
@@ -137,14 +139,25 @@ function TableCellViewer({
 
   async function fetchDetail() {
     try {
-      const response = await fetch(
-        paths.manager.category.fetch_detail(item.id)
-      );
-      const detail = await response.json();
-      //console.log(detail.data);
-      setDetail(detail.data);
+      const res = await fetchData({
+        baseUrl: paths.manager.warehouse.fetch_detail,
+        params: { id: item.id },
+        setData: undefined,
+        cacheType: 'default',
+      });
+      // console.log(res);
+      if (res.success) {
+        setDetail(res.data);
+      } else {
+        toast(n('t_process_failed_noti'), {
+          description: n(res.message),
+        });
+      }
     } catch (err) {
       console.error(err);
+      toast(n('t_process_failed_noti'), {
+        description: n('t_conn_failed_desc_noti'),
+      });
     }
   }
 
@@ -237,7 +250,7 @@ function TableCellViewer({
                   className="text-left w-full"
                   onClick={() => {
                     handleDelete({
-                      id: value.id,
+                      url: paths.manager.category.del_one(detail?.id),
                       setIsReset: setIsReset,
                       t,
                     });

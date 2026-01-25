@@ -26,6 +26,7 @@ import { AiOutlineProduct } from 'react-icons/ai';
 import { BsGraphUpArrow } from 'react-icons/bs';
 import { CiBoxList, CiShop } from 'react-icons/ci';
 import { GoPeople } from 'react-icons/go';
+import { FaWarehouse } from 'react-icons/fa';
 
 type Role = 'USER' | 'SELLER' | 'ADMIN';
 
@@ -143,6 +144,32 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         ],
       },
       {
+        title: 'Vouchers',
+        url: '#',
+        icon: Ticket,
+        items: [
+          {
+            title: 'View vouchers',
+            url: '/manager/vouchers',
+          },
+        ],
+      },
+      {
+        title: t('t_warehouse'),
+        url: '#',
+        icon: FaWarehouse,
+        items: [
+          {
+            title: t('t_warehouse_list'),
+            url: '/manager/warehouse',
+          },
+          {
+            title: t('t_region_list'),
+            url: '#',
+          },
+        ],
+      },
+      {
         title: t('t_statistic'),
         url: '#',
         icon: BsGraphUpArrow,
@@ -162,17 +189,6 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
           {
             title: t('t_shop'),
             url: '#',
-          },
-        ],
-      },
-      {
-        title: 'Vouchers',
-        url: '#',
-        icon: Ticket,
-        items: [
-          {
-            title: 'View vouchers',
-            url: '/manager/vouchers',
           },
         ],
       },

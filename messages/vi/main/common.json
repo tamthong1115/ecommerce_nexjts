@@ -12,7 +12,9 @@
   "general": {
     "t_currency": "VND",
     "t_rate": "1",
-    "t_region": "VN"
+    "t_region": "VN",
+    "t_copy_action": "Sao chép ID",
+    "t_del_action": "Xóa"
   },
 
   "not_found_page": {

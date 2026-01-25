@@ -1,0 +1,37 @@
+sequenceDiagram
+    actor MAN as Manager
+    actor SEL as Seller
+    participant FE as FrontEnd
+    participant BE as BackEnd
+    participant DB as Database
+
+    autonumber
+
+    Note over MAN, DB: QUẢN LÝ KHO (CRUD Warehouse)
+    MAN->>FE: Nhập thông tin kho mới
+    FE->>BE: POST /warehouses
+    BE->>DB: Lưu Warehouse & tự động tạo Slots
+    DB-->>FE: Success 201
+    
+    Note over SEL, DB: ĐẶT CHỖ TRƯỚC (Pre-order Slots)
+    SEL->>FE: Tìm kho theo City/District
+    FE->>BE: GET /warehouses?city=...
+    BE->>DB: Truy vấn kho còn trống Slot
+    DB-->>FE: Trả về danh sách kho
+    
+    SEL->>FE: Chọn kho & số lượng sản phẩm
+    FE->>BE: POST /order-slots (Pre-order)
+    Note right of BE: Logic: Kiểm tra sức chứa (Volume/Weight)
+    BE->>DB: Create OrderSlot & Update Slot Status (RESERVED)
+    DB-->>FE: Trả về mã đặt chỗ (Booking ID)
+    
+    Note over MAN, DB: XỬ LÝ YÊU CẦU ĐẶT CHỖ
+    BE->>MAN: Thông báo có đơn đặt chỗ mới
+    MAN->>FE: Xem danh sách OrderSlot
+    FE->>BE: GET /order-slots?status=PENDING
+    BE->>DB: Lấy dữ liệu OrderSlot
+    
+    MAN->>FE: Duyệt đơn (Confirm)
+    FE->>BE: PATCH /order-slots/{id}/status
+    BE->>DB: Update Status (CONFIRMED)
+    BE->>SEL: Gửi thông báo: Đã phê duyệt, hãy gửi hàng!

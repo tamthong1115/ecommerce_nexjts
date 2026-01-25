@@ -1,0 +1,53 @@
+model Payment {
+  id             String          @id @default(uuid()) @db.Uuid
+  provider       PaymentProvider
+  method         String?
+  amount         Decimal         @db.Decimal(19, 4)
+  currency       Currency        @default(VND)
+  status         PaymentStatus   @default(PENDING)
+  externalId     String?
+  reference      String?
+  rawPayload     Json?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @default(now()) @updatedAt
+  idempotencyKey String?         @unique
+  userId         String?         @db.Uuid
+  orders         OrderPayment[]
+  Refund         Refund[]
+
+  @@unique([provider, idempotencyKey])
+  @@unique([provider, externalId])
+  @@index([userId, createdAt])
+  @@map("payment")
+}
+
+model PaymentIntent {
+  id         String          @id @default(uuid()) @db.Uuid
+  gatewayRef String          @unique
+  status     IntentStatus
+  provider   PaymentProvider
+  orderIds   Json
+  amount     Decimal
+  expiresAt  DateTime
+  createdAt  DateTime        @default(now())
+
+  @@map("payment_intent")
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  PARTIALLY_REFUNDED
+  REFUNDED
+  FAILED
+}
+
+enum PaymentProvider {
+  CASH
+  STRIPE
+  PAYPAL
+  CASSO
+  OTHER
+  VNPAY
+  MOMO
+}

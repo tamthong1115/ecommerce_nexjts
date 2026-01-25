@@ -5,7 +5,7 @@ import {
   PrismaUniqueConstraintError,
   toTypedPrismaError,
 } from '@/lib/prisma-errors';
-import { ServiceError } from '@/lib/service-error';
+import { ServiceError } from './service-error';
 import { ApiResponse, HttpStatus, StatusCode } from '@/types/api';
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
@@ -24,6 +24,14 @@ interface PaginatedOptions<T> {
   total: number;
   message?: string;
   code?: StatusCode;
+}
+
+interface CursorPaginatedOptions<T> {
+  data?: T;
+  nextCursor: string | null | undefined;
+  message?: string;
+  code?: StatusCode;
+  meta?: Record<string, any>;
 }
 
 interface ErrorOptions {
@@ -70,6 +78,27 @@ export class ResponseFactory {
           totalPages,
           hasNextPage: page < totalPages,
           hasPrevPage: page > 1,
+        },
+      },
+    });
+  }
+
+  static cursorPaginated<T = null>({
+    data,
+    nextCursor,
+    message = 'success',
+    code = HttpStatus.OK,
+    meta = {},
+  }: CursorPaginatedOptions<T>): ApiResponse<T> {
+    return ResponseFactory.success({
+      data,
+      message,
+      code,
+      meta: {
+        ...meta,
+        cursor: {
+          nextCursor: nextCursor || null,
+          hasNextPage: !!nextCursor,
         },
       },
     });

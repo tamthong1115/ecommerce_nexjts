@@ -1,0 +1,100 @@
+model ShopFollower {
+  id     String @id @default(uuid()) @db.Uuid
+  shopId String @db.Uuid
+  userId String @db.Uuid
+  shop   Shop   @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, shopId])
+  @@map("shop_follower")
+}
+
+model Shop {
+  id                      String                    @id @default(uuid()) @db.Uuid
+  ownerId                 String                    @db.Uuid
+  name                    String
+  slug                    String                    @unique
+  description             String?
+  logoUrl                 String?
+  logoPublicId            String?
+  coverUrl                String?
+  coverPublicId           String?
+  status                  ShopStatus                @default(PENDING)
+  ratingAvg               Decimal                   @default(0) @db.Decimal(2, 1)
+  ratingCount             Int                       @default(0)
+  contactEmail            String?
+  contactPhone            String?
+  followerCount           Int                       @default(0)
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+  deletedAt               DateTime?
+  LedgerEntries           LedgerEntry[]
+  Balance                 ShopBalance?
+  conversations           Conversation[]
+  ConversationParticipant ConversationParticipant[]
+  Message                 Message[]
+  orders                  Order[]
+  orderItems              OrderItem[]
+  products                Product[]
+  owner                   User                      @relation("ShopsOwned", fields: [ownerId], references: [id])
+  followers               ShopFollower[]
+  ShopInvitation          ShopInvitation[]
+  members                 ShopMember[]
+  slots                   Slot[]
+  Voucher                 Voucher[]
+
+  @@index([ownerId, status])
+  @@map("shop")
+}
+
+model ShopMember {
+  id        String         @id @default(uuid()) @db.Uuid
+  shopId    String         @db.Uuid
+  userId    String         @db.Uuid
+  role      ShopMemberRole @default(STAFF)
+  createdAt DateTime       @default(now())
+  shop      Shop           @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([shopId, userId])
+  @@map("shop_member")
+}
+
+model ShopInvitation {
+  id        String         @id @default(uuid())
+  email     String
+  shopId    String         @db.Uuid
+  token     String         @unique
+  role      ShopMemberRole @default(STAFF)
+  expiresAt DateTime
+  createdAt DateTime       @default(now())
+  shop      Shop           @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@unique([shopId, email])
+  @@map("shop_invitation")
+}
+
+model ShopBalance {
+  shopId    String   @id @db.Uuid
+  pending   Decimal  @default(0) @db.Decimal(19, 4)
+  available Decimal  @default(0) @db.Decimal(19, 4)
+  frozen    Decimal  @default(0) @db.Decimal(19, 4)
+  version   Int      @default(0)
+  updatedAt DateTime @updatedAt
+  shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId])
+}
+
+enum ShopStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  CLOSED
+}
+
+enum ShopMemberRole {
+  OWNER
+  STAFF
+  MANAGER
+}

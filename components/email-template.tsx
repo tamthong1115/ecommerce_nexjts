@@ -74,7 +74,7 @@ export function renderPasswordResetEmail(
               <p style="margin: 0; font-weight: 600; color: #92400e; font-size: 14px;">
                 ⚠️ Important Security Information
               </p>
-              <ul style="margin: 8px 0 0 0; padding-left: 20px; color: #78350f; font-size: 13px; line-height: 20px;">
+              <ul style="margin: 8px 0 0 0; paddingS-left: 20px; color: #78350f; font-size: 13px; line-height: 20px;">
                 <li>This link will expire in 1 hour</li>
                 <li>For security reasons, this link can only be used once</li>
                 <li>If you didn't request this reset, please ignore this email</li>

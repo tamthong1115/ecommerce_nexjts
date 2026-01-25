@@ -1,0 +1,56 @@
+{
+  "admin_explain": {
+    "t_title": "Thông tin thêm",
+    "t_accept": "Đồng ý"
+  },
+  "admin_layout": {
+    "admin_app_sidebar": {
+      "t_quick_access": "Truy cập nhanh",
+      "t_dashboard": "Tổng quan",
+      "t_category": "Danh mục",
+      "t_category_management": "Quản lý danh mục",
+      "t_product": "Sản phẩm",
+      "t_product_management": "Quản lý sản phẩm",
+      "t_complaint": "Khiếu nại",
+      "t_shop": "Cửa hàng",
+      "t_shop_management": "Quản lý cửa hàng",
+      "t_support": " Hỗ trợ",
+      "t_user": "Người dùng",
+      "t_user_management": "Quản lý người dùng",
+      "t_warehouse": "Kho hàng",
+      "t_warehouse_list": "Danh sách",
+      "t_warehouse_management": "Quản lí kho hàng",
+      "t_region_list": "Quản lí vùng",
+      "t_statistic": "Thống kê",
+      "t_revenue": "Doanh thu",
+      "t_traffic": "Lưu lượng truy cập",
+      "t_settings": "Cài đặt",
+      "t_general": " Chung",
+      "t_security": " Bảo mật",
+      "t_notification": " Thông báo",
+      "t_feedback": " Phản hồi",
+      "t_payment": " Thanh toán",
+      "t_account_settings": " Tài khoản",
+      "t_connected": "Liên kết",
+      "t_logout": " Đăng xuất"
+    }
+  },
+  "admin_search_bar": {
+    "t_search_action": "Tìm kiếm",
+    "t_filter_by": "Lọc theo",
+    "t_name": "Tên",
+    "t_id": "ID",
+    "t_title": "Tên",
+    "t_shopId": "Mã cửa hàng",
+    "t_ownerId": "Mã chủ cửa hàng",
+    "t_email": "Email",
+    "t_region": "Vùng"
+  },
+  "admin_tab_table_view": {
+    "t_no_product_found": "Không có dữ liệu.",
+    "t_of": "của",
+    "t_rows_selected": "số dòng đã chọn.",
+    "t_rows_per_page": "Dòng mỗi trang",
+    "t_page": "Trang"
+  }
+}

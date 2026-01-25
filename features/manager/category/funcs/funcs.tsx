@@ -1,20 +1,19 @@
 import { deleteData } from '@/funcs/delete';
-import { paths } from '@/lib/path';
 import { Dispatch, SetStateAction } from 'react';
 import { toast } from 'sonner';
 
 export const handleDelete = async ({
-  id,
+  url,
   setIsReset,
   t,
 }: {
-  id: string;
+  url: string;
   setIsReset: Dispatch<SetStateAction<boolean>>;
   t: (key: string) => string;
 }) => {
   try {
     const response = await deleteData({
-      url: paths.manager.category.del_one(id),
+      url: url,
     });
     if (response.ok) {
       toast(t('t_action_noti'), {

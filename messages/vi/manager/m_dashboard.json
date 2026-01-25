@@ -1,0 +1,28 @@
+{
+  "admin_dashboard": {
+    "section_card": {
+      "t_total_revenue": "Tổng doanh thu",
+      "t_revenue_desc_1": "Tăng trưởng trong tháng này",
+      "t_revenue_desc_2": "Lượt khách ghé thăm trong 6 tháng qua",
+      "t_new_customers": "Khách hàng mới",
+      "t_customers_desc_1": "Giảm",
+      "t_customers_desc_1_1": "cùng kì",
+      "t_customers_desc_2": "Cần chú ý tăng trưởng",
+      "t_active_customers": "Tài khoản đang hoạt động",
+      "t_active_customer_desc_1": "Lượng người dùng lâu dài",
+      "t_active_customer_desc_2": "Cam kết vượt mục tiêu",
+      "t_growth_rate": "Tốc độ phát triển",
+      "t_growth_rate_desc_1": "Hiệu suất tăng trưởng ổn định",
+      "t_growth_rate_desc_2": "Đạt mục tiêu tăng trưởng"
+    },
+    "chart_area_interactive": {
+      "t_total_customer": "Tổng lượng khách ghé thăm",
+      "t_3m": "Số liệu 3 tháng gần nhất",
+      "t_30d": "Số liệu 30 ngày gần nhất",
+      "t_7d": "Số liệu 7 ngày gần nhất",
+      "t_3m_toggle": "3 tháng trước",
+      "t_30d_toggle": "30 ngày trước",
+      "t_7d_toggle": "7 ngày trước"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+sequenceDiagram
+    participant Platform as E-commerce Platform
+    participant Outbound as Outbound Service
+    participant Inv as Inventory Service
+    actor Staff
+
+    Platform->>Outbound: Đẩy đơn hàng mới (OutboundOrder)
+    Outbound->>Inv: Check tồn kho & ReservedQty
+    Inv-->>Outbound: Đủ hàng (Status: PENDING)
+    
+    Outbound->>Outbound: Tạo lệnh PickDetail (Lấy ở Slot X)
+    Outbound->>Staff: Giao nhiệm vụ lấy hàng (Picking task)
+    
+    Staff->>Outbound: Xác nhận đã lấy hàng khỏi kệ
+    Outbound->>Inv: Trừ quantity & Trừ reservedQty
+    Outbound-->>Platform: Trạng thái: SHIPPED

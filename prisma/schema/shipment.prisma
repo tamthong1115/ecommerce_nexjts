@@ -1,0 +1,15 @@
+model Shipment {
+  id             String    @id @default(uuid()) @db.Uuid
+  orderId        String    @db.Uuid
+  carrier        String?
+  trackingNumber String?
+  status         String?
+  shippedAt      DateTime?
+  deliveredAt    DateTime?
+  addressSnap    Json
+  createdAt      DateTime  @default(now())
+  order          Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("shipment")
+}

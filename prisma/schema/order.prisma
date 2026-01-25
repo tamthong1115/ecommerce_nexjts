@@ -1,0 +1,139 @@
+model Order {
+  id                String              @id @default(uuid()) @db.Uuid
+  orderNumber       String              @unique
+  userId            String              @db.Uuid
+  shopId            String?             @db.Uuid
+  status            OrderStatus         @default(PENDING)
+  paymentStatus     PaymentStatus       @default(PENDING)
+  fulfillmentStatus FulfillmentStatus   @default(NOT_FULFILLED)
+  currency          Currency            @default(VND)
+  itemsTotal        Decimal             @db.Decimal(14, 2)
+  shippingFee       Decimal             @default(0) @db.Decimal(14, 2)
+  discountTotal     Decimal             @default(0) @db.Decimal(14, 2)
+  taxTotal          Decimal             @default(0) @db.Decimal(14, 2)
+  grandTotal        Decimal             @db.Decimal(14, 2)
+  shippingAddress   Json
+  billingAddress    Json?
+  contactEmail      String?
+  contactPhone      String?
+  notes             String?
+  placedAt          DateTime            @default(now())
+  updatedAt         DateTime            @default(now()) @updatedAt
+  canceledAt        DateTime?
+  Message           Message[]
+  shop              Shop?               @relation(fields: [shopId], references: [id], onDelete: Restrict)
+  user              User                @relation(fields: [userId], references: [id])
+  drafts            OrderDraft?
+  items             OrderItem[]
+  payments          OrderPayment[]
+  orderSlots        OrderSlot[]
+  vouchers          OrderVoucher[]
+  refunds           Refund[]
+  ReturnRequest     ReturnRequest[]
+  shipments         Shipment[]
+  VoucherRedemption VoucherRedemption[]
+
+  @@index([userId, placedAt])
+  @@index([shopId, status])
+  @@map("order")
+}
+
+model OrderItem {
+  id           String          @id @default(uuid()) @db.Uuid
+  orderId      String?         @db.Uuid
+  orderDraftId String?         @db.Uuid
+  productId    String          @db.Uuid
+  shopId       String?         @db.Uuid
+  variantId    String?         @db.Uuid
+  title        String
+  sku          String?
+  unitPrice    Decimal         @db.Decimal(14, 2)
+  quantity     Int
+  discount     Decimal         @default(0) @db.Decimal(14, 2)
+  total        Decimal         @db.Decimal(14, 2)
+  metadata     Json?
+  orderDraft   OrderDraft?     @relation(fields: [orderDraftId], references: [id], onDelete: Cascade)
+  order        Order?          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product      Product         @relation(fields: [productId], references: [id])
+  shop         Shop?           @relation(fields: [shopId], references: [id], onDelete: Restrict)
+  variant      ProductVariant? @relation(fields: [variantId], references: [id])
+  ReturnItem   ReturnItem[]
+  review       Review?
+
+  @@index([orderId])
+  @@map("order_item")
+}
+
+model OrderDraft {
+  id            String         @id @default(uuid()) @db.Uuid
+  orderNumber   String         @unique
+  orderId       String?        @unique @db.Uuid
+  userId        String         @unique @db.Uuid
+  placedAt      DateTime       @default(now())
+  updatedAt     DateTime       @default(now()) @updatedAt
+  status        OrderStatus    @default(PENDING)
+  paymentStatus PaymentStatus  @default(PENDING)
+  currency      Currency       @default(VND)
+  itemsTotal    Decimal        @db.Decimal(14, 2)
+  shippingFee   Decimal        @default(0) @db.Decimal(14, 2)
+  discountTotal Decimal        @default(0) @db.Decimal(14, 2)
+  grandTotal    Decimal        @db.Decimal(14, 2)
+  shippingInfor Json
+  notes         String?
+  order         Order?         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user          User           @relation(fields: [userId], references: [id])
+  items         OrderItem[]
+  vouchers      OrderVoucher[]
+
+  @@index([userId, placedAt])
+  @@index([orderId])
+  @@map("order_draft")
+}
+
+model OrderPayment {
+  id        String  @id @default(uuid())
+  orderId   String  @db.Uuid
+  paymentId String  @db.Uuid
+  amount    Decimal @default(0) @db.Decimal(19, 4)
+  order     Order   @relation(fields: [orderId], references: [id])
+  payment   Payment @relation(fields: [paymentId], references: [id])
+
+  @@unique([orderId, paymentId])
+  @@map("order_payment")
+}
+
+model OrderVoucher {
+  id           String      @id @default(uuid()) @db.Uuid
+  orderId      String?     @db.Uuid
+  voucherId    String      @db.Uuid
+  orderDraftId String?     @db.Uuid
+  orderDraft   OrderDraft? @relation(fields: [orderDraftId], references: [id])
+  order        Order?      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  voucher      Voucher     @relation(fields: [voucherId], references: [id])
+
+  @@unique([orderId, voucherId])
+  @@unique([voucherId, orderDraftId])
+  @@map("order_voucher")
+}
+
+enum OrderStatus {
+  PENDING
+  AWAITING_PAYMENT
+  PAID
+  PROCESSING
+  PARTIALLY_FULFILLED
+  FULFILLED
+  PARTIALLY_SHIPPED
+  SHIPPED
+  DELIVERED
+  CANCELED
+  REFUNDED
+  EXPIRED
+}
+
+enum FulfillmentStatus {
+  NOT_FULFILLED
+  PARTIALLY_FULFILLED
+  FULFILLED
+  RETURNED
+}

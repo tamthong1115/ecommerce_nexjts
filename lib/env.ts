@@ -1,5 +1,11 @@
 import { createEnv } from '@t3-oss/env-nextjs';
 import { z } from 'zod';
+import { config } from 'dotenv';
+
+// Only load .env if we are NOT in a Next.js environment (to avoid conflicts)
+if (process.env.NEXT_RUNTIME === undefined) {
+  config();
+}
 
 export const env = createEnv({
   server: {

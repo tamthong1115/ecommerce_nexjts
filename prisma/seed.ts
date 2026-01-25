@@ -12,14 +12,19 @@ import {
   Role,
   ShopMemberRole,
   Visibility,
-  VoucherType,
-} from '@/lib/generated/prisma';
-import { Decimal } from '@/lib/generated/prisma/runtime/library';
+  VoucherType, 
+} from '../lib/generated/prisma';
 import { faker } from '@faker-js/faker';
 import { Currency, OrderStatus } from '../lib/generated/prisma';
 import MessageRole = $Enums.MessageRole;
+import { PrismaPg } from '@prisma/adapter-pg';
+import pg from 'pg';
+import 'dotenv/config';
 
-const prisma = new PrismaClient();
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log('🧹 Đang xóa dữ liệu cũ...');

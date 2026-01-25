@@ -13,7 +13,7 @@ export const putData = async ({
   t: ReturnType<typeof useTranslations>;
 }) => {
   const headers: HeadersInit = {
-    Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+    Authorization: `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('token') || '' : ''}`,
   };
 
   if (contentType) {

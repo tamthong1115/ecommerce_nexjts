@@ -26,14 +26,37 @@ export interface PaginationMeta {
   hasPrevPage: boolean;
 }
 
-export interface ApiResponse<T = null> {
+export interface CursorMeta {
+  nextCursor: string | null;
+  hasNextPage: boolean;
+}
+
+/**
+ * Standard API envelope for backend responses.
+ *
+ * @template T  Data payload type (defaults to null).
+ * @template ME Additional meta fields type (defaults to unknown). Useful for extra counters/flags.
+ *
+ * @property {boolean} success Whether the request succeeded.
+ * @property {string} message Human-readable status or summary.
+ * @property {StatusCode} code HTTP-like status code.
+ * @property {T} [data] Optional response payload.
+ * @property {{
+ *   pagination?: PaginationMeta;
+ *   cursor?: CursorMeta;
+ * } & (ME extends Record<string, any> ? ME : unknown)} [meta]
+ * Optional metadata: pagination, cursor info, plus any extra meta fields.
+ * @property {Record<string, string[] | undefined> | null | object} [errors]
+ * Optional validation or server error details.
+ */ export interface ApiResponse<T = null, ME = unknown> {
   success: boolean;
   message: string;
   code: StatusCode;
   data?: T;
   meta?: {
     pagination?: PaginationMeta;
-  };
+    cursor?: CursorMeta;
+  } & (ME extends Record<string, any> ? ME : unknown);
   errors?: Record<string, string[] | undefined> | null | object;
 }
 export type DbClient = Prisma.TransactionClient | PrismaClient;

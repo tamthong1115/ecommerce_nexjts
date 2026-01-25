@@ -1,0 +1,50 @@
+sequenceDiagram
+    autonumber
+    actor Buyer as 👤 User (Buyer)
+    participant FE as 🖥️ Frontend
+    participant API as ⚙️ Backend API
+    participant DB as 🗄️ Database
+    actor SellerA as 🏪 Shop A (Manager)
+    actor SellerB as 🏪 Shop B (Manager)
+
+    Note over Buyer, SellerB: Phase 1: The "Split" Checkout
+
+    Buyer->>FE: Add Item (Shop A) + Item (Shop B) to Cart
+    Buyer->>FE: Click "Checkout" (Total: $50)
+    FE->>API: POST /checkout (Items list)
+
+    API->>API: Calculate Total ($50)
+    API->>DB: Create Payment Record (Pending)
+
+    Note right of API: SYSTEM SPLIT LOGIC
+    API->>DB: Create Order #101 for Shop A ($20)
+    API->>DB: Create Order #102 for Shop B ($30)
+    API->>DB: Link Payment to Orders #101 & #102
+
+    API-->>FE: Return Payment Success
+
+    par Notify Shop A
+        API->>DB: Create Notification for Shop A Staff
+        API-->>SellerA: 🔔 "New Order #101 Received"
+    and Notify Shop B
+        API->>DB: Create Notification for Shop B Staff
+        API-->>SellerB: 🔔 "New Order #102 Received"
+    end
+
+    Note over Buyer, SellerB: Phase 2: Independent Fulfillment
+
+    SellerA->>FE: Log in to Seller Portal
+    FE->>API: GET /shop/orders
+    API-->>FE: Returns Order #101 (Status: PAID)
+
+    SellerA->>FE: Click "Print Label" & "Ship"
+    FE->>API: PATCH /orders/101/status (SHIPPED)
+
+    API->>DB: Update Order #101 Status
+    API->>DB: Create Notification for Buyer
+    API-->>Buyer: 🔔 "Your package from Shop A has shipped!"
+
+    Note right of SellerB: Shop B is slow.<br/>Order #102 remains "Processing".
+
+    Buyer->>FE: Check "My Orders"
+    API-->>FE: Return List: <br/>Order #101: Shipped 🚚<br/>Order #102: Processing ⏳

@@ -4,10 +4,10 @@ type FetchOptions = RequestInit & {
   params?: Record<string, string | number | boolean | undefined>;
 };
 
-export async function fetchApi<T>(
+export async function fetchApi<T, ME = unknown>(
   endpoint: string,
   { params, ...options }: FetchOptions = {}
-): Promise<ApiResponse<T>> {
+): Promise<ApiResponse<T, ME>> {
   let finalEndpoint = endpoint;
 
   if (params) {
@@ -25,5 +25,5 @@ export async function fetchApi<T>(
   const res = await fetch(finalEndpoint, options);
   const payload = await res.json();
 
-  return payload as ApiResponse<T>;
+  return payload as ApiResponse<T, ME>;
 }

@@ -47,6 +47,8 @@ import {
 } from '@tanstack/react-table';
 import { useTranslations } from 'next-intl';
 import React, { Dispatch, SetStateAction, useEffect } from 'react';
+import { IoMdCloseCircle } from 'react-icons/io';
+import { toast } from 'sonner';
 
 /**
  * @interface tabProductProps
@@ -125,6 +127,7 @@ const TabTableView = <T,>({
 }: tabProductProps<T>) => {
   const [rows, setRows] = React.useState<number>(10);
   const t = useTranslations('admin_tab_table_view');
+  const n = useTranslations('admin_notification');
 
   // Helper function to handle fetching
   const loadData = async (page: number, limit: number) => {
@@ -143,6 +146,25 @@ const TabTableView = <T,>({
             totalPages: 1,
           },
         });
+      } else {
+        toast(n('t_action_failed_noti'), {
+          description: n('t_copy_success_failed_desc_noti'),
+          duration: 3000,
+          icon: <IoMdCloseCircle />,
+          cancel: {
+            label: 'OK',
+            onClick: () => {},
+          },
+        });
+        setData({
+          data: [],
+          pagination: {
+            page: 0,
+            limit: rows,
+            total: 0,
+            totalPages: 0,
+          },
+        });
       }
     } catch (error) {
       console.error('Failed to load table data:', error);
@@ -155,6 +177,7 @@ const TabTableView = <T,>({
 
   useEffect(() => {
     if (data) {
+      console.log(data);
       setList(data.data);
     }
   }, [data, setList]);

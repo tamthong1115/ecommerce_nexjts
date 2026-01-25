@@ -41,16 +41,18 @@ import { toast } from 'sonner';
 
 export function TableCellViewer({
   item,
-  setUserList,
+  setIsReset,
 }: {
   item: userItemData;
-  setUserList: React.Dispatch<SetStateAction<userItemData[]>>;
+  setIsReset: React.Dispatch<SetStateAction<boolean>>;
 }) {
   const isMobile = useIsMobile();
   const [detail, setDetail] = React.useState<userDetail | null>(null);
   const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
+  const [open, setOpen] = React.useState<boolean>(false);
   const t = useTranslations('admin_user_page.user_drawer');
-  const handleCopy = useCopyToClipboard({ t: t });
+  const n = useTranslations('admin_notification');
+  const handleCopy = useCopyToClipboard({ t: n });
 
   useEffect(() => {
     console.log(detail);
@@ -65,12 +67,12 @@ export function TableCellViewer({
         cacheType: 'default',
       });
       if (res) {
-        setDetail(res.data.data);
+        setDetail(res.data);
       }
     } catch (err) {
       console.error(err);
-      toast(t('t_process_failed_noti'), {
-        description: t('t_conn_failed_desc_noti'),
+      toast(n('t_process_failed_noti'), {
+        description: n('t_conn_failed_desc_noti'),
       });
     }
   }
@@ -83,10 +85,13 @@ export function TableCellViewer({
         body: JSON.stringify({ visibility: value }),
       });
       if (response.status === 200) {
-        toast(t('t_action_noti'), {
-          description: t('t_update_desc_noti'),
+        toast(n('t_action_noti'), {
+          description: n('t_update_desc_noti'),
         });
-        setUserList((prev) => prev.filter((shop) => shop.id !== item.id));
+        setTimeout(() => {
+          setOpen(false);
+          setIsReset((prev) => !prev);
+        }, 2000);
       }
     } catch (e) {
       console.error(e);
@@ -98,7 +103,11 @@ export function TableCellViewer({
   }, [detail]);
 
   return (
-    <Drawer direction={isMobile ? 'bottom' : 'right'}>
+    <Drawer
+      direction={isMobile ? 'bottom' : 'right'}
+      open={open}
+      onOpenChange={setOpen}
+    >
       <DrawerTrigger asChild>
         <Button
           variant="link"
@@ -270,9 +279,9 @@ export function TableCellViewer({
                 <Label htmlFor="title">{t('t_email')}</Label>
                 <div className="w-full">{detail?.email}</div>
               </div>
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-row gap-3">
                 <Label htmlFor="status">{t('t_email_verified')}</Label>
-                <div className="flex flex-row gap-3 items-center border border-gray-300 rounded-full w-fit p-0.5">
+                <div className="flex flex-row gap-3 items-center border border-gray-300 rounded-full w-fit py-0.5 px-1">
                   {detail?.emailVerified === false ? (
                     <FiXCircle className="fill-red-500 dark:fill-red-400" />
                   ) : (

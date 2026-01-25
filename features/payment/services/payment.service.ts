@@ -1,12 +1,13 @@
 import { CreatePaymentInput } from '@/features/payment/payment.dto';
 import { Decimal } from '@prisma/client/runtime/library';
+import { prisma } from '@/lib/db';
 import { DbClient } from '@/types/api';
 
 export const createPaymentService = async (
   db: DbClient,
   params: CreatePaymentInput
 ) => {
-  return db.payment.create({
+  return prisma.payment.create({
     data: {
       provider: params.provider,
       method: params.method,

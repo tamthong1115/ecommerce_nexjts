@@ -1,0 +1,111 @@
+//================== Prisma Schema =================//
+// File: prisma/user.prisma
+// Schema for User models in Prisma
+//==================================================//
+
+//==================== ENUMS ====================//
+enum Role {
+    user
+    seller
+    admin
+}
+
+//==================== MODELS ===================//
+model User {
+    id            String    @id @default(uuid()) @db.Uuid
+    name          String
+    stripeAccount String?
+    email         String
+    emailVerified Boolean   @default(false)
+    image         String?
+    shopCount     Int       @default(0)
+    createdAt     DateTime  @default(now())
+    updatedAt     DateTime  @default(now()) @updatedAt
+    sessions      Session[]
+    accounts      Account[]
+
+    role       Role      @default(user)
+    banned     Boolean?  @default(false)
+    banReason  String?
+    banExpires DateTime?
+
+    profile                   UserProfile?
+    addresses                 Address[]
+    notifications             Notification[]
+    carts                     Cart[]
+    wishlist                  Wishlist?
+    shopsOwned                Shop[]                    @relation("ShopsOwned")
+    shopMemberships           ShopMember[]
+    followedShops             ShopFollower[]
+    orders                    Order[]
+    reviews                   Review[]
+    productQuestions          ProductQuestion[]
+    conversationsParticipants ConversationParticipant[]
+    messagesSentUser          Message[]                 @relation("MessageFromUser")
+    ReturnRequest             ReturnRequest[]
+    VoucherRedemption         VoucherRedemption[]
+    OrderDraft                OrderDraft[]
+    Slot                      Slot[]
+    OrderSlot                 OrderSlot[]
+
+    @@unique([email])
+    @@map("user")
+}
+
+model Account {
+    id                    String    @id @default(uuid()) @db.Uuid
+    accountId             String
+    providerId            String
+    userId                String    @db.Uuid
+    user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    accessToken           String?
+    refreshToken          String?
+    idToken               String?
+    accessTokenExpiresAt  DateTime?
+    refreshTokenExpiresAt DateTime?
+    scope                 String?
+    password              String?
+    createdAt             DateTime  @default(now())
+    updatedAt             DateTime  @updatedAt
+
+    @@index([userId])
+    @@map("account")
+}
+
+model UserProfile {
+    id           String    @id @default(uuid()) @db.Uuid
+    userId       String    @unique @db.Uuid
+    user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    emailForBill String?
+    phone        String?
+    birthDate    DateTime?
+    gender       String?
+    bio          String?
+    createdAt    DateTime  @default(now())
+    updatedAt    DateTime  @updatedAt
+
+    @@map("user_profile")
+}
+
+model Address {
+    id         String    @id @default(uuid()) @db.Uuid
+    userId     String    @db.Uuid
+    user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    fullName   String
+    phone      String
+    line1      String
+    line2      String?
+    ward       String?
+    district   String?
+    city       String
+    province   String?
+    country    String    @default("VN")
+    postalCode String?
+    isDefault  Boolean   @default(false)
+    createdAt  DateTime  @default(now())
+    updatedAt  DateTime  @updatedAt
+    deletedAt  DateTime?
+
+    @@index([userId, isDefault])
+    @@map("address")
+}

@@ -1,0 +1,41 @@
+model Refund {
+  id        String   @id @default(uuid()) @db.Uuid
+  orderId   String   @db.Uuid
+  paymentId String?  @db.Uuid
+  amount    Decimal  @db.Decimal(14, 2)
+  reason    String?
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  payment   Payment? @relation(fields: [paymentId], references: [id])
+
+  @@index([orderId])
+  @@map("refund")
+}
+
+model ReturnRequest {
+  id        String       @id @default(uuid()) @db.Uuid
+  orderId   String       @db.Uuid
+  userId    String       @db.Uuid
+  reason    String?
+  status    String       @default("OPEN")
+  createdAt DateTime     @default(now())
+  items     ReturnItem[]
+  order     Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, status])
+  @@map("return_request")
+}
+
+model ReturnItem {
+  id              String        @id @default(uuid()) @db.Uuid
+  returnRequestId String        @db.Uuid
+  orderItemId     String        @db.Uuid
+  quantity        Int
+  reason          String?
+  orderItem       OrderItem     @relation(fields: [orderItemId], references: [id])
+  returnRequest   ReturnRequest @relation(fields: [returnRequestId], references: [id], onDelete: Cascade)
+
+  @@map("return_item")
+}

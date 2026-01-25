@@ -22,7 +22,15 @@ export default getRequestConfig(async () => {
     product,
     search,
     shop,
-    admin,
+    m_general,
+    m_dashboard,
+    m_category,
+    m_product,
+    m_shop,
+    m_user,
+    m_warehouse,
+    m_statistic,
+    m_notification,
     seller,
   ] = await Promise.all([
     // Main domain files
@@ -35,8 +43,17 @@ export default getRequestConfig(async () => {
     import(`../messages/${locale}/main/product.json`),
     import(`../messages/${locale}/main/search.json`),
     import(`../messages/${locale}/main/shop.json`),
-    // Other domains
-    import(`../messages/${locale}/manager/admin.json`),
+    // manager domains
+    import(`../messages/${locale}/manager/m_general.json`),
+    import(`../messages/${locale}/manager/m_dashboard.json`),
+    import(`../messages/${locale}/manager/m_category.json`),
+    import(`../messages/${locale}/manager/m_product.json`),
+    import(`../messages/${locale}/manager/m_shop.json`),
+    import(`../messages/${locale}/manager/m_user.json`),
+    import(`../messages/${locale}/manager/m_warehouse.json`),
+    import(`../messages/${locale}/manager/m_statistic.json`),
+    import(`../messages/${locale}/manager/m_notification.json`),
+    // seller domains
     import(`../messages/${locale}/seller/seller.json`),
   ]);
 
@@ -54,7 +71,15 @@ export default getRequestConfig(async () => {
       ...search.default,
       ...shop.default,
       ...seller.default,
-      ...admin.default,
+      ...m_general.default,
+      ...m_product.default,
+      ...m_user.default,
+      ...m_dashboard.default,
+      ...m_category.default,
+      ...m_shop.default,
+      ...m_warehouse.default,
+      ...m_statistic.default,
+      ...m_notification.default,
     },
   };
 });

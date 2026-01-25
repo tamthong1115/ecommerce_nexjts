@@ -27,6 +27,7 @@ export function SiteHeader() {
       '/manager/users': 't_user_management',
       '/manager/shops': 't_shop_management',
       '/manager/statistic/revenue': 't_revenue',
+      '/manager/warehouse': 't_warehouse_management',
       '/manager': 't_dashboard',
       '/manager/settings': 't_settings',
     };

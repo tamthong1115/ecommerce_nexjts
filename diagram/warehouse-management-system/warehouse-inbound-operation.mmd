@@ -1,0 +1,21 @@
+sequenceDiagram
+    actor Seller
+    actor Staff
+    participant Inbound as Inbound Service
+    participant Slot as Slot Engine
+    participant Inv as Inventory Service
+
+    Seller->>Inbound: Tạo InboundOrder (Gửi 100 sản phẩm A)
+    Inbound-->>Seller: Trạng thái: REQUESTED
+    
+    Note over Staff, Inbound: Hàng cập bến kho
+    Staff->>Inbound: Kiểm đếm thực tế (receivedQty)
+    Inbound->>Inbound: Cập nhật status: RECEIVED
+    
+    Inbound->>Slot: Yêu cầu gợi ý Slot dựa trên kích thước hàng
+    Slot-->>Staff: Gợi ý Slot A-01, B-02 còn trống
+    
+    Staff->>Inbound: Xác nhận xếp hàng (PutAwayDetail)
+    Inbound->>Inv: Cập nhật Inventory (Cộng số lượng)
+    Inbound->>Slot: Cập nhật Slot status: OCCUPIED
+    Inbound-->>Staff: Hoàn thành nhập kho (status: PUT_AWAY)

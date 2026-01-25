@@ -1,13 +1,9 @@
 'use client';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
@@ -22,7 +18,6 @@ import { TableCell, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import { paths } from '@/lib/path';
-import { formatDay } from '@/lib/utils';
 import { userDataResponse, userItemData } from '@/types/manager.data-types';
 import {
   DragEndEvent,
@@ -35,14 +30,8 @@ import {
 } from '@dnd-kit/core';
 import { arrayMove, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { IconChevronDown, IconLayoutColumns } from '@tabler/icons-react';
 import {
-  IconChevronDown,
-  IconDotsVertical,
-  IconGripVertical,
-  IconLayoutColumns,
-} from '@tabler/icons-react';
-import {
-  ColumnDef,
   ColumnFiltersState,
   flexRender,
   getCoreRowModel,
@@ -58,11 +47,9 @@ import {
 } from '@tanstack/react-table';
 import { useTranslations } from 'next-intl';
 import React from 'react';
-import { FaCheckCircle } from 'react-icons/fa';
-import { FiXCircle } from 'react-icons/fi';
 import SearchBar from '../../../features/manager/_components/search-bar';
 import TabTableView from '../../../features/manager/_components/tab-table-view';
-import { TableCellViewer } from '../../../features/manager/users/components/table-cell-viewer';
+import { useUserColumns } from '@/features/manager/users/components/columns';
 
 const UsersPage = () => {
   const [data, setData] = React.useState<userDataResponse | null>(null);
@@ -82,6 +69,8 @@ const UsersPage = () => {
   });
 
   const t = useTranslations('admin_user_page');
+  const n = useTranslations('admin_notification');
+  const g = useTranslations('general');
   const dataIds = React.useMemo<UniqueIdentifier[]>(
     () => userList?.map(({ id }) => id) || [],
     [userList]
@@ -105,132 +94,13 @@ const UsersPage = () => {
     useSensor(KeyboardSensor, {})
   );
 
-  const handleCopy = useCopyToClipboard({ t: t });
-
-  const columns: ColumnDef<userItemData>[] = [
-    {
-      id: 'drag',
-      header: () => null,
-      cell: ({ row }) => <DragHandle id={row.original.id} />,
-    },
-    {
-      id: 'select',
-      header: ({ table }) => (
-        <div className="flex items-center justify-center">
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && 'indeterminate')
-            }
-            onCheckedChange={(value) =>
-              table.toggleAllPageRowsSelected(!!value)
-            }
-            aria-label="Select all"
-          />
-        </div>
-      ),
-      cell: ({ row }) => (
-        <div className="flex items-center justify-center">
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
-        </div>
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
-      accessorKey: t('t_user_name'),
-      header: t('t_user_name'),
-      cell: ({ row }) => {
-        return (
-          <TableCellViewer item={row.original} setUserList={setUserList} />
-        );
-      },
-      enableHiding: false,
-    },
-    {
-      accessorKey: t('t_email'),
-      header: () => <div className="w-fit text-right">{t('t_email')}</div>,
-      cell: ({ row }) => (
-        <div className="w-full text-right">{row.original.email}</div>
-      ),
-    },
-    {
-      accessorKey: t('t_email_verified'),
-      header: t('t_email_verified'),
-      cell: ({ row }) => (
-        <Badge variant="outline" className="text-muted-foreground px-1.5">
-          {row.original.emailVerified === false ? (
-            <FiXCircle className="fill-red-500 dark:fill-red-400" />
-          ) : (
-            <FaCheckCircle className="fill-green-500 dark:fill-green-400" />
-          )}
-          {row.original.emailVerified === true
-            ? t('t_verified')
-            : t('t_no_verified')}
-        </Badge>
-      ),
-    },
-
-    {
-      accessorKey: t('t_created_at'),
-      header: t('t_created_at'),
-      cell: ({ row }) => {
-        return (
-          <div className="w-32 overflow-hidden">
-            {formatDay(row.original.createdAt)}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: t('t_updated_at'),
-      header: t('t_updated_at'),
-      cell: ({ row }) => {
-        return (
-          <div className="w-32 overflow-hidden">
-            {formatDay(row.original.updatedAt)}
-          </div>
-        );
-      },
-    },
-    {
-      id: 'actions',
-      cell: ({ row }) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-              size="icon"
-            >
-              <IconDotsVertical />
-              <span className="sr-only">Open menu</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-32">
-            <DropdownMenuItem className="flex justify-center items-center">
-              <Button
-                variant={'ghost'}
-                className="text-left"
-                type="button"
-                onClick={() => handleCopy(row.original.id)}
-              >
-                {t('t_copy_action')}
-              </Button>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive">
-              {t('t_del_action')}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-    },
-  ];
+  const handleCopy = useCopyToClipboard({ t: n });
+  const columns = useUserColumns({
+    t: t,
+    g: g,
+    handleCopy: handleCopy,
+    setIsReset: setIsReset,
+  });
 
   const table = useReactTable({
     data: userList,
@@ -256,25 +126,6 @@ const UsersPage = () => {
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
-
-  function DragHandle({ id }: { id: string }) {
-    const { attributes, listeners } = useSortable({
-      id,
-    });
-
-    return (
-      <Button
-        {...attributes}
-        {...listeners}
-        variant="ghost"
-        size="icon"
-        className="text-muted-foreground size-7 hover:bg-transparent"
-      >
-        <IconGripVertical className="text-muted-foreground size-3" />
-        <span className="sr-only">Drag to reorder</span>
-      </Button>
-    );
-  }
 
   function DraggableRow({ row }: { row: Row<userItemData> }) {
     const { transform, transition, setNodeRef, isDragging } = useSortable({

@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { uploadToCloudinary } from '@/lib/cloudinary';
 
-export const config = {
-  api: {
-    bodyParser: false, // disable Next.js default parser so we can handle formData
-  },
-};
-
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();

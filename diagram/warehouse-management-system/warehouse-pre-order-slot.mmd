@@ -1,0 +1,22 @@
+sequenceDiagram
+    actor Seller
+    participant App as Warehouse Service
+    participant OS as OrderSlot (Booking)
+    participant Slot as Slot Model
+    actor Staff
+
+    Seller->>App: Tìm kho tại "TP.HCM"
+    App-->>Seller: Danh sách kho còn trống Slot
+    
+    Seller->>App: Đăng ký giữ chỗ (Pre-order 5 Slots)
+    App->>Slot: Chuyển Status: AVAILABLE -> RESERVED
+    App->>OS: Tạo bản ghi OrderSlot (Lưu productId, shopId, expiredAt)
+    OS-->>Seller: Xác nhận đặt chỗ thành công (Mã đặt chỗ: BK123)
+
+    Note over Seller, Staff: 2 ngày sau: Hàng đến kho
+    Seller->>Staff: Xuất trình mã đặt chỗ BK123
+    Staff->>OS: Kiểm tra mã (Check expiredAt)
+    OS-->>Staff: Hợp lệ (Đã đặt trước 5 Slot)
+    
+    Staff->>Slot: Tiến hành Put-away vào đúng các Slot đã RESERVED
+    Slot->>Slot: Chuyển Status: RESERVED -> OCCUPIED

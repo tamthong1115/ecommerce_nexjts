@@ -8,7 +8,7 @@ export const postData = async ({
   contentType: string | undefined;
 }) => {
   const headers: HeadersInit = {
-    Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+    Authorization: `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('token') || '' : ''}`,
   };
 
   if (contentType) {

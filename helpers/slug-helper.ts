@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db';
+import { isSlugTaken } from './slug-server';
 
 /**
  * Converts a string to a URL-friendly slug
@@ -21,22 +21,6 @@ export function generateSlug(text: string): string {
 export function makeUniqueSlug(baseSlug: string): string {
   const randomSuffix = Math.random().toString(36).substring(2, 8);
   return `${baseSlug}-${randomSuffix}`;
-}
-
-/**
- * Checks if a slug already exists in the database
- */
-export async function isSlugTaken(
-  slug: string,
-  excludeId?: string
-): Promise<boolean> {
-  const existing = await prisma.product.findFirst({
-    where: {
-      slug,
-      ...(excludeId && { id: { not: excludeId } }),
-    },
-  });
-  return !!existing;
 }
 
 /**

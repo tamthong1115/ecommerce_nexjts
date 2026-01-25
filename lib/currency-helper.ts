@@ -1,4 +1,4 @@
-import { Decimal } from '@/lib/generated/prisma/runtime/library';
+import { Decimal } from './generated/prisma/runtime/client';
 
 export function vndToUsdCents(
   vnd: Decimal | number | string,

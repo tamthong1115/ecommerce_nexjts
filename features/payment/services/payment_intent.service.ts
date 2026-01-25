@@ -1,4 +1,5 @@
-import { InputJsonValue } from '@prisma/client/runtime/library';
+// import { InputJsonValue } from '@prisma/client/runtime/library';
+import InputJsonValue = Prisma.InputJsonValue;
 import { $Enums, Prisma } from '@/lib/generated/prisma';
 import { DbClient } from '@/types/api';
 import PaymentProvider = $Enums.PaymentProvider;

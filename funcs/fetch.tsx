@@ -1,5 +1,6 @@
 import { reviewsItemType } from '@/types/public.data-types';
 import React, { SetStateAction } from 'react';
+import { toast } from 'sonner';
 
 /**
  * A type for the query parameters object.
@@ -47,14 +48,7 @@ export const fetchData = async <T,>({
     // 2. Fetch the data
     const response = await fetch(url, { cache: cacheType });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(
-        `HTTP error! status: ${response.status}, message: ${errorText}`
-      );
-    }
     const data = await response.json();
-
     //console.log(data);
 
     // Method 1: Internal State Update

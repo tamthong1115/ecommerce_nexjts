@@ -1,5 +1,6 @@
 import { getSessionUser } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
+import { ResponseFactory } from '@/lib/api-response';
 
 export function withAuth(
   handler: (userId: string, request: NextRequest) => Promise<NextResponse>
@@ -7,13 +8,16 @@ export function withAuth(
   return async function (request: NextRequest) {
     const session = await getSessionUser();
     const userId = session?.user?.id;
-    // const userId = "5a5ed0a1-66db-41ce-a2c5-dece655d8166"; // ✅ Dùng tạm để test
 
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ResponseFactory.toNextResponse(
+        ResponseFactory.error({
+          message: 'Unauthorized',
+          code: 401,
+        })
+      );
     }
 
-    // ✅ Gọi handler với userId và request
     return handler(userId, request);
   };
 }

@@ -1,0 +1,120 @@
+model Product {
+  id             String            @id @default(uuid()) @db.Uuid
+  shopId         String            @db.Uuid
+  categoryId     String?           @db.Uuid
+  title          String
+  slug           String            @unique
+  origin         String?
+  description    String?
+  status         ProductStatus     @default(DRAFT)
+  visibility     Visibility        @default(PUBLIC)
+  attributes     Json?
+  ratingAvg      Decimal           @default(0) @db.Decimal(2, 1)
+  ratingCount    Int               @default(0)
+  soldCount      Int               @default(0)
+  minPrice       Decimal           @db.Decimal(14, 2)
+  maxPrice       Decimal           @db.Decimal(14, 2)
+  currency       Currency          @default(VND)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @default(now()) @updatedAt
+  deletedAt      DateTime?
+  keywords       String[]
+  Message        Message[]
+  orderItems     OrderItem[]
+  category       Category?         @relation(fields: [categoryId], references: [id])
+  shop           Shop              @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  images         ProductImage[]
+  questions      ProductQuestion[]
+  variants       ProductVariant[]
+  reviews        Review[]
+  VoucherProduct VoucherProduct[]
+  wishlisted     WishlistItem[]
+  tags           Tag[]             @relation("ProductToTag")
+
+  @@index([shopId, status, visibility])
+  @@index([categoryId])
+  @@map("product")
+}
+
+model ProductImage {
+  id        String   @id @default(uuid()) @db.Uuid
+  productId String   @db.Uuid
+  url       String
+  publicId  String?
+  alt       String?
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, position])
+  @@map("product_image")
+}
+
+model ProductVariant {
+  id            String      @id @default(uuid()) @db.Uuid
+  productId     String      @db.Uuid
+  sku           String      @unique
+  name          String?
+  price         Decimal     @db.Decimal(14, 2)
+  image         String
+  imagePublicId String?
+  compareAt     Decimal?    @db.Decimal(14, 2)
+  currency      Currency    @default(VND)
+  stock         Int         @default(0)
+  reserved      Int         @default(0)
+  weightGrams   Int?
+  lengthMm      Int?
+  widthMm       Int?
+  heightMm      Int?
+  attributes    Json?
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @default(now()) @updatedAt
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  product       Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, isActive])
+  @@map("product_variant")
+}
+
+model ProductQuestion {
+  id         String    @id @default(uuid()) @db.Uuid
+  productId  String    @db.Uuid
+  userId     String    @db.Uuid
+  body       String
+  answer     String?
+  answeredAt DateTime?
+  createdAt  DateTime  @default(now())
+  product    Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_question")
+}
+
+model Tag {
+  id       String    @id @default(uuid()) @db.Uuid
+  name     String
+  slug     String    @unique
+  products Product[] @relation("ProductToTag")
+
+  @@map("tag")
+}
+
+enum ProductStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum Visibility {
+  PUBLIC
+  UNLISTED
+  PRIVATE
+}
+
+enum Currency {
+  VND
+  USD
+}
