@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
-import getRedisClient from '@/lib/redis';
+import { redisClient } from '@/lib/redis';
 
 export async function GET() {
   try {
-    const client = await getRedisClient();
-
-    const pong = await client.ping();
+    const pong = await redisClient.ping();
 
     if (pong === 'PONG') {
       return NextResponse.json(

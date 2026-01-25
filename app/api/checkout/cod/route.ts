@@ -5,9 +5,9 @@ import { createCheckoutRequestUseCase } from '@/features/payment/payment.usecase
 import { $Enums } from '@/lib/generated/prisma';
 import PaymentProvider = $Enums.PaymentProvider;
 import { prisma } from '@/lib/db';
-import { Decimal } from '@prisma/client/runtime/library';
 import PaymentStatus = $Enums.PaymentStatus;
 import Currency = $Enums.Currency;
+import { Decimal } from '@prisma/client-runtime-utils';
 
 export async function POST(req: NextRequest) {
   try {

@@ -4,7 +4,6 @@ import { ResponseFactory } from '@/lib/api-response';
 import { stripe } from '@/lib/payment';
 import { vndToUsdCents } from '@/lib/currency-helper';
 import { Decimal } from '@/lib/generated/prisma/runtime/library';
-import getRedisClient from '@/lib/redis';
 import dayjs from 'dayjs';
 import { createPaymentIntentService } from '@/features/payment/services/payment_intent.service';
 import { prisma } from '@/lib/db';
@@ -12,6 +11,7 @@ import { $Enums } from '@/lib/generated/prisma';
 import PaymentProvider = $Enums.PaymentProvider;
 import IntentStatus = $Enums.IntentStatus;
 import Currency = $Enums.Currency;
+import redisClient from '@/lib/redis';
 
 export async function POST(req: NextRequest) {
   const localIntent: { id: string } | null = null;
@@ -27,8 +27,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const client = await getRedisClient();
-    const rate = await client.get('currency-rate');
+    const rate = await redisClient.get('currency-rate');
     if (!rate)
       return NextResponse.json({ error: 'redis error' }, { status: 400 });
 

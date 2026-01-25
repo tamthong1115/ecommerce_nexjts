@@ -9,7 +9,7 @@ import { headers } from 'next/headers';
 import { customAlphabet } from 'nanoid';
 import dayjs from 'dayjs';
 
-export async function getOrderDrafts(draftId: string) {
+export async function getOrderDrafts(draftId?: string) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -20,8 +20,13 @@ export async function getOrderDrafts(draftId: string) {
 
   const userId = session.user.id;
 
+  const whereInput: Prisma.OrderDraftWhereInput = { userId };
+  if (draftId) {
+    whereInput.id = draftId;
+  }
+
   const draft = await prisma.orderDraft.findFirst({
-    where: { userId: userId },
+    where: whereInput,
     orderBy: {
       placedAt: 'desc',
     },
@@ -77,6 +82,7 @@ export async function getOrderDrafts(draftId: string) {
       },
     },
   });
+
   if (!draft) return { success: false, error: 'No draft found' };
 
   const draftPlain = {
@@ -104,7 +110,6 @@ export async function getOrderDrafts(draftId: string) {
 
   return { success: true, draft: draftPlain };
 }
-
 export type OrderDraftResult = Awaited<ReturnType<typeof getOrderDrafts>>;
 
 export type OrderDraftActionResponse = OrderDraftResult & {

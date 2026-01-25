@@ -1,6 +1,5 @@
 import { NextRequest } from 'next/server';
 import { ResponseFactory } from '@/lib/api-response';
-import { Decimal } from '@prisma/client/runtime/library';
 import dayjs from 'dayjs';
 import { prepareOrderForCheckout } from '@/features/payment/payment.usecases';
 import { prisma } from '@/lib/db';
@@ -10,6 +9,7 @@ import Currency = $Enums.Currency;
 import { createPaymentIntentService } from '@/features/payment/services/payment_intent.service';
 import IntentStatus = $Enums.IntentStatus;
 import { paymentQueue } from '@/worker/config';
+import { Decimal } from '@prisma/client-runtime-utils';
 
 type CheckoutPayload = {
   id: string;
