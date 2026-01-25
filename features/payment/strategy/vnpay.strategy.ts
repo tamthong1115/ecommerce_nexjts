@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import qs from 'qs';
 import crypto from 'crypto';
 import { sortObject } from '@/app/api/checkout/vnpay/route';
+import 'dotenv/config';
 
 export class VnPayStrategy implements IPaymentStrategy<VnpayPaymentParams> {
   async createPaymentUrl(params: VnpayPaymentParams) {
@@ -12,7 +13,7 @@ export class VnPayStrategy implements IPaymentStrategy<VnpayPaymentParams> {
     const tmnCode = process.env.VNPAY_TERMINAL_ID!;
     const secretKey = process.env.VNPAY_SECRET_KEY!;
     let vnpUrl = process.env.VNPAY_URL!;
-    const returnUrl = process.env.VNPAY_RETURN_URL!;
+    const returnUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/success`;
 
     if (!tmnCode || !secretKey || !vnpUrl || !returnUrl) {
       throw new Error(

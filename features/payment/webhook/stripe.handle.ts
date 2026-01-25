@@ -3,6 +3,7 @@ import { $Enums } from '@/lib/generated/prisma';
 import { StockManager } from '@/lib/stock-manager';
 import { customerPaidOrderSuccessUsecase } from '@/features/payment_transaction/payment_transaction.usecases';
 import IntentStatus = $Enums.IntentStatus;
+import 'dotenv/config';
 
 export async function handleStripeWebhook(eventType: string, session: any) {
   // 2. Tìm Payment Record

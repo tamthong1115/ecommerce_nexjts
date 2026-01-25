@@ -4,6 +4,7 @@ import PaymentProvider = $Enums.PaymentProvider;
 import PaymentStatus = $Enums.PaymentStatus;
 import { customerPaidOrderSuccessUsecase } from '@/features/payment_transaction/payment_transaction.usecases';
 import { StockManager } from '@/lib/stock-manager';
+import 'dotenv/config';
 
 export async function handleVNPayWebhook(vnpParams: Record<string, string>) {
   const rspCode = vnpParams['vnp_ResponseCode'];

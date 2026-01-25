@@ -1,6 +1,6 @@
 import IORedis from 'ioredis';
 
-const REDIS_URL = `${process.env.REDIS_URL}` || 'redis://localhost:4000';
+const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:4000';
 
 const connectionOptions = {
   maxRetriesPerRequest: null,

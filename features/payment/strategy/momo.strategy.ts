@@ -2,6 +2,7 @@ import { IPaymentStrategy } from '@/features/payment/strategy/payment.interface'
 import { MomoPaymentParams } from '@/features/payment/payment.dto';
 import { v4 } from 'uuid';
 import crypto from 'crypto';
+import 'dotenv/config';
 
 export class MomoStrategy implements IPaymentStrategy<MomoPaymentParams> {
   async createPaymentUrl(params: MomoPaymentParams) {

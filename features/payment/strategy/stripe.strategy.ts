@@ -1,6 +1,7 @@
 import { IPaymentStrategy } from './payment.interface';
 import { Stripe } from 'stripe';
 import { StripePaymentParams } from '@/features/payment/payment.dto';
+import 'dotenv/config';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 

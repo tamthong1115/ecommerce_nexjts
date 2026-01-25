@@ -3,6 +3,7 @@ import { StockManager } from '@/lib/stock-manager';
 import { $Enums } from '@/lib/generated/prisma';
 import PaymentStatus = $Enums.PaymentStatus;
 import { customerPaidOrderSuccessUsecase } from '@/features/payment_transaction/payment_transaction.usecases';
+import 'dotenv/config';
 
 export async function handleMomoWebhook(payload: any) {
   const { orderId, resultCode, transId, requestId } = payload;
