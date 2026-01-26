@@ -30,7 +30,7 @@ export function NotificationBell({ role, className }: NotificationBellProps) {
     unreadCount,
     isLoading,
     hasNextPage,
-    loadMore,
+    fetchNextPage,
     isFetchingNextPage,
     markAsRead,
   } = useNotifications(role);
@@ -136,7 +136,7 @@ export function NotificationBell({ role, className }: NotificationBellProps) {
                   variant="ghost"
                   size="sm"
                   className="w-full text-xs text-muted-foreground"
-                  onClick={() => loadMore()}
+                  onClick={() => fetchNextPage()}
                   disabled={isFetchingNextPage}
                 >
                   {isFetchingNextPage ? (

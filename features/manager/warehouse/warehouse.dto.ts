@@ -27,10 +27,14 @@ export type GetWarehouseResult =
 
 export type WarehouseRequestDTO = {
   name: string;
-  location: string;
+  street: string;
+  ward: string;
+  district: string;
+  city: string;
+  address: string;
   size: number;
-  storageAreaSize: number;
-  slotSize: number;
+  totalStorageArea: number;
+  totalSlot: number;
   region: string;
   status: string;
   createdAt?: Date;

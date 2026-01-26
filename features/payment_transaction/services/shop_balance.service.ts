@@ -1,4 +1,4 @@
-import { Decimal } from '@prisma/client/runtime/library';
+import { Decimal } from '@/lib/generated/prisma/runtime/client';
 import { DbClient } from '@/types/api';
 
 export const upsertPendingBalance = async (

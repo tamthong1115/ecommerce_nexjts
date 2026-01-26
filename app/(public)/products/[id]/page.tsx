@@ -23,8 +23,6 @@ import { toast } from 'sonner';
 
 import { TicketPercent } from 'lucide-react';
 
-import { ChatButton } from '@/components/chat/chat-button';
-
 import { VoucherSelector } from '@/features/voucher/_components/voucher-selector';
 import { VoucherDTO } from '@/features/voucher/voucher.dto';
 import Desc from '../../../../features/public/product/components/desc';
@@ -37,6 +35,7 @@ import logo from '@/public/logo.jpg';
 import Link from 'next/link';
 import Decimal = Prisma.Decimal;
 import { RatingStars } from '@/features/public/components/rating-starts';
+import { ChatButton } from '@/features/shared/components/chat/chat-button';
 
 interface SelectedVariant {
   name: string;

@@ -9,9 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { ChatButton } from '@/components/chat/chat-button';
 import { useTranslations } from 'next-intl';
 import { formatPrice } from '@/lib/utils';
+import { ChatButton } from '@/features/shared/components/chat/chat-button';
 
 interface OrderDetailClientProps {
   order: OrderDetails;

@@ -35,6 +35,10 @@ export const paths = {
       edit: (shopId: string) => `/seller/shops/${shopId}/edit`,
       message_shop: (shopId: string) => `/seller/shops/${shopId}/messages`,
       members: (shopId: string) => `/seller/shops/${shopId}/members`,
+
+      api: {
+        fetch_all: '/api/seller/shops',
+      },
     },
   },
 

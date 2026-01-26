@@ -26,8 +26,8 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { ShopStatus } from '@/lib/generated/prisma';
-import { Uploader } from '@/components/file-uploader/uploader';
 import { Loader } from 'lucide-react';
+import { Uploader } from '@/features/shared/components/file-uploader/uploader';
 
 const editShopSchema = z.object({
   name: z.string().min(1, 'Name is required').max(200),
@@ -287,8 +287,9 @@ export default function EditShopPage() {
                                 })
                                   ? {
                                       url:
-                                        (form.getValues('coverUrl') as string) ??
-                                        '',
+                                        (form.getValues(
+                                          'coverUrl'
+                                        ) as string) ?? '',
                                       publicId: cfield.value as string,
                                     }
                                   : null

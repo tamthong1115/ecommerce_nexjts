@@ -1,10 +1,8 @@
 import { getSessionUser } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { getUserOrShopConversations } from '@/app/data/chat.data';
-import { ConversationList } from '@/components/chat/conversation-list';
 import { getShopIdByUserId } from '@/app/data/shop.data';
-import { Button } from '@/components/ui/button';
-import { Link } from 'lucide-react';
+import { ConversationList } from '@/features/shared/components/chat/conversation-list';
 
 export default async function MessageShopsLayout({
   children,

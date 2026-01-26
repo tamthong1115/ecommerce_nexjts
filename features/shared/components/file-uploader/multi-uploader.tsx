@@ -3,12 +3,12 @@
 
 import React, { useCallback, useRef, useState } from 'react';
 import { Trash2 } from 'lucide-react';
+
+import Image from 'next/image';
 import {
   RenderEmptyState,
-  RenderErrorState,
   RenderUploadingState,
-} from '@/components/file-uploader/render-state';
-import Image from 'next/image';
+} from '@/features/shared/components/file-uploader/render-state';
 
 const MAX_FILES = 6;
 

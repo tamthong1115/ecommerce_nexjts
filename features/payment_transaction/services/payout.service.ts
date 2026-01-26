@@ -1,5 +1,5 @@
 import { $Enums } from '@/lib/generated/prisma';
-import { Decimal, InputJsonValue } from '@prisma/client/runtime/library';
+import { Decimal, InputJsonValue } from '@/lib/generated/prisma/runtime/client';
 import PayoutStatus = $Enums.PayoutStatus;
 import { DbClient } from '@/types/api';
 import { prisma } from '@/lib/db';

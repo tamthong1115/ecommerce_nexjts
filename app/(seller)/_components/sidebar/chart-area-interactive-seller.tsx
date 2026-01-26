@@ -27,6 +27,7 @@ import {
 import { fetchApi } from '@/lib/client-fetch';
 import { useEffect } from 'react';
 import { formatPrice } from '@/lib/utils';
+import { paths } from '@/lib/path';
 
 const chartConfig = {
   totalOrders: {
@@ -70,7 +71,7 @@ export function ChartAreaInteractiveSeller({
     let mounted = true;
     async function fetchShops() {
       try {
-        const res = await fetchApi('/api/seller/shops');
+        const res = await fetchApi(paths.seller.shops.api.fetch_all);
         if (!res.success) throw new Error('Failed to load shops');
         const list = (res.data ?? []) as ShopItem[];
         if (!mounted) return;
