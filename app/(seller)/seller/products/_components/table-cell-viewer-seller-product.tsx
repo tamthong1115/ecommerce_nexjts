@@ -1,16 +1,6 @@
 'use client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from '@/components/ui/drawer';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -21,7 +11,6 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel';
 import { Card, CardContent } from '@/components/ui/card';
-import { useIsMobile } from '@/hooks/use-mobile';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -29,6 +18,7 @@ import { fetchData } from '@/funcs/fetch';
 import { paths } from '@/lib/path';
 import { Separator } from '@/components/ui/separator';
 import { IoIosArrowUp } from 'react-icons/io';
+import { DrawerDetailsViewer } from '@/features/shared/components/table/drawer-details-viewer';
 
 type ProductVariant = {
   id: string;
@@ -96,11 +86,10 @@ export function TableCellViewerSellerProduct({
 }: {
   item: SellerProductListItem;
 }) {
-  const isMobile = useIsMobile();
   const router = useRouter();
   const [detail, setDetail] = useState<ProductDetail | null>(null);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (openIndex !== null) {
@@ -197,156 +186,148 @@ export function TableCellViewerSellerProduct({
     );
   };
 
+  const trigger = (
+    <Button
+      variant="link"
+      className="text-foreground w-fit px-0 text-left"
+      onClick={() => fetchDetail()}
+    >
+      {item.title}
+    </Button>
+  );
+
+  const footerAction = (
+    <Button onClick={() => router.push(`/seller/products/${item.id}/edit`)}>
+      Edit Product
+    </Button>
+  );
+
   return (
-    <Drawer direction={isMobile ? 'bottom' : 'right'}>
-      <DrawerTrigger asChild>
-        <Button
-          variant="link"
-          className="text-foreground w-fit px-0 text-left"
-          onClick={() => fetchDetail()}
-        >
-          {item.title}
-        </Button>
-      </DrawerTrigger>
-      <DrawerContent>
-        <DrawerHeader className="gap-1">
-          <DrawerTitle>{detail?.title || 'Loading...'}</DrawerTitle>
-          <DrawerDescription>Product Details</DrawerDescription>
-        </DrawerHeader>
-        <div
-          className="flex flex-col gap-4 overflow-y-auto px-4 text-sm"
-          ref={scrollContainerRef}
-        >
-          <div className="w-full flex justify-center items-center">
-            <Carousel className="w-[70%] max-w-lg">
-              <CarouselContent>
-                {detail?.images?.map((img, index) => (
-                  <CarouselItem key={index}>
-                    <div className="p-1">
-                      <Card className="w-full h-64 overflow-hidden">
-                        <CardContent className="relative w-full h-full p-0">
-                          <Image
-                            src={img.url}
-                            alt={img.alt || `Product image ${index + 1}`}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 768px) 100vw, 500px"
-                            priority={index === 0}
-                          />
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
-          </div>
+    <DrawerDetailsViewer
+      title={detail?.title || 'Loading...'}
+      description="Product Details"
+      trigger={trigger}
+      footerAction={footerAction}
+      contentRef={scrollContainerRef}
+    >
+      <div className="w-full flex justify-center items-center">
+        <Carousel className="w-[70%] max-w-lg">
+          <CarouselContent>
+            {detail?.images?.map((img, index) => (
+              <CarouselItem key={index}>
+                <div className="p-1">
+                  <Card className="w-full h-64 overflow-hidden">
+                    <CardContent className="relative w-full h-full p-0">
+                      <Image
+                        src={img.url}
+                        alt={img.alt || `Product image ${index + 1}`}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 500px"
+                        priority={index === 0}
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+        </Carousel>
+      </div>
 
-          <div className="flex flex-col gap-3">
-            <Label>Shop</Label>
-            <div className="flex items-center gap-2">
-              <Avatar>
-                <AvatarImage src={detail?.shop.logoUrl} alt="shopLogo" />
-                <AvatarFallback>UK</AvatarFallback>
-              </Avatar>
-              <span>{detail?.shop.name}</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-3">
-              <Label>Status</Label>
-              <Badge variant="outline">{detail?.status}</Badge>
-            </div>
-            <div className="flex flex-col gap-3">
-              <Label>Visibility</Label>
-              <Badge variant="secondary">{detail?.visibility}</Badge>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <Label>Slug</Label>
-            <p className="text-muted-foreground">{detail?.slug}</p>
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <Label>Description</Label>
-            <textarea
-              defaultValue={detail?.description || ''}
-              disabled
-              className="w-full p-2 border rounded"
-            />
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <Label htmlFor="variants-list">
-              Variants ({detail?.variants?.length || 0})
-            </Label>
-            <div className="flex flex-col gap-4">
-              <ul className="w-full flex flex-col gap-2">
-                {detail?.variants.map((value, index) => (
-                  <li
-                    key={value.id}
-                    id={`variant-item-${index}`}
-                    className="flex flex-col gap-2"
-                  >
-                    <div className="w-full flex flex-row justify-between items-center">
-                      <div className="flex flex-row justify-start items-center gap-2">
-                        <p>
-                          {index + 1}
-                          {'. '}
-                        </p>
-                        <p>{value.name}</p>
-                        <Badge
-                          variant={
-                            value.stock - (value.reserved || 0) <= 10
-                              ? 'destructive'
-                              : 'default'
-                          }
-                        >
-                          {value.stock - (value.reserved || 0)} in stock
-                        </Badge>
-                      </div>
-                      <Button
-                        variant={'outline'}
-                        onClick={() =>
-                          setOpenIndex(openIndex !== index ? index : null)
-                        }
-                        type="button"
-                      >
-                        <div
-                          className={`${
-                            openIndex !== index
-                              ? `transform-[rotate(180deg)]`
-                              : `transform-[rotate(0deg)]`
-                          } transition ease-in-out`}
-                        >
-                          <IoIosArrowUp />
-                        </div>
-                      </Button>
-                    </div>
-
-                    {renderVariant(index, value)}
-                    <Separator />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+      <div className="flex flex-col gap-3">
+        <Label>Shop</Label>
+        <div className="flex items-center gap-2">
+          <Avatar>
+            <AvatarImage src={detail?.shop.logoUrl} alt="shopLogo" />
+            <AvatarFallback>UK</AvatarFallback>
+          </Avatar>
+          <span>{detail?.shop.name}</span>
         </div>
-        <DrawerFooter>
-          <Button
-            onClick={() => router.push(`/seller/products/${item.id}/edit`)}
-          >
-            Edit Product
-          </Button>
-          <DrawerClose asChild>
-            <Button variant="outline">Close</Button>
-          </DrawerClose>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col gap-3">
+          <Label>Status</Label>
+          <Badge variant="outline">{detail?.status}</Badge>
+        </div>
+        <div className="flex flex-col gap-3">
+          <Label>Visibility</Label>
+          <Badge variant="secondary">{detail?.visibility}</Badge>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <Label>Slug</Label>
+        <p className="text-muted-foreground">{detail?.slug}</p>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <Label>Description</Label>
+        <textarea
+          defaultValue={detail?.description || ''}
+          disabled
+          className="w-full p-2 border rounded"
+        />
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <Label htmlFor="variants-list">
+          Variants ({detail?.variants?.length || 0})
+        </Label>
+        <div className="flex flex-col gap-4">
+          <ul className="w-full flex flex-col gap-2">
+            {detail?.variants.map((value, index) => (
+              <li
+                key={value.id}
+                id={`variant-item-${index}`}
+                className="flex flex-col gap-2"
+              >
+                <div className="w-full flex flex-row justify-between items-center">
+                  <div className="flex flex-row justify-start items-center gap-2">
+                    <p>
+                      {index + 1}
+                      {'. '}
+                    </p>
+                    <p>{value.name}</p>
+                    <Badge
+                      variant={
+                        value.stock - (value.reserved || 0) <= 10
+                          ? 'destructive'
+                          : 'default'
+                      }
+                    >
+                      {value.stock - (value.reserved || 0)} in stock
+                    </Badge>
+                  </div>
+                  <Button
+                    variant={'outline'}
+                    onClick={() =>
+                      setOpenIndex(openIndex !== index ? index : null)
+                    }
+                    type="button"
+                  >
+                    <div
+                      className={`${
+                        openIndex !== index
+                          ? `transform-[rotate(180deg)]`
+                          : `transform-[rotate(0deg)]`
+                      } transition ease-in-out`}
+                    >
+                      <IoIosArrowUp />
+                    </div>
+                  </Button>
+                </div>
+
+                {renderVariant(index, value)}
+                <Separator />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </DrawerDetailsViewer>
   );
 }

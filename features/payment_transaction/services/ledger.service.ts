@@ -1,8 +1,8 @@
 import { $Enums, Prisma } from '@/lib/generated/prisma';
-import { Decimal } from '@prisma/client/runtime/library';
 import WalletType = $Enums.WalletType;
 import LedgerDirection = $Enums.LedgerDirection;
 import { DbClient } from '@/types/api';
+import { Decimal } from '@/lib/generated/prisma/runtime/client';
 
 export const createOrderPaidLedger = async (
   db: DbClient,

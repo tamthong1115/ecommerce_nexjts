@@ -15,12 +15,16 @@ export class WarehouseService {
     const newWarehouse = await prisma.warehouse.create({
       data: {
         name: data.name,
-        location: data.location,
+        street: data.street,
+        ward: data.ward,
+        district: data.district,
+        city: data.city,
+        address: data.address,
         size: data.size,
         region: data.region as Region,
         status: data.status as WarehouseStatus,
-        storageAreaSize: data.storageAreaSize,
-        slotSize: data.slotSize,
+        totalStorageArea: data.totalStorageArea,
+        totalSlot: data.totalSlot,
       },
     });
     return newWarehouse;

@@ -4,9 +4,9 @@ import Link from 'next/link';
 import { paths } from '@/lib/path';
 import Image from 'next/image';
 import { Badge, Package, ZoomIn } from 'lucide-react';
-import { OrderData, ProductData } from '@/components/chat/message-bubble';
 import { DialogTrigger } from '@radix-ui/react-dialog';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { OrderData, ProductData } from './message-bubble';
 
 interface RenderBubbleContentProps {
   content: string;

@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { generateClientSku } from '@/helpers/sku-helper';
-import { Uploader } from '@/components/file-uploader/uploader';
+import { Uploader } from '@/features/shared/components/file-uploader/uploader';
 
 export default function VariantStep() {
   const form = useFormContext<ManageProductFormInput>();

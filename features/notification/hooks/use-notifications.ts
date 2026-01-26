@@ -201,7 +201,7 @@ export const useNotifications = (
     isError,
     hasNextPage,
     isFetchingNextPage,
-    loadMore: fetchNextPage,
+    fetchNextPage,
     markAsRead: (id: string) => markReadMutation.mutate(id),
     markAllAsRead: () => markAllAsReadMutation.mutate(),
   };

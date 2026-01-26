@@ -59,7 +59,7 @@ export function NotificationPageContent({
   const {
     notifications,
     isLoading,
-    loadMore,
+    fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
     markAsRead,
@@ -194,7 +194,7 @@ export function NotificationPageContent({
                 <div className="pt-4 flex justify-center">
                   <Button
                     variant="outline"
-                    onClick={() => loadMore()}
+                    onClick={() => fetchNextPage()}
                     disabled={isFetchingNextPage}
                     className="w-full md:w-auto min-w-[150px]"
                   >

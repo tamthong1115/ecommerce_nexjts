@@ -1,5 +1,5 @@
 import { Prisma } from '@/lib/generated/prisma';
-import { Decimal } from '@prisma/client/runtime/library';
+import { Decimal } from '@/lib/generated/prisma/runtime/client';
 import { prisma } from '@/lib/db';
 
 export const enqueueSettlement = async (

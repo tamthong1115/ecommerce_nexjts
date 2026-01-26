@@ -1,10 +1,8 @@
 'use client';
 
 import { MessageRole } from '@/lib/generated/prisma';
-import { ChatTopbar } from '@/components/chat/chat-topbar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEffect, useRef, useState } from 'react';
-import { MessageBubble } from '@/components/chat/message-bubble';
 import { Input } from '@/components/ui/input';
 import { sendMessage } from '@/app/actions/chat';
 import { Button } from '@/components/ui/button';
@@ -12,6 +10,8 @@ import { Loader2, Send } from 'lucide-react';
 import { env } from '@/lib/env';
 import Pusher from 'pusher-js';
 import { ConversationWithMessages } from '@/app/data/chat.data';
+import { ChatTopbar } from './chat-topbar';
+import { MessageBubble } from '@/features/shared/components/chat/message-bubble';
 
 interface ChatAreaProps {
   conversationId: string;

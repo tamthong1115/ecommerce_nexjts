@@ -1,10 +1,8 @@
-import { PrismaClient } from '@/lib/generated/prisma';
+import { prisma } from '@/lib/db';
 import { withAuth } from '@/lib/with-auth';
 import { AddToCartRequest, UpdateCartRequest } from '@/types/cart.data-types';
 import { NextRequest, NextResponse } from 'next/server';
 import { ResponseFactory } from '@/lib/api-response';
-
-const prisma = new PrismaClient();
 
 export const GET = withAuth(async (userId: string) => {
   const cart = await prisma.cart.findUnique({

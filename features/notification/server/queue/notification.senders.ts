@@ -1,5 +1,4 @@
 import { render } from '@react-email/components';
-import { prisma_clean as prisma } from '@/lib/queue/prisma-clean';
 import { EmailProviderFactory } from '@/features/notification/server/email/email.factory';
 import { VerifyEmail } from '@/features/notification/components/core/email-templates/verify-email';
 import { ResetPasswordEmail } from '@/features/notification/components/core/email-templates/reset-password';
@@ -12,6 +11,7 @@ import {
   PasswordResetPayload,
 } from '../../types/notification.type';
 import { NotificationType } from '@/lib/generated/prisma';
+import { prisma } from '@/lib/db';
 
 export class EmailSender implements INotificationSender {
   readonly channel = ChannelType.EMAIL;

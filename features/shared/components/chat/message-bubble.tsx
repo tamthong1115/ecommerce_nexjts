@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { ShieldCheck, Store } from 'lucide-react';
-import { RenderBubbleContent } from '@/components/chat/render-bubble-content';
+import { RenderBubbleContent } from '@/features/shared/components/chat/render-bubble-content';
 
 export interface ProductData {
   id: string;

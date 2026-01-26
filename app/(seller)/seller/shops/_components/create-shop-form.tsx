@@ -7,8 +7,6 @@ import { useForm, Controller } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Loader, RefreshCw } from 'lucide-react';
 
-import { Uploader } from '@/components/file-uploader/uploader';
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -32,6 +30,7 @@ import { CreateShopInput, createShopSchema } from './shopSchema';
 import { generateClientSlug } from '@/helpers/slug-helper';
 import { paths } from '@/lib/path';
 import { fetchApi } from '@/lib/client-fetch';
+import { Uploader } from '@/features/shared/components/file-uploader/uploader';
 
 function slugify(input: string) {
   return input
