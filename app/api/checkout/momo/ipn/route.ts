@@ -1,13 +1,12 @@
 import crypto from 'crypto';
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { customerPaidOrderSuccessUsecase } from '@/features/payment_transaction/payment_transaction.usecases';
+import { $Enums } from '@/lib/generated/prisma';
+import { paymentHookQueue } from '@/worker/config';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const {
-      orderType,
       amount,
       partnerCode,
       orderId,
@@ -61,91 +60,24 @@ export async function POST(req: Request) {
       return new NextResponse(null, { status: 400 });
     }
 
-    const payment = await prisma.payment.findFirst({
-      where: {
-        externalId: orderId,
-        provider: 'MOMO',
+    await paymentHookQueue().add(
+      'process-webhook',
+      {
+        provider: $Enums.PaymentProvider.MOMO,
+        payload: body,
       },
-      include: {
-        orders: {
-          include: {
-            order: true,
-          },
-        },
-      },
-    });
+      {
+        attempts: 5,
+        backoff: { type: 'exponential', delay: 2000 },
+        removeOnComplete: true,
+      }
+    );
 
-    if (!payment) {
-      console.error('[MOMO IPN] Payment not found', { orderId });
-      return new NextResponse(null, { status: 400 });
-    }
-
-    const orderDetails = payment.orders.map((op) => op.order);
-    const orderIds = orderDetails.map((o) => o.id);
-
-    if (resultCode === 0 || resultCode === 9000) {
-      console.log(`[MOMO IPN] Success Order: ${orderId}`);
-
-      await prisma.$transaction(async (tx) => {
-        await tx.payment.update({
-          where: { id: payment.id },
-          data: { status: 'PAID', updatedAt: new Date() },
-        });
-
-        // B. Update Order Status
-        await tx.order.updateMany({
-          where: { id: { in: orderIds } },
-          data: {
-            paymentStatus: 'PAID',
-            status: 'PROCESSING',
-            updatedAt: new Date(),
-          },
-        });
-
-        await tx.paymentIntent.update({
-          where: { gatewayRef: orderId },
-          data: {
-            status: 'SUCCEEDED',
-          },
-        });
-
-        for (const order of orderDetails) {
-          try {
-            await customerPaidOrderSuccessUsecase(
-              order.shopId!,
-              order.grandTotal,
-              order.id,
-              payment.id
-            );
-          } catch (e) {
-            console.error(`Lỗi cộng tiền ví cho order ${order}:`, e);
-          }
-        }
-      });
-    } else {
-      console.log(`[MOMO IPN] Failed Order: ${orderId} - Msg: ${message}`);
-
-      await prisma.$transaction(async (tx) => {
-        await tx.payment.update({
-          where: { id: payment.id },
-          data: { status: 'FAILED', updatedAt: new Date() },
-        });
-        await tx.order.updateMany({
-          where: { id: { in: orderIds } },
-          data: { paymentStatus: 'FAILED', updatedAt: new Date() },
-        });
-
-        await tx.paymentIntent.update({
-          where: { gatewayRef: orderId },
-          data: {
-            status: 'FAILED',
-          },
-        });
-      });
-    }
-    return new NextResponse(null, { status: 200 });
+    return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error('[MOMO IPN] Error:', error);
-    return new NextResponse(null, { status: 500 });
+    return NextResponse.json(
+      { message: 'Internal Error' + error },
+      { status: 500 }
+    );
   }
 }

@@ -21,10 +21,6 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (pathname.startsWith('/api/stripe/webhook')) {
-    return NextResponse.next();
-  }
-
   const session = await getSessionUser();
   if (!session) {
     const url = new URL(paths.login, request.url);
@@ -79,5 +75,5 @@ export async function proxy(request: NextRequest) {
 // }
 
 export const config = {
-  matcher: ['/((?!_next|.*\\..*|api/auth/callback|api|auth).*)']
+  matcher: ['/((?!_next|.*\\..*|api/auth/callback|api|auth).*)'],
 };

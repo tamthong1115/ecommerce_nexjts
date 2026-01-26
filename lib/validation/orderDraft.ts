@@ -5,7 +5,7 @@ export const createOrderDraftSchema = z.object({
   items: z.array(
     z.object({
       productId: z.uuid(),
-      variantId: z.uuid().optional(),
+      variantId: z.uuid(),
       quantity: z.number().min(1),
     })
   ),

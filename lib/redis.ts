@@ -1,25 +1,25 @@
-import { createClient, RedisClientType } from 'redis';
+import IORedis from 'ioredis';
 
-let redisClient: RedisClientType | null = null;
+const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:4000';
 
-const getRedisClient = async (): Promise<RedisClientType> => {
-  if (redisClient && redisClient.isOpen) {
-    return redisClient;
-  }
+const connectionOptions = {
+  maxRetriesPerRequest: null,
 
-  if (!redisClient) {
-    redisClient = createClient({
-      url: process.env.REDIS_URL!,
-    });
-    redisClient.on('error', (err) => {
-      console.error('Redis Client Error:', err);
-    });
-  }
-  if (!redisClient.isOpen) {
-    await redisClient.connect();
-  }
-  console.log('Redis Client Connected');
-  return redisClient;
+  retryStrategy(times: number) {
+    return Math.min(times * 50, 2000);
+  },
 };
 
-export default getRedisClient;
+const globalForRedis = global as unknown as { redis: IORedis };
+
+export const redisClient =
+  globalForRedis.redis || new IORedis(REDIS_URL, connectionOptions);
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForRedis.redis = redisClient;
+}
+
+redisClient.on('connect', () => console.log('✅ Redis Connected via ioredis'));
+redisClient.on('error', (err) => console.error('❌ Redis Error:', err));
+
+export default redisClient;

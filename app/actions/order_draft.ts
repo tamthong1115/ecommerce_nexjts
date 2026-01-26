@@ -2,12 +2,14 @@
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { Prisma } from '@/lib/generated/prisma';
+import { Prisma, Voucher } from '@/lib/generated/prisma';
 import { createOrderDraftSchema } from '@/lib/validation/orderDraft';
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
+import { customAlphabet } from 'nanoid';
+import dayjs from 'dayjs';
 
-export async function getOrderDrafts() {
+export async function getOrderDrafts(draftId?: string) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -18,8 +20,16 @@ export async function getOrderDrafts() {
 
   const userId = session.user.id;
 
-  const draft = await prisma.orderDraft.findUnique({
-    where: { userId: userId },
+  const whereInput: Prisma.OrderDraftWhereInput = { userId };
+  if (draftId) {
+    whereInput.id = draftId;
+  }
+
+  const draft = await prisma.orderDraft.findFirst({
+    where: whereInput,
+    orderBy: {
+      placedAt: 'desc',
+    },
     select: {
       id: true,
       orderNumber: true,
@@ -72,6 +82,7 @@ export async function getOrderDrafts() {
       },
     },
   });
+
   if (!draft) return { success: false, error: 'No draft found' };
 
   const draftPlain = {
@@ -99,7 +110,6 @@ export async function getOrderDrafts() {
 
   return { success: true, draft: draftPlain };
 }
-
 export type OrderDraftResult = Awaited<ReturnType<typeof getOrderDrafts>>;
 
 export type OrderDraftActionResponse = OrderDraftResult & {
@@ -110,97 +120,118 @@ export type OrderDraftActionResponse = OrderDraftResult & {
 export async function createOrderDraft(
   formData: FormData
 ): Promise<OrderDraftActionResponse> {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) return { success: false, error: 'Unauthorized' };
+  const userId = session.user.id;
+
+  const rawData = Object.fromEntries(formData.entries());
+  if (!rawData.data)
+    return { success: false, error: 'Missing data field in FormData' };
+
+  let data;
   try {
-    const session = await auth.api.getSession({ headers: await headers() });
-    if (!session?.user) return { success: false, error: 'Unauthorized' };
-
-    const userId = session.user.id;
-
-    const rawData = Object.fromEntries(formData.entries());
-    if (!rawData.data) throw new Error("Missing 'data' field in FormData");
-
     const parseData = JSON.parse(rawData.data as string);
-    const data = createOrderDraftSchema.parse(parseData);
-    const { notes, items, voucher } = data;
+    data = createOrderDraftSchema.parse(parseData);
+  } catch (e) {
+    return { success: false, error: 'Invalid data format' + e };
+  }
+  const { notes, items, voucher } = data;
 
-    const headersList = await headers();
-    const refer = headersList.get('referer');
-    let currentPath = '/';
+  const headersList = await headers();
+  const refer = headersList.get('referer');
+  let currentPath = '/';
 
-    if (refer) {
-      try {
-        const urlInstance = new URL(refer);
-        currentPath = urlInstance.pathname + urlInstance.search;
-      } catch (error) {
-        console.error('Invalid referer URL:', refer);
+  if (refer) {
+    try {
+      const urlInstance = new URL(refer);
+      currentPath = urlInstance.pathname + urlInstance.search;
+    } catch (error) {
+      return { success: false, error: 'Invalid referer URL:' + refer + error };
+    }
+  }
+
+  // 1️⃣ Get Default Shipping Address
+  const defaultAddress = await prisma.address.findFirst({
+    where: { userId, isDefault: true },
+  });
+  if (!defaultAddress) {
+    const encodeCallBack = encodeURIComponent(currentPath);
+    return {
+      success: false,
+      redirectTo: `/customer/account/address?callbackUrl=${encodeCallBack}`,
+      message: 'Default address missing',
+      error: 'Address Missing',
+    };
+  }
+
+  const shippingInfor = {
+    name: defaultAddress.fullName,
+    phone: defaultAddress.phone,
+    address: defaultAddress.line1,
+    city: defaultAddress.city,
+    district: defaultAddress.district,
+    ward: defaultAddress.ward,
+  };
+
+  try {
+    // Fetch product + variant details
+    const variantIds = items.map((i) => i.variantId);
+    const dbVariants = await prisma.productVariant.findMany({
+      where: { id: { in: variantIds } },
+      include: { product: true },
+    });
+
+    const variantMap = new Map(dbVariants.map((v) => [v.id, v]));
+
+    const itemDetails = [];
+    for (const item of items) {
+      const variant = variantMap.get(item.variantId);
+
+      if (!variant || !variant.product) {
+        return {
+          success: false,
+          error: `Variant not found - (ID: ${item.variantId})`,
+        };
+      }
+
+      if (variant.stock < item.quantity) {
+        return {
+          success: false,
+          error: `Insufficient stock for variant ID: ${item.variantId}`,
+        };
+      }
+
+      itemDetails.push({
+        productId: variant.product.id,
+        variantId: variant.id,
+        shopId: variant.product.shopId,
+        quantity: item.quantity,
+        unitPrice: Number(variant.price),
+        title: variant.name || variant.product.title,
+        total: Number(variant.price) * item.quantity,
+      });
+    }
+
+    // Fetch Voucher Details
+    const voucherDetails: Voucher[] = [];
+    if (voucher && voucher.length > 0) {
+      const voucherCodes = voucher.map((voucher) => voucher.code);
+      const voucherDb = await prisma.voucher.findMany({
+        where: { code: { in: voucherCodes } },
+      });
+
+      const now = new Date();
+      for (const vCode of voucherCodes) {
+        const vc = voucherDb.find((v) => v.code === vCode);
+        if (!vc)
+          return { success: false, error: `Voucher not exist: ${vCode}` };
+
+        if (vc.startAt > now || vc.endAt < now || !vc.isActive) {
+          return { success: false, error: `Voucher ${vCode} expired` };
+        }
+        voucherDetails.push(vc);
       }
     }
-
-    // 1️⃣ Get Default Shipping Address
-    const defaultAddress = await prisma.address.findFirst({
-      where: { userId, isDefault: true },
-    });
-    if (!defaultAddress) {
-      const encodeCallBack = encodeURIComponent(currentPath);
-      return {
-        success: false,
-        redirectTo: `/customer/account/address?callbackUrl=${encodeCallBack}`,
-        message: 'Default address missing',
-        error: 'Address Missing',
-      };
-    }
-
-    const shippingInfor = {
-      name: defaultAddress.fullName,
-      phone: defaultAddress.phone,
-      address: defaultAddress.line1,
-      city: defaultAddress.city,
-      district: defaultAddress.district,
-      ward: defaultAddress.ward,
-    };
-
-    // 2️⃣ Fetch product + variant details
-    const itemDetails = await Promise.all(
-      items.map(async (item) => {
-        const variant = await prisma.productVariant.findUnique({
-          where: { id: item.variantId },
-        });
-        const product = await prisma.product.findUnique({
-          where: { id: item.productId },
-        });
-
-        if (!variant) throw new Error('Variant not found');
-        if (!product) throw new Error('Product not found');
-
-        return {
-          productId: product.id,
-          variantId: variant.id,
-          shopId: product.shopId,
-          quantity: item.quantity,
-          unitPrice: Number(variant.price),
-          title: variant.name || product.title,
-          total: Number(variant.price) * item.quantity,
-        };
-      })
-    );
-
-    // 3️⃣ Fetch Voucher Details
-    const voucherDetails = voucher
-      ? await Promise.all(
-          voucher.map(async (v) => {
-            const vc = await prisma.voucher.findUnique({
-              where: { code: v.code },
-            });
-            if (!vc) throw new Error(`Voucher not found: ${v.code}`);
-
-            const now = new Date();
-            if (vc.startAt > now || vc.endAt < now || !vc.isActive) {
-              throw new Error(`Voucher ${v.code} is expired or inactive`);
-            }
-            return vc;
-          })
-        )
-      : [];
 
     // 4️⃣ Group items by shop & Calculate Shop Subtotals
     const itemsByShop = itemDetails.reduce(
@@ -295,71 +326,41 @@ export async function createOrderDraft(
     const discountTotalDecimal = new Prisma.Decimal(finalTotalDiscount);
     const grandTotalDecimal = new Prisma.Decimal(finalGrandTotal);
 
-    // 8️⃣ Check Existing Draft
-    const existingDraft = await prisma.orderDraft.findFirst({
-      where: { userId, status: 'AWAITING_PAYMENT' },
-    });
+    const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 8);
+    const timestamp = dayjs().format('YYYYMMDD_HHmm');
+    const orderNumber = `ORD-${timestamp}-${nanoid()}`;
 
-    if (existingDraft) {
-      await prisma.orderDraft.update({
-        where: { id: existingDraft.id },
-        data: {
-          notes,
-          itemsTotal: itemsTotalDecimal,
-          shippingFee: shippingFeeDecimal,
-          discountTotal: discountTotalDecimal,
-          grandTotal: grandTotalDecimal,
-          shippingInfor,
-          updatedAt: new Date(),
-          items: {
-            deleteMany: {},
-            create: itemDetails.map((i) => ({
-              ...i,
-              total: new Prisma.Decimal(i.total),
-              unitPrice: new Prisma.Decimal(i.unitPrice),
-            })),
-          },
-          vouchers: {
-            deleteMany: {},
-            create: voucherDetails.map((v) => ({
-              voucher: { connect: { id: v.id } },
-            })),
-          },
+    // 8️Create new draft
+    const newDraft = await prisma.orderDraft.create({
+      data: {
+        userId,
+        orderNumber: orderNumber,
+        status: 'AWAITING_PAYMENT',
+        itemsTotal: itemsTotalDecimal,
+        shippingFee: shippingFeeDecimal,
+        discountTotal: discountTotalDecimal,
+        grandTotal: grandTotalDecimal,
+        notes,
+        shippingInfor,
+        items: {
+          create: itemDetails.map((i) => ({
+            ...i,
+            total: new Prisma.Decimal(i.total),
+            unitPrice: new Prisma.Decimal(i.unitPrice),
+          })),
         },
-      });
-    } else {
-      await prisma.orderDraft.create({
-        data: {
-          userId,
-          orderNumber: `ORD-${Date.now()}`,
-          status: 'AWAITING_PAYMENT',
-          itemsTotal: itemsTotalDecimal,
-          shippingFee: shippingFeeDecimal,
-          discountTotal: discountTotalDecimal,
-          grandTotal: grandTotalDecimal,
-          notes,
-          shippingInfor,
-          items: {
-            create: itemDetails.map((i) => ({
-              ...i,
-              total: new Prisma.Decimal(i.total),
-              unitPrice: new Prisma.Decimal(i.unitPrice),
-            })),
-          },
-          vouchers: {
-            create: voucherDetails.map((v) => ({
-              voucher: { connect: { id: v.id } },
-            })),
-          },
+        vouchers: {
+          create: voucherDetails.map((v) => ({
+            voucher: { connect: { id: v.id } },
+          })),
         },
-      });
-    }
+      },
+    });
 
     revalidatePath('/draft');
 
-    return await getOrderDrafts();
+    return await getOrderDrafts(newDraft.id);
   } catch (error) {
-    console.error(error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

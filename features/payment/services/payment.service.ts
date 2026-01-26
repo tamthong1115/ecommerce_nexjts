@@ -1,7 +1,7 @@
 import { CreatePaymentInput } from '@/features/payment/payment.dto';
 import { prisma } from '@/lib/db';
-import { Decimal } from '@/lib/generated/prisma/runtime/client';
 import { DbClient } from '@/types/api';
+import { Decimal } from '@prisma/client-runtime-utils';
 
 export const createPaymentService = async (
   db: DbClient,
@@ -15,7 +15,17 @@ export const createPaymentService = async (
       status: params.status,
       currency: params.currency,
       externalId: params.externalId,
+      idempotencyKey: params.idempotencyKey,
       rawPayload: params.rawPayload,
+    },
+  });
+};
+
+export const getPaymentSession = async (db: DbClient, id: string) => {
+  return db.payment.findUnique({
+    where: { idempotencyKey: id },
+    include: {
+      orders: true,
     },
   });
 };

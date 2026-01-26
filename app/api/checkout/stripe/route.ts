@@ -1,125 +1,154 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { Stripe } from 'stripe';
-import { createOrder } from '@/app/actions/order';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
-import getRedisClient from '@/lib/redis';
 import { vndToUsdCents } from '@/lib/currency-helper';
-import { createCheckoutRequestUseCase } from '@/features/payment/payment.usecases';
 import { $Enums } from '@/lib/generated/prisma';
 import PaymentProvider = $Enums.PaymentProvider;
-import PaymentStatus = $Enums.PaymentStatus;
 import Currency = $Enums.Currency;
 import { createPaymentIntentService } from '@/features/payment/services/payment_intent.service';
 import IntentStatus = $Enums.IntentStatus;
 import dayjs from 'dayjs';
 import { ResponseFactory } from '@/lib/api-response';
-import { Decimal } from '@/lib/generated/prisma/runtime/client';
+import redisClient from '@/lib/redis';
+import { paymentQueue } from '@/worker/config';
+import { prepareOrderForCheckout } from '@/features/payment/payment.usecases';
+import { Decimal } from '@prisma/client-runtime-utils';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+type CheckoutPayload = {
+  id: string;
+  url: string;
+  payment_status: string | null;
+  amount_total: number | null;
+  metadata?: Record<string, string>;
+};
 
 export async function POST(req: NextRequest) {
+  let localIntent: { id: string } | null = null;
+  let inventoryReserved = false;
+  let draftItems: { variantId: string; quantity: number }[] = [];
+
   try {
     //lấy đơn hàng nháp
-    const { draftId } = await req.json();
+    const { draftId, body } = await req.json();
     const origin = process.env.NEXT_PUBLIC_BASE_URL!;
+    const idenKey = body.idempotencyKey;
 
-    //tạo đơn
-    const result = await createOrder(draftId);
-    if (!result.success) {
-      return NextResponse.json({ error: result.error }, { status: 400 });
+    //Check idenKey avoid double click
+    const existed = await prisma.payment.findUnique({
+      where: { idempotencyKey: idenKey },
+    });
+
+    if (existed && existed.rawPayload) {
+      const payload = existed.rawPayload as CheckoutPayload;
+      if (payload.url) {
+        return ResponseFactory.toNextResponse(
+          ResponseFactory.success({
+            data: { url: payload.url, reused: true },
+          })
+        );
+      }
     }
 
-    //gọi redis lấy tỉ giá
-    const client = await getRedisClient();
-    const rate = await client.get('currency-rate');
-    if (!rate)
-      return NextResponse.json({ error: 'redis error' }, { status: 400 });
+    const preparedData = await prepareOrderForCheckout(
+      draftId,
+      PaymentProvider.STRIPE
+    );
+    draftItems = preparedData.draftItems;
+    inventoryReserved = preparedData.inventoryReserved;
+    const { orderList, orderIds } = preparedData;
 
+    //gọi redis lấy tỉ giá && tính các thông tin
+    const rate = await redisClient.get('currency-rate');
+    if (!rate) throw new Error('Redis currency rate missing');
     const rateDcm = new Decimal(rate);
-    const orderList = result.order;
 
     const metadata: Record<string, string> = {
-      orderId: orderList.map((o) => o.id).join(','),
+      orderId: orderIds.join(','),
     };
-    const orderIds = Array.from(orderList.map((o) => o.id));
 
     let totalUsdCent = 0;
 
     for (const order of orderList) {
       const priceUsd = vndToUsdCents(
-        new Decimal(Number(order.grandTotal)),
+        new Decimal(order.grandTotal),
         rateDcm
-      );
-      const usdCents = priceUsd.toNumber();
-      totalUsdCent += usdCents;
-      metadata[`_${order.id}`] = usdCents.toString();
+      ).toNumber();
+      totalUsdCent += priceUsd;
+      metadata[`_${order.id}`] = priceUsd.toString();
     }
 
-    const totalGrand = orderList.reduce(
-      (total, order) => total.plus(order.grandTotal),
-      new Decimal(0)
-    );
+    //Tạo local payment intent
+    const expiresAt = dayjs().add(30, 'minute').toDate();
 
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      mode: 'payment',
-      success_url: `${origin}/success`,
-      cancel_url: `${origin}/cancel`,
-      metadata: metadata,
-      payment_intent_data: {
-        transfer_group: metadata.orderId,
-        metadata: metadata,
-      },
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: `Thanh toán ${orderList.length} đơn hàng`,
-            },
-            unit_amount: totalUsdCent,
-          },
-          quantity: 1,
-        },
-      ],
-    });
-
-    const expiresAt = dayjs().add(15, 'minute').toDate();
-    await createPaymentIntentService(prisma, {
-      gatewayRef: session.payment_intent as string,
+    localIntent = await createPaymentIntentService(prisma, {
+      gatewayRef: null,
       provider: PaymentProvider.STRIPE,
       orderIds: { orderIds: orderIds },
       status: IntentStatus.ACTIVE,
-      amount: totalGrand,
+      amount: new Decimal(totalUsdCent),
+      currency: Currency.USD,
       expiresAt: expiresAt,
     });
 
-    await createCheckoutRequestUseCase(prisma, {
-      params: {
+    //Đẩy vao queue xử lý (worker sẽ tạo session stripe)
+    await paymentQueue().add(
+      'create-payment-url',
+      {
         provider: PaymentProvider.STRIPE,
-        method: 'CARD',
+        intentId: localIntent.id,
+        orderIds: orderIds,
         amount: totalUsdCent,
-        status: PaymentStatus.PENDING,
         currency: Currency.USD,
-        externalId: session.payment_intent as string,
-        rawPayload: {
-          id: session.id,
-          url: session.url,
-          payment_status: session.payment_status,
-          amount_total: session.amount_total,
-          metadata: session.metadata,
-        },
+        metadata: metadata,
+        idempotencyKey: idenKey,
+        draftItems: draftItems,
+        method: 'CARD',
+        origin: origin,
       },
-      orderList: orderIds,
-    });
+      {
+        jobId: `checkout-${idenKey}`,
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 1000 },
+        removeOnComplete: true,
+      }
+    );
 
     return ResponseFactory.toNextResponse(
-      ResponseFactory.success({ data: { url: session.url } })
+      ResponseFactory.success({
+        message: 'Order created. Payment processing...',
+        data: {
+          isProcessing: true,
+          intentId: localIntent.id,
+        },
+      })
     );
   } catch (err) {
     console.error('Error creating Stripe session:', err);
+    if (inventoryReserved && draftItems.length > 0) {
+      console.log('🔄 Triggering Inventory Rollback...');
+      await prisma
+        .$transaction(
+          draftItems.map(({ variantId, quantity }) =>
+            prisma.productVariant.update({
+              where: { id: variantId },
+              data: { stock: { increment: quantity } },
+            })
+          )
+        )
+        .catch((e) => console.error('🔥 Rollback failed!', e));
+    }
+    const message =
+      err instanceof Error ? err.message : 'Internal Server Error';
+    const isBadReq =
+      message.includes('không đủ tồn kho') ||
+      message.includes('failed') ||
+      message.includes('Invalid Draft') ||
+      message.includes('already in progress');
+
     return ResponseFactory.toNextResponse(
-      ResponseFactory.error({ message: 'Unknown error', code: 500 })
+      ResponseFactory.error({
+        message: message,
+        code: isBadReq ? 400 : 500, // Tự động phân loại 400/500 dựa vào message
+      })
     );
   }
 }

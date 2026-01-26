@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ResponseFactory } from '@/lib/api-response';
-import { ServiceError } from '@/lib/service-error';
 import { sortObject } from '@/app/api/checkout/vnpay/route';
 import qs from 'qs';
 import crypto from 'crypto';
@@ -18,7 +16,6 @@ export async function GET(req: NextRequest) {
   delete vnp_Params['vnp_SecureHashType'];
 
   vnp_Params = sortObject(vnp_Params);
-  const tmnCode = process.env.VNPAY_TERMINAL_ID!;
   const secretKey = process.env.VNPAY_SECRET_KEY!;
 
   const signData = qs.stringify(vnp_Params, { encode: false });

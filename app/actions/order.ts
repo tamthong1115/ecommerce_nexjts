@@ -1,30 +1,28 @@
 'use server';
 
-import { auth, getCurrentUserId } from '@/lib/auth';
-import { headers } from 'next/headers';
+import { getCurrentUserId } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { OrderStatus, Prisma } from '@/lib/generated/prisma';
 import { revalidatePath } from 'next/cache';
 import { OrderWithRelations } from '@/types/order.data-types';
 import { OrderDTO } from '@/types/dtos/order.dto';
+import { DbClient } from '@/types/api';
 
 type CreateOrderResult =
   | { success: true; order: OrderWithRelations[] }
   | { success: false; error: string };
 
-export async function createOrder(draftId: string): Promise<CreateOrderResult> {
+export async function createOrder(
+  db: DbClient,
+  draftId: string
+): Promise<CreateOrderResult> {
   try {
-    // const session = await auth.api.getSession({ headers: await headers() });
-    // if (!session) return { success: false, error: 'Unauthorized' };
-    //
-    // const userId = session.user.id;
-
     const userId = await getCurrentUserId();
     if (!userId) {
       return { success: false, error: 'Unauthorized' };
     }
     console.log('api call: ' + draftId);
-    const draft = await prisma.orderDraft.findUnique({
+    const draft = await db.orderDraft.findUnique({
       where: { id: draftId, userId },
       include: {
         items: true,
@@ -66,7 +64,7 @@ export async function createOrder(draftId: string): Promise<CreateOrderResult> {
 
         const orderNumber = `ORD-${timestamp}-${index + 1}`;
 
-        return prisma.order.create({
+        return db.order.create({
           data: {
             orderNumber,
             userId,
@@ -108,13 +106,13 @@ export async function createOrder(draftId: string): Promise<CreateOrderResult> {
       })
     );
 
-    await prisma.orderDraft.delete({
+    await db.orderDraft.delete({
       where: { id: draft.id },
     });
 
-    const cart = await prisma.cart.findUnique({ where: { userId } });
+    const cart = await db.cart.findUnique({ where: { userId } });
     if (cart) {
-      await prisma.cartItem.deleteMany({
+      await db.cartItem.deleteMany({
         where: {
           cartId: cart.id,
           variantId: {
@@ -131,9 +129,9 @@ export async function createOrder(draftId: string): Promise<CreateOrderResult> {
       success: true,
       order: createdOrders,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error createOrder:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: error as string };
   }
 }
 
@@ -192,8 +190,8 @@ export async function getOrder(
         nextCursor,
       })
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching orders:', error);
-    throw new Error(error.message || 'Internal Server Error');
+    throw new Error((error as string) || 'Internal Server Error');
   }
 }

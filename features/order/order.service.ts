@@ -1,5 +1,8 @@
 import { prisma } from '@/lib/db';
 import { GetOrderStatsInput, OrderStatsResult } from './order.dto';
+import { getCurrentUserId } from '@/lib/auth';
+import { $Enums } from '@/lib/generated/prisma';
+import PaymentStatus = $Enums.PaymentStatus;
 
 export const getOrderStats = async (
   userId: string,
@@ -55,4 +58,20 @@ export const getOrderStats = async (
   );
 
   return Object.values(ordersByDate);
+};
+
+export const getOrdersCanPay = async (orderIds: string[]) => {
+  const userId = await getCurrentUserId();
+
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  if (!userId) throw new Error('Unauthorized');
+  return prisma.order.findMany({
+    where: {
+      id: { in: orderIds },
+      userId: userId,
+      paymentStatus: PaymentStatus.PENDING,
+      status: { notIn: ['CANCELED', 'REFUNDED', 'EXPIRED'] },
+      placedAt: { gte: oneDayAgo },
+    },
+  });
 };

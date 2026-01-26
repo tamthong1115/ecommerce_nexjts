@@ -6,20 +6,32 @@ export const upsertPendingBalance = async (
   shopId: string,
   amount: Decimal
 ) => {
-  return db.shopBalance.upsert({
-    where: { shopId },
-    create: {
-      shopId,
-      pending: amount,
-      available: 0,
-      frozen: 0,
-      version: 1,
-    },
-    update: {
-      pending: { increment: amount },
-      version: { increment: 1 },
-    },
-  });
+  const rows = await db.$queryRaw<{ pending: Decimal }[]>`
+    SELECT pending
+    FROM "ShopBalance"
+    WHERE "shopId" = ${shopId}::uuid
+      FOR UPDATE
+  `;
+
+  if (rows.length > 0) {
+    return db.shopBalance.update({
+      where: { shopId },
+      data: {
+        pending: { increment: amount },
+        version: { increment: 1 },
+      },
+    });
+  } else {
+    return db.shopBalance.create({
+      data: {
+        shopId,
+        pending: amount,
+        available: 0,
+        frozen: 0,
+        version: 1,
+      },
+    });
+  }
 };
 
 export const updateShopBalance = async (

@@ -1,6 +1,6 @@
 'use client';
 
-import { createOrderDraft, getOrderDrafts } from '@/app/actions/order_draft';
+import { createOrderDraft } from '@/app/actions/order_draft';
 import { Loading } from '@/components/loading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -28,9 +28,9 @@ import { ChatButton } from '@/components/chat/chat-button';
 import { VoucherSelector } from '@/features/voucher/_components/voucher-selector';
 import { VoucherDTO } from '@/features/voucher/voucher.dto';
 import Desc from '../../../../features/public/product/components/desc';
-import { ReviewsServer } from '../../../../features/review/components/reviews-server';
+import { ReviewsServer } from '@/features/review/components/reviews-server';
 import SlideImg from '../../../../features/public/product/components/slide-img';
-import { SuggestDealToday } from '../../../../features/public/product/components/suggest-deal-today';
+import { SuggestDealToday } from '@/features/public/product/components/suggest-deal-today';
 
 import { TopDealItems } from '@/features/public/home/components/top-deal-items';
 import logo from '@/public/logo.jpg';
@@ -88,6 +88,7 @@ const DetailPage = () => {
             });
           }
         }
+        console.log(res + '-' + data);
       };
       loadData();
     }
@@ -143,7 +144,7 @@ const DetailPage = () => {
       final: Math.max(0, final),
       discountAmount: totalDiscount,
     };
-  }, [currentVariantPrice, selectedVouchers]);
+  }, [currentVariantPrice, selVariant, selectedVouchers]);
 
   const handleSelectVariant = (
     id: string,
@@ -180,15 +181,6 @@ const DetailPage = () => {
     }
 
     try {
-      const existing = await getOrderDrafts();
-      if (existing.success && existing.draft) {
-        toast.info(
-          'Bạn có đơn hàng đang chờ xử lý. Chuyển đến trang thanh toán...'
-        );
-        route.push('/checkout');
-        return;
-      }
-
       const orderData = {
         notes: '',
         items: [item],

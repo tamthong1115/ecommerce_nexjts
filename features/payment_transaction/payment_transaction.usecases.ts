@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db';
+import { Decimal } from '@prisma/client/runtime/library';
 import { ServiceError } from '@/lib/service-error';
 import {
   freezeShopBalanceForPayout,
@@ -24,45 +25,64 @@ import { $Enums, Prisma } from '@/lib/generated/prisma';
 import InputJsonValue = Prisma.InputJsonValue;
 import PayoutStatus = $Enums.PayoutStatus;
 import { getPaymentId } from '@/features/payment/services/order_payment.service';
-import { Decimal } from '@/lib/generated/prisma/runtime/client';
+import LedgerType = $Enums.LedgerType;
+import { DbClient } from '@/types/api';
 
 const toDecimal = (val: Decimal | number) => new Decimal(val);
 
+// export const updateLocalPaymentHook = async (
+//   db: DbClient,
+//   eventType: string,
+//   payload: any
+// ) => {)
+
 export const customerPaidOrderSuccessUsecase = async (
+  db: DbClient,
   shopId: string,
   amountInput: Decimal | number,
   orderId: string,
-  paymentId?: string
+  paymentId?: string,
+  idempotencyKey?: string
 ) => {
   const amount = toDecimal(amountInput);
-  return prisma.$transaction(async (tx) => {
-    const updatedBalance = await upsertPendingBalance(tx, shopId, amount);
-
-    const balanceAfter = updatedBalance.pending;
-    const balanceBefore = balanceAfter.minus(amount);
-
-    await createOrderPaidLedger(tx, {
-      shopId,
-      amount,
-      orderId,
-      paymentId,
-      balanceBefore,
-      balanceAfter,
-    });
-
-    //Now + 3 days to settle
-    const settleDate = new Date();
-    settleDate.setDate(settleDate.getDate() + 3);
-
-    await enqueueSettlement(tx, {
-      shopId,
-      orderId,
-      amount,
-      dueAt: settleDate,
-    });
-
-    return updatedBalance;
+  const existingLedger = await db.ledgerEntry.findFirst({
+    where: {
+      orderId: orderId,
+      type: LedgerType.ORDER_PAID,
+    },
   });
+
+  if (existingLedger) {
+    return;
+  }
+
+  const updatedBalance = await upsertPendingBalance(db, shopId, amount);
+
+  const balanceAfter = updatedBalance.pending;
+  const balanceBefore = balanceAfter.minus(amount);
+
+  await createOrderPaidLedger(db, {
+    shopId,
+    amount,
+    orderId,
+    idempotencyKey,
+    paymentId,
+    balanceBefore,
+    balanceAfter,
+  });
+
+  //Now + 3 days to settle
+  const settleDate = new Date();
+  settleDate.setDate(settleDate.getDate() + 3);
+
+  await enqueueSettlement(db, {
+    shopId,
+    orderId,
+    amount,
+    dueAt: settleDate,
+  });
+
+  return updatedBalance;
 };
 
 export const paySettleQueueUsecase = async () => {

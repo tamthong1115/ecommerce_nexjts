@@ -5,15 +5,17 @@ import { DbClient } from '@/types/api';
 import PaymentProvider = $Enums.PaymentProvider;
 import { prisma } from '@/lib/db';
 import IntentStatus = $Enums.IntentStatus;
+import Currency = $Enums.Currency;
 
 export const createPaymentIntentService = async (
   db: DbClient,
   params: {
-    gatewayRef: string;
+    gatewayRef: string | null;
     provider: PaymentProvider;
     status: IntentStatus;
     orderIds: InputJsonValue;
     amount: Prisma.Decimal;
+    currency: Currency;
     expiresAt: Date;
   }
 ) => {
@@ -24,12 +26,33 @@ export const createPaymentIntentService = async (
       status: params.status,
       orderIds: params.orderIds,
       amount: params.amount,
+      currency: params.currency,
       expiresAt: params.expiresAt,
     },
   });
 };
 
-export const getPaymentIntentByTxnRefService = async (gatewayRef: string) => {
+export const updatePaymentIntentService = async (
+  id: string,
+  params: {
+    gatewayRef?: string;
+    provider?: PaymentProvider;
+    status?: IntentStatus;
+    orderIds?: InputJsonValue;
+    amount?: Prisma.Decimal;
+    currency?: Currency;
+    expiresAt?: Date;
+  }
+) => {
+  return prisma.paymentIntent.update({
+    where: { id: id },
+    data: params,
+  });
+};
+
+export const getPaymentIntentByGatewayRefService = async (
+  gatewayRef: string
+) => {
   return prisma.paymentIntent.findUnique({
     where: { gatewayRef },
   });
