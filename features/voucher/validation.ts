@@ -49,9 +49,8 @@ export const createVoucherSchema = z
 
     categoryIds: z.array(z.string().uuid()).optional(),
   })
-  // --- CÁC VALIDATION LOGIC PHỨC TẠP (REFINE) ---
   .superRefine((data, ctx) => {
-    // 1. Kiểm tra ngày tháng
+    // Kiểm tra ngày tháng
     if (data.endAt <= data.startAt) {
       ctx.addIssue({
         code: 'custom',
@@ -60,7 +59,7 @@ export const createVoucherSchema = z
       });
     }
 
-    // 2. Kiểm tra logic loại Voucher
+    // Kiểm tra logic loại Voucher
     if (data.type === VoucherType.PERCENT) {
       if (data.value > 100) {
         ctx.addIssue({
@@ -71,9 +70,8 @@ export const createVoucherSchema = z
       }
     }
 
-    // 3. Logic Max Discount (chỉ nên có khi giảm theo %)
+    // Logic Max Discount (chỉ nên có khi giảm theo %)
     if (data.type === VoucherType.FIXED && data.maxDiscount) {
-      /* empty */
     }
   });
 

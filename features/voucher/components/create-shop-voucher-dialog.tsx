@@ -51,10 +51,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
 
 import { fetchApi } from '@/lib/client-fetch';
-import {
-  CreateVoucherInput,
-  createVoucherSchema,
-} from '@/lib/validation/voucher';
+
 import { SellerShopListItem } from '@/app/(seller)/seller/shops/page';
 import {
   Command,
@@ -64,6 +61,10 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
+import {
+  CreateVoucherInput,
+  createVoucherSchema,
+} from '@/features/voucher/validation';
 
 interface ProductSimple {
   id: string;
@@ -120,7 +121,6 @@ export function CreateVoucherDialog({
       const fetchProducts = async () => {
         setIsLoadingProducts(true);
         try {
-          // Giả định API hỗ trợ lọc theo shopId
           const res = await fetchApi<ProductSimple[]>(
             `/api/seller/products?shopId=${watchShopId}`
           );

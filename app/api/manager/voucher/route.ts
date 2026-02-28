@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { ResponseFactory } from '@/lib/api-response';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
-import { getAdminVouchersService } from '@/features/voucher/voucher.service';
+import { getAdminVouchersService } from '@/features/voucher/server/voucher.service';
 
 export async function GET(req: NextRequest) {
   try {

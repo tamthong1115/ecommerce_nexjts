@@ -14,13 +14,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { CreateVoucherDialog } from '@/features/manager/voucher/components/create-voucher-dialog';
-import { columns } from '@/features/manager/voucher/components/voucher-column-table';
-import { DataTable } from '@/features/manager/voucher/components/voucher-data-table';
+import { DataTable } from '@/features/voucher/components/voucher-data-table';
+import { columns } from '@/features/voucher/components/system-voucher-columns';
+import { CreateVoucherDialog } from '@/features/voucher/components/create-system-voucher-dialog';
 import {
   VoucherResponseData,
   VoucherResponseDTO,
-} from '@/features/voucher/voucher.dto';
+} from '@/features/voucher/types/voucher.dto';
 import { fetchApi } from '@/lib/client-fetch';
 import { PaginationState } from '@tanstack/react-table';
 import { useTranslations } from 'next-intl';

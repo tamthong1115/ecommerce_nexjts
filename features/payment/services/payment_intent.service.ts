@@ -21,12 +21,11 @@ export const createPaymentIntentService = async (
 ) => {
   return db.paymentIntent.create({
     data: {
-      gatewayRef: params.gatewayRef,
+      gatewayRef: params.gatewayRef ?? '',
       provider: params.provider,
       status: params.status,
       orderIds: params.orderIds,
       amount: params.amount,
-      currency: params.currency,
       expiresAt: params.expiresAt,
     },
   });
@@ -44,9 +43,10 @@ export const updatePaymentIntentService = async (
     expiresAt?: Date;
   }
 ) => {
+  const { currency, ...rest } = params;
   return prisma.paymentIntent.update({
     where: { id: id },
-    data: params,
+    data: rest,
   });
 };
 

@@ -31,7 +31,6 @@ const ShopPage = ({ children }: { children: React.ReactNode }) => {
     return decodeURIComponent(params.slug as string);
   }, [params]);
 
-  console.log(decodedSlug);
   useEffect(() => {
     const fetch = async () => {
       const res = await fetchData({

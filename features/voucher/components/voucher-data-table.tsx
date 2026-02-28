@@ -17,8 +17,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { VoucherDataTablePagination } from '@/app/(seller)/seller/voucher/_components/voucher-pagination';
-import { VoucherResponseDTO } from '@/features/voucher/voucher.dto';
+import { VoucherDataTablePagination } from '@/features/voucher/components/voucher-pagination';
+import { VoucherResponseDTO } from '@/features/voucher/types/voucher.dto';
 
 interface DataTableProps<TData extends VoucherResponseDTO, TValue> {
   columns: ColumnDef<TData, TValue>[];

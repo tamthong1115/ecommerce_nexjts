@@ -27,8 +27,8 @@ export const createOrderPaidLedger = async (
       balanceBefore: params.balanceBefore,
       balanceAfter: params.balanceAfter,
       orderId: params.orderId,
-      idempotencyKey: params.idempotencyKey,
       paymentId: params.paymentId,
+
       transactionGroup: `order_paid_${params.orderId}`,
     },
   });

@@ -23,8 +23,7 @@ import { toast } from 'sonner';
 
 import { TicketPercent } from 'lucide-react';
 
-import { VoucherSelector } from '@/features/voucher/_components/voucher-selector';
-import { VoucherDTO } from '@/features/voucher/voucher.dto';
+import { VoucherDTO } from '@/features/voucher/types/voucher.dto';
 import Desc from '../../../../features/public/product/components/desc';
 import { ReviewsServer } from '@/features/review/components/reviews-server';
 import SlideImg from '../../../../features/public/product/components/slide-img';
@@ -36,6 +35,7 @@ import Link from 'next/link';
 import Decimal = Prisma.Decimal;
 import { RatingStars } from '@/features/public/components/rating-starts';
 import { ChatButton } from '@/features/shared/components/chat/chat-button';
+import { VoucherSelector } from '@/features/voucher/components/voucher-selector';
 
 interface SelectedVariant {
   name: string;
@@ -87,7 +87,7 @@ const DetailPage = () => {
             });
           }
         }
-        console.log(res + '-' + data);
+        // console.log(res + '-' + data);
       };
       loadData();
     }

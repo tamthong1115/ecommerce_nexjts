@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Bell, Check, Loader2 } from 'lucide-react';
+import { Bell, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { NotificationRole } from '@/lib/generated/prisma';
 import { cn } from '@/lib/utils';
@@ -35,7 +35,6 @@ export function NotificationBell({ role, className }: NotificationBellProps) {
     markAsRead,
   } = useNotifications(role);
 
-  // Helper to handle navigation (optional)
   const handleItemClick = (notification: (typeof notifications)[0]) => {
     markAsRead(notification.id);
 
@@ -47,12 +46,12 @@ export function NotificationBell({ role, className }: NotificationBellProps) {
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button
-          variant="ghost"
+          variant="outline"
           size="icon"
           className={cn('relative', className)}
           aria-label="Notifications"
         >
-          <Bell className="h-5 w-5" />
+          <Bell className="h-5 w-5 text-primary" />
           {unreadCount > 0 && (
             <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-sm animate-in zoom-in">
               {unreadCount > 99 ? '99+' : unreadCount}
@@ -118,7 +117,7 @@ export function NotificationBell({ role, className }: NotificationBellProps) {
                     {n.body}
                   </p>
 
-                  {/* Optional: Navigation Hint */}
+                  {/* Navigation */}
                   {!n.isRead && (
                     <div className="mt-1 flex items-center gap-1 text-[10px] text-blue-600 font-medium">
                       <div className="h-1.5 w-1.5 rounded-full bg-blue-600" />
