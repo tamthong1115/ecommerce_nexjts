@@ -1,7 +1,7 @@
 'use client';
 
-import { SearchFiltersPanel } from '@/app/(public)/search/_components/search-filters-panel';
-import { SearchSortBar } from '@/app/(public)/search/_components/search-sort-bar';
+import { SearchFiltersPanel } from '@/features/search/_components/search-filters-panel';
+import { SearchSortBar } from '@/features/search/_components/search-sort-bar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';

@@ -1,7 +1,7 @@
 import { $Enums, Prisma } from '@/lib/generated/prisma';
 import { prisma } from '@/lib/db';
-import { CreateVoucherInput } from '@/lib/validation/voucher';
 import { ServiceError } from '@/lib/service-error';
+import { CreateVoucherInput } from '@/features/voucher/validation';
 
 export const getAvailableVouchersService = async (
   shopId: string,

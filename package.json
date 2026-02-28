@@ -14,7 +14,7 @@
     "format": "prettier --write .",
     "check-format": "prettier --check .",
     "postinstall": "prisma generate",
-    "notification-worker": "tsx --env-file=.env features/notification/server/queue/notification.worker.ts"
+    "notification-worker": "tsx --env-file=.env worker/notification.worker.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -126,6 +126,7 @@
     "@typescript-eslint/parser": "^7.0.0",
     "@vitejs/plugin-react": "^5.1.2",
     "autoprefixer": "^10.4.21",
+    "baseline-browser-mapping": "^2.10.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.8",
     "eslint-config-prettier": "^10.1.8",

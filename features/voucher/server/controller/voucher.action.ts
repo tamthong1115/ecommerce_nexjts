@@ -3,7 +3,7 @@
 import { requireRole, requireSeller } from '@/lib/require-role';
 import { ResponseFactory } from '@/lib/api-response';
 import { ApiResponse } from '@/types/api';
-import { disableVoucherService } from '@/features/voucher/voucher.service';
+import { disableVoucherService } from '@/features/voucher/server/voucher.service';
 
 export const disableVoucherAction = async (
   voucherId: string

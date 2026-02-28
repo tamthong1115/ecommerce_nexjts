@@ -121,7 +121,6 @@ export async function GET(
       );
       productData.variants = variantsWithRealStock;
     }
-    console.log('data: ', productData);
     return new Response(JSON.stringify({ success: true, productData }), {
       status: 200,
     });

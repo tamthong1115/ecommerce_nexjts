@@ -23,6 +23,7 @@ export type VoucherResponseDTO = {
   maxDiscount: number | null;
   minSubtotal: number | null;
   currency: Currency;
+  description: string | null;
 
   startAt: Date;
   endAt: Date;

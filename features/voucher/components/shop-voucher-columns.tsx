@@ -14,9 +14,9 @@ import { MoreHorizontal } from 'lucide-react';
 import { formatPrice, formatTime } from '@/lib/utils';
 import { $Enums } from '@/lib/generated/prisma';
 import { useTranslations } from 'next-intl';
-import { VoucherResponseDTO } from '@/features/voucher/voucher.dto';
+import { VoucherResponseDTO } from '@/features/voucher/types/voucher.dto';
 import VoucherType = $Enums.VoucherType;
-import { disableVoucherAction } from '@/features/voucher/action';
+import { disableVoucherAction } from '@/features/voucher/server/controller/voucher.action';
 import { useTransition } from 'react';
 import { toast } from 'sonner';
 

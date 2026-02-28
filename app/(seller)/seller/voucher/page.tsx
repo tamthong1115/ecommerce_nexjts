@@ -21,10 +21,10 @@ import { fetchApi } from '@/lib/client-fetch';
 import {
   VoucherResponseData,
   VoucherResponseDTO,
-} from '@/features/voucher/voucher.dto';
-import { DataTable } from './_components/voucher-data-table';
-import { columns } from '@/app/(seller)/seller/voucher/_components/voucher-column-table';
-import { CreateVoucherDialog } from '@/app/(seller)/seller/voucher/_components/create-voucher-dialog';
+} from '@/features/voucher/types/voucher.dto';
+import { DataTable } from '@/features/voucher/components/voucher-data-table';
+import { columns } from '@/features/voucher/components/shop-voucher-columns';
+import { CreateVoucherDialog } from '@/features/voucher/components/create-shop-voucher-dialog';
 import { paths } from '@/lib/path';
 
 const LIMIT = 12;

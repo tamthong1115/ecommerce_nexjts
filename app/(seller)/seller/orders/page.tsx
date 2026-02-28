@@ -133,7 +133,6 @@ export default function SellerOrderPage() {
           // setNextCursor(res.data.nextCursor);
           // setHasMore(!!res.data.nextCursor);
           setPageCount(newPagination.totalPages);
-          console.log('jkafjakbk' + newPagination.totalPages);
         }
       } catch (error) {
         console.error('Failed to fetch orders', error);

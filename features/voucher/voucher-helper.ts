@@ -1,5 +1,5 @@
 import { fetchApi } from '@/lib/client-fetch';
-import { VoucherDTO } from '@/features/voucher/voucher.dto';
+import { VoucherDTO } from '@/features/voucher/types/voucher.dto';
 
 async function fetchAllVouchers(): Promise<VoucherDTO[]> {
   const VOUCHER_API_ENDPOINT = '/api/vouchers';

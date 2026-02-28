@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Sheet,
   SheetContent,
@@ -10,20 +10,20 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { TicketPercent, Loader2, Store, Globe, Truck } from 'lucide-react'; // Added Icons
+import { TicketPercent, Loader2, Store, Globe, Truck } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { fetchApi } from '@/lib/client-fetch';
-import { VoucherDTO } from '@/features/voucher/voucher.dto';
+import { VoucherDTO } from '@/features/voucher/types/voucher.dto';
 import { Separator } from '@/components/ui/separator';
 
 interface VoucherSelectorProps {
   shopId: string;
   productId?: string;
-  currentPrice: number; // Added to validate minSubtotal
-  selectedVouchers: VoucherDTO[]; // Changed from string[] to object[]
+  currentPrice: number;
+  selectedVouchers: VoucherDTO[];
   onApply: (vouchers: VoucherDTO[]) => void;
 }
 

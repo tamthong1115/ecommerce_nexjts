@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db';
-import { GetOrderStatsInput, OrderStatsResult } from './order.dto';
+import { GetOrderStatsInput, OrderStatsResult } from '../order.dto';
 import { getCurrentUserId } from '@/lib/auth';
 import { $Enums } from '@/lib/generated/prisma';
 import PaymentStatus = $Enums.PaymentStatus;

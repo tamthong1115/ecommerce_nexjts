@@ -59,7 +59,7 @@ Feature-first organization. Each feature can bundle its DTOs, services, actions,
 - `features/voucher/`
   - `voucher.dto.ts` — Input/validation DTOs
   - `voucher.service.ts` — Voucher domain service layer
-  - `action.ts` — Server/client actions for voucher workflows
+  - `voucher.action.ts` — Server/client actions for voucher workflows
 - `features/order/`
   - `order.service.ts` — Order domain services
 

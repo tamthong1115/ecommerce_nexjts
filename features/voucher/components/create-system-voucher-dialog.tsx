@@ -44,7 +44,7 @@ import { fetchApi } from '@/lib/client-fetch';
 import {
   CreateVoucherInput,
   createVoucherSchema,
-} from '@/lib/validation/voucher';
+} from '@/features/voucher/validation';
 
 interface CreateVoucherDialogProps {
   onSuccess?: () => void;

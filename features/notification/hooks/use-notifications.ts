@@ -7,7 +7,7 @@ import {
   useQueryClient,
   InfiniteData,
 } from '@tanstack/react-query';
-import { notificationClientApi } from '@/features/notification/client-api/notification.client-api';
+import { notificationClientApi } from '@/features/notification/hooks/notification.client-api';
 import {
   NotificationItemDTO,
   NotificationListResponse,
@@ -44,11 +44,8 @@ export const useNotifications = (
     isLoading,
     isError,
   } = useInfiniteQuery<NotificationListResponse>({
-    // Unique cache key ensures separation of data between buyer and seller views
-    // and correctly refetches when the 'type' filter changes.
     queryKey: notificationKeys.list(role, type),
 
-    // Start with an undefined cursor to fetch the initial page
     initialPageParam: undefined as string | undefined,
 
     queryFn: async ({ pageParam }) => {
@@ -75,7 +72,6 @@ export const useNotifications = (
     },
   });
 
-  // Flattens the array of pages into a single continuous list for UI rendering
   const notifications = data?.pages.flatMap((page) => page.data || []) ?? [];
 
   // Extracts the unread count from the most recent page (page 0)

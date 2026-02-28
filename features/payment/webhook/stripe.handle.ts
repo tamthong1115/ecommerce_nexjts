@@ -9,8 +9,10 @@ export async function handleStripeWebhook(eventType: string, session: any) {
   // 2. Tìm Payment Record
   const payment = await prisma.payment.findUnique({
     where: {
-      externalId: session.id,
-      provider: $Enums.PaymentProvider.STRIPE,
+      provider_externalId: {
+        externalId: session.id,
+        provider: $Enums.PaymentProvider.STRIPE,
+      },
     },
     include: {
       orders: {
