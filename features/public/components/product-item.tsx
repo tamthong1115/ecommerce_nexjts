@@ -8,14 +8,14 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { formatPrice } from '@/lib/utils';
-import { productItemType } from '@/types/public.data-types';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { RatingStars } from './rating-starts';
+import Link from 'next/link';
+import { productRecommendDto } from '@/features/recommend_system/recommend.dto';
 
 interface productItemProps {
-  item: productItemType;
+  item: productRecommendDto;
   showDesc?: boolean;
   showRating?: boolean;
   showFooter?: boolean;
@@ -28,10 +28,6 @@ export const ProductItem = ({
   showFooter = true,
 }: productItemProps) => {
   const t = useTranslations('general');
-  const router = useRouter();
-  const handleOpenDetail = (id: string) => {
-    router.push(`/products/${id}`);
-  };
   const renderSaleInfo = ({
     voucher,
   }: {
@@ -100,10 +96,10 @@ export const ProductItem = ({
   };
 
   return (
-    <div
+    <Link
       key={item.id}
       className={`w-full h-full flex flex-1 bg-background border-border border-2 rounded-lg hover:cursor-pointer`}
-      onClick={() => handleOpenDetail(item.id)}
+      href={`/products/${item.id}`}
     >
       <Card className="w-full shadow-none border-none rounded-t-none flex flex-col justify-between gap-2 shrink-0 p-0 rounded-lg">
         <CardHeader className="p-0">
@@ -113,6 +109,7 @@ export const ProductItem = ({
             width={0}
             height={0}
             sizes="100vw"
+            unoptimized
             className="w-full aspect-square object-cover rounded-t-lg"
           />
           <CardTitle className="overflow-hidden px-2 py-1">
@@ -154,6 +151,6 @@ export const ProductItem = ({
           </CardFooter>
         ) : null}
       </Card>
-    </div>
+    </Link>
   );
 };

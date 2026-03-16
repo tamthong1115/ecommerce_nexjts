@@ -1,5 +1,3 @@
-import { prisma } from '@/lib/db';
-import { Decimal } from '@prisma/client/runtime/library';
 import { ServiceError } from '@/lib/service-error';
 import {
   freezeShopBalanceForPayout,
@@ -27,14 +25,10 @@ import PayoutStatus = $Enums.PayoutStatus;
 import { getPaymentId } from '@/features/payment/services/order_payment.service';
 import LedgerType = $Enums.LedgerType;
 import { DbClient } from '@/types/api';
+import { prisma_clean } from '@/lib/queue/prisma-clean';
+import Decimal = Prisma.Decimal;
 
 const toDecimal = (val: Decimal | number) => new Decimal(val);
-
-// export const updateLocalPaymentHook = async (
-//   db: DbClient,
-//   eventType: string,
-//   payload: any
-// ) => {)
 
 export const customerPaidOrderSuccessUsecase = async (
   db: DbClient,
@@ -92,7 +86,7 @@ export const paySettleQueueUsecase = async () => {
   for (const settlement of pendingSettlements) {
     try {
       // Transaction nhỏ cho từng đơn
-      await prisma.$transaction(async (tx) => {
+      await prisma_clean.$transaction(async (tx) => {
         const checkItem = await getUniqueSettlement(tx, settlement.id);
         if (!checkItem || checkItem.status !== 'PENDING') return;
 
@@ -142,7 +136,7 @@ export const shopSendWithdrawMoneyUsecase = async (
   txnRef: string
 ) => {
   const amount = toDecimal(amountInput);
-  return prisma.$transaction(async (tx) => {
+  return prisma_clean.$transaction(async (tx) => {
     const shopValid = await tx.shopBalance.findUnique({
       where: { shopId: shopId },
     });
@@ -188,7 +182,7 @@ export const requestWithDrawMoneySuccess = async (
   amountInput: Decimal | number
 ) => {
   const amount = toDecimal(amountInput);
-  return prisma.$transaction(async (tx) => {
+  return prisma_clean.$transaction(async (tx) => {
     await tx.shopBalance.update({
       where: { shopId: shopId },
       data: {
@@ -213,7 +207,7 @@ export const requestWithDrawnMoneyFailed = async (
   amountInput: Decimal | number
 ) => {
   const amount = toDecimal(amountInput);
-  return prisma.$transaction(async (tx) => {
+  return prisma_clean.$transaction(async (tx) => {
     const updateBalance = await tx.shopBalance.update({
       where: { shopId: shopId },
       data: {

@@ -3,7 +3,6 @@ import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { env } from './env';
 import { admin, emailOTP } from 'better-auth/plugins';
 
-import { prisma } from '@/lib/db';
 import { headers } from 'next/headers';
 import { nextCookies } from 'better-auth/next-js';
 import { getUserNameOrEmailPrefix } from '@/lib/utils';
@@ -11,9 +10,10 @@ import { NotificationRole, NotificationType } from '@/lib/generated/prisma';
 import { sendNotification } from '@/features/notification/server/controller/notification.action';
 
 import { ChannelType } from '@/features/notification/types/notification.type';
+import { prisma_clean } from '@/lib/queue/prisma-clean';
 
 export const auth = betterAuth({
-  database: prismaAdapter(prisma, {
+  database: prismaAdapter(prisma_clean, {
     provider: 'postgresql',
   }),
   advanced: {
@@ -74,7 +74,7 @@ export const auth = betterAuth({
     user: {
       create: {
         after: async (user) => {
-          await prisma.$transaction(async (tx) => {
+          await prisma_clean.$transaction(async (tx) => {
             await tx.userProfile.upsert({
               where: { userId: user.id },
               update: {},

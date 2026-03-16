@@ -1,5 +1,4 @@
 import { NextRequest } from 'next/server';
-import { prisma } from '@/lib/db';
 import { vndToUsdCents } from '@/lib/currency-helper';
 import { $Enums } from '@/lib/generated/prisma';
 import PaymentProvider = $Enums.PaymentProvider;
@@ -12,6 +11,7 @@ import redisClient from '@/lib/redis';
 import { paymentQueue } from '@/worker/config';
 import { prepareOrderForCheckout } from '@/features/payment/payment.usecases';
 import { Decimal } from '@prisma/client-runtime-utils';
+import { prisma_clean } from '@/lib/queue/prisma-clean';
 
 type CheckoutPayload = {
   id: string;
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     const idenKey = body.idempotencyKey;
 
     //Check idenKey avoid double click
-    const existed = await prisma.payment.findUnique({
+    const existed = await prisma_clean.payment.findUnique({
       where: { idempotencyKey: idenKey },
     });
 
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
     //Tạo local payment intent
     const expiresAt = dayjs().add(30, 'minute').toDate();
 
-    localIntent = await createPaymentIntentService(prisma, {
+    localIntent = await createPaymentIntentService(prisma_clean, {
       gatewayRef: null,
       provider: PaymentProvider.STRIPE,
       orderIds: { orderIds: orderIds },
@@ -125,10 +125,10 @@ export async function POST(req: NextRequest) {
     console.error('Error creating Stripe session:', err);
     if (inventoryReserved && draftItems.length > 0) {
       console.log('🔄 Triggering Inventory Rollback...');
-      await prisma
+      await prisma_clean
         .$transaction(
           draftItems.map(({ variantId, quantity }) =>
-            prisma.productVariant.update({
+            prisma_clean.productVariant.update({
               where: { id: variantId },
               data: { stock: { increment: quantity } },
             })

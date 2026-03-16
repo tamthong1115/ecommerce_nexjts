@@ -1,5 +1,5 @@
 import redisClient from '@/lib/redis';
-import { prisma } from '@/lib/db';
+import { prisma_clean } from '@/lib/queue/prisma-clean';
 
 export class StockManager {
   static async getStock(variantId: string): Promise<number> {
@@ -10,7 +10,7 @@ export class StockManager {
       return parseInt(stock, 10);
     }
 
-    const variantStock = await prisma.productVariant.findUnique({
+    const variantStock = await prisma_clean.productVariant.findUnique({
       where: { id: variantId },
       select: { stock: true },
     });
@@ -42,7 +42,7 @@ export class StockManager {
     if (result === -2) {
       console.log(`Redis miss stock for ${variantId}. Fetching from DB...`);
 
-      const variant = await prisma.productVariant.findUnique({
+      const variant = await prisma_clean.productVariant.findUnique({
         where: { id: variantId },
         select: { stock: true },
       });

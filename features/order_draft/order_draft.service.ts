@@ -1,7 +1,7 @@
-import { prisma } from '@/lib/db';
+import { prisma_clean } from '@/lib/queue/prisma-clean';
 
 export const getItemsQtyByDraftId = async (id: string) => {
-  return prisma.orderDraft.findUnique({
+  return prisma_clean.orderDraft.findUnique({
     where: { id: id },
     select: {
       items: {

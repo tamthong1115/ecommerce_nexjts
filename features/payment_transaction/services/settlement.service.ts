@@ -1,6 +1,6 @@
 import { Prisma } from '@/lib/generated/prisma';
-import { Decimal } from '@prisma/client/runtime/library';
-import { prisma } from '@/lib/db';
+import { Decimal } from '@/lib/generated/prisma/runtime/library';
+import { prisma_clean } from '@/lib/queue/prisma-clean';
 
 export const enqueueSettlement = async (
   tx: Prisma.TransactionClient,
@@ -23,7 +23,7 @@ export const enqueueSettlement = async (
 };
 
 export const getPendingSettlement = async (now: Date) => {
-  return prisma.settlementQueue.findMany({
+  return prisma_clean.settlementQueue.findMany({
     where: {
       status: 'PENDING',
       dueAt: { lte: now },

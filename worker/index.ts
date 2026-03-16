@@ -1,4 +1,4 @@
-import { initPaymentWorker } from './payment.worker';
+import { initPaymentWorker } from '@/worker/payment.worker';
 import { initWebhookWorker } from '@/worker/payment_hook.worker';
 
 const workerType = process.argv[2];

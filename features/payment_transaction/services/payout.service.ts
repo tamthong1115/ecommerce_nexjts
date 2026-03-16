@@ -1,8 +1,9 @@
-import { $Enums } from '@/lib/generated/prisma';
-import { Decimal, InputJsonValue } from '@prisma/client/runtime/library';
+import { $Enums, Prisma } from '@/lib/generated/prisma';
 import PayoutStatus = $Enums.PayoutStatus;
 import { DbClient } from '@/types/api';
-import { prisma } from '@/lib/db';
+import Decimal = Prisma.Decimal;
+import InputJsonValue = Prisma.InputJsonValue;
+import { prisma_clean } from '@/lib/queue/prisma-clean';
 
 export const createPayoutRequest = async (
   db: DbClient,
@@ -26,7 +27,7 @@ export const createPayoutRequest = async (
 };
 
 export const getPayoutRequest = async (shopId: string) => {
-  return prisma.payoutRequest.findFirst({
+  return prisma_clean.payoutRequest.findFirst({
     where: {
       shopId: shopId,
       status: PayoutStatus.REQUESTED,

@@ -13,9 +13,9 @@ import {
   ShopMemberRole,
   Visibility,
   VoucherType, 
-} from '../lib/generated/prisma';
+} from '@prisma/client';
 import { faker } from '@faker-js/faker';
-import { Currency, OrderStatus } from '../lib/generated/prisma';
+import { Currency, OrderStatus } from '@prisma/client';
 import MessageRole = $Enums.MessageRole;
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
@@ -28,42 +28,15 @@ const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log('🧹 Đang xóa dữ liệu cũ...');
-  await prisma.message.deleteMany();
-  await prisma.conversationParticipant.deleteMany();
-  await prisma.conversation.deleteMany();
-  await prisma.orderVoucher.deleteMany();
-  await prisma.voucherRedemption.deleteMany();
-  await prisma.voucherProduct.deleteMany();
-  await prisma.voucherCategory.deleteMany();
-  await prisma.voucher.deleteMany();
-  await prisma.review.deleteMany();
-  await prisma.returnItem.deleteMany();
-  await prisma.returnRequest.deleteMany();
-  await prisma.refund.deleteMany();
-  await prisma.shipment.deleteMany();
-  await prisma.orderPayment.deleteMany();
-  await prisma.payment.deleteMany();
-  await prisma.orderItem.deleteMany();
-  await prisma.order.deleteMany();
-  await prisma.wishlistItem.deleteMany();
-  await prisma.wishlist.deleteMany();
-  await prisma.cartItem.deleteMany();
-  await prisma.cart.deleteMany();
-  await prisma.productVariant.deleteMany();
-  await prisma.productImage.deleteMany();
-  await prisma.product.deleteMany();
-  await prisma.tag.deleteMany();
-  await prisma.category.deleteMany();
-  await prisma.shopMember.deleteMany();
-  await prisma.shop.deleteMany();
-  await prisma.notification.deleteMany();
-  await prisma.address.deleteMany();
-  await prisma.userProfile.deleteMany();
-  await prisma.verification.deleteMany();
-  await prisma.account.deleteMany();
-  await prisma.session.deleteMany();
-  await prisma.user.deleteMany();
-
+  await prisma.$executeRawUnsafe(`
+  DO $$ DECLARE
+    r RECORD;
+  BEGIN
+    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = current_schema()) LOOP
+      EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' CASCADE';
+    END LOOP;
+  END $$;
+`);
   console.log('🚀 Bắt đầu seed dữ liệu...');
 
   // ------------------------

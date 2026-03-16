@@ -1,6 +1,5 @@
 import { Queue } from 'bullmq';
 import { redisClient } from '@/lib/redis';
-
 export const PAYMENT_QUEUE_NAME = 'payment-queue';
 export const PAYMENT_HOOK_QUEUE_NAME = 'payment-hook-queue';
 

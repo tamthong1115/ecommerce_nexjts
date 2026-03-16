@@ -6,7 +6,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // ---------- Enums ----------
@@ -170,6 +169,9 @@ model User {
   ReturnRequest             ReturnRequest[]
   VoucherRedemption         VoucherRedemption[]
   OrderDraft                OrderDraft[]
+
+  //Stats
+  userLogs UserInteractionLog[]
 
   @@unique([email])
   @@map("user")
@@ -423,6 +425,10 @@ model Product {
   orderItems     OrderItem[]
   VoucherProduct VoucherProduct[]
   Message        Message[]
+
+  //Metrics
+  Stats    ProductDailyStat[]
+  UserLogs UserInteractionLog[]
 
   @@index([shopId, status, visibility])
   @@index([categoryId])
@@ -1016,4 +1022,40 @@ model Message {
 
   @@index([conversationId, createdAt])
   @@map("message")
+}
+
+// Model for recommendation engine, not linked to other models
+model ProductDailyStat {
+  id        String   @id @default(uuid()) @db.Uuid
+  productId String   @db.Uuid
+  date      DateTime @db.Date
+
+  views   Int     @default(0)
+  carts   Int     @default(0)
+  sales   Int     @default(0)
+  revenue Decimal @default(0) @db.Decimal(14, 2)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, date])
+  @@index([date, sales(sort: Desc)])
+  @@map("product_daily_stat")
+}
+
+model UserInteractionLog {
+  id        String  @id @default(uuid()) @db.Uuid
+  userId    String? @db.Uuid
+  sessionId String? @db.Uuid
+  productId String  @db.Uuid
+
+  interactionType String
+  weight          Float  @default(1.0)
+
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@map("user_interaction_log")
 }

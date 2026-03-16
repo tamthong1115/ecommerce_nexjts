@@ -1,10 +1,10 @@
-import { prisma } from '@/lib/db';
 import { $Enums } from '@/lib/generated/prisma';
 import PaymentProvider = $Enums.PaymentProvider;
 import PaymentStatus = $Enums.PaymentStatus;
 import { customerPaidOrderSuccessUsecase } from '@/features/payment_transaction/payment_transaction.usecases';
 import { StockManager } from '@/lib/stock-manager';
 import 'dotenv/config';
+import { prisma_clean } from '@/lib/queue/prisma-clean';
 
 export async function handleVNPayWebhook(vnpParams: Record<string, string>) {
   const rspCode = vnpParams['vnp_ResponseCode'];
@@ -12,7 +12,7 @@ export async function handleVNPayWebhook(vnpParams: Record<string, string>) {
   const vnpTransactionNo = vnpParams['vnp_TransactionNo'];
 
   // 1. Tìm Payment Record
-  const payment = await prisma.payment.findFirst({
+  const payment = await prisma_clean.payment.findFirst({
     where: {
       externalId: txnRef,
       provider: PaymentProvider.VNPAY,
@@ -39,7 +39,7 @@ export async function handleVNPayWebhook(vnpParams: Record<string, string>) {
 
   // === TRƯỜNG HỢP THÀNH CÔNG (00) ===
   if (rspCode === '00') {
-    await prisma.$transaction(async (tx) => {
+    await prisma_clean.$transaction(async (tx) => {
       // Update Payment
       const updateResult = await tx.payment.updateMany({
         where: { id: payment.id, status: $Enums.PaymentStatus.PENDING },
@@ -95,7 +95,7 @@ export async function handleVNPayWebhook(vnpParams: Record<string, string>) {
     );
 
     // 1. Update DB Failed
-    await prisma.$transaction(async (tx) => {
+    await prisma_clean.$transaction(async (tx) => {
       await tx.payment.update({
         where: { id: payment.id },
         data: { status: 'FAILED', updatedAt: new Date() },

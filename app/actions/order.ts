@@ -1,12 +1,12 @@
 'use server';
 
 import { getCurrentUserId } from '@/lib/auth';
-import { prisma } from '@/lib/db';
 import { OrderStatus, Prisma } from '@/lib/generated/prisma';
 import { revalidatePath } from 'next/cache';
 import { OrderWithRelations } from '@/types/order.data-types';
 import { OrderDTO } from '@/types/dtos/order.dto';
 import { DbClient } from '@/types/api';
+import { prisma_clean } from '@/lib/queue/prisma-clean';
 
 type CreateOrderResult =
   | { success: true; order: OrderWithRelations[] }
@@ -160,7 +160,7 @@ export async function getOrder(
       ...(status && { status }),
     };
 
-    const order = await prisma.order.findMany({
+    const order = await prisma_clean.order.findMany({
       where: filter,
       orderBy: { placedAt: 'desc' },
       include: {

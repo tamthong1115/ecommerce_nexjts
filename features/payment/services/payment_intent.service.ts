@@ -1,9 +1,8 @@
-// import { InputJsonValue } from '@prisma/client/runtime/library';
 import InputJsonValue = Prisma.InputJsonValue;
 import { $Enums, Prisma } from '@/lib/generated/prisma';
 import { DbClient } from '@/types/api';
 import PaymentProvider = $Enums.PaymentProvider;
-import { prisma } from '@/lib/db';
+import { prisma_clean } from '@/lib/queue/prisma-clean';
 import IntentStatus = $Enums.IntentStatus;
 import Currency = $Enums.Currency;
 
@@ -44,7 +43,7 @@ export const updatePaymentIntentService = async (
     expiresAt?: Date;
   }
 ) => {
-  return prisma.paymentIntent.update({
+  return prisma_clean.paymentIntent.update({
     where: { id: id },
     data: params,
   });
@@ -53,7 +52,7 @@ export const updatePaymentIntentService = async (
 export const getPaymentIntentByGatewayRefService = async (
   gatewayRef: string
 ) => {
-  return prisma.paymentIntent.findUnique({
+  return prisma_clean.paymentIntent.findUnique({
     where: { gatewayRef },
   });
 };

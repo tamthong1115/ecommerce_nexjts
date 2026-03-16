@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ResponseFactory } from '@/lib/api-response';
 import dayjs from 'dayjs';
 import crypto from 'crypto';
-import { prisma } from '@/lib/db';
 import { prepareOrderForCheckout } from '@/features/payment/payment.usecases';
 import { $Enums } from '@/lib/generated/prisma';
 import PaymentProvider = $Enums.PaymentProvider;
@@ -11,6 +10,7 @@ import { createPaymentIntentService } from '@/features/payment/services/payment_
 import IntentStatus = $Enums.IntentStatus;
 import { paymentHookQueue, paymentQueue } from '@/worker/config';
 import { Decimal } from '@prisma/client-runtime-utils';
+import { prisma_clean } from '@/lib/queue/prisma-clean';
 
 export function sortObject(
   obj: Record<string, string | number>
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     const origin = process.env.NEXT_PUBLIC_BASE_URL!;
     const idenKey = body.idempotencyKey;
 
-    const existed = await prisma.payment.findUnique({
+    const existed = await prisma_clean.payment.findUnique({
       where: { idempotencyKey: idenKey },
     });
 
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
       new Decimal(0)
     );
 
-    localIntent = await createPaymentIntentService(prisma, {
+    localIntent = await createPaymentIntentService(prisma_clean, {
       gatewayRef: null,
       provider: PaymentProvider.VNPAY,
       orderIds: { orderIds: orderIds },
@@ -123,10 +123,10 @@ export async function POST(req: NextRequest) {
     console.error('Error creating VNPAY session:', err);
     if (inventoryReserved && draftItems.length > 0) {
       console.log('riggering Inventory Rollback...');
-      await prisma
+      await prisma_clean
         .$transaction(
           draftItems.map(({ variantId, quantity }) =>
-            prisma.productVariant.update({
+            prisma_clean.productVariant.update({
               where: { id: variantId },
               data: { stock: { increment: quantity } },
             })
