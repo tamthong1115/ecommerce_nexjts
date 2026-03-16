@@ -41,6 +41,7 @@ import { SellerShopListItem } from '@/app/(seller)/seller/shops/page';
 import { fetchApi } from '@/lib/client-fetch';
 import { SellerOrderDetails } from '@/app/(seller)/seller/orders/_components/order-details';
 import { UpdateOrderStatus } from '@/app/(seller)/seller/orders/_components/update-order-status';
+import { paths } from '@/lib/path';
 
 type OrderResponseData = {
   orders: OrderDTO[];
@@ -132,7 +133,6 @@ export default function SellerOrderPage() {
           // setNextCursor(res.data.nextCursor);
           // setHasMore(!!res.data.nextCursor);
           setPageCount(newPagination.totalPages);
-          console.log('jkafjakbk' + newPagination.totalPages);
         }
       } catch (error) {
         console.error('Failed to fetch orders', error);
@@ -158,7 +158,7 @@ export default function SellerOrderPage() {
     let active = true;
     (async () => {
       try {
-        const res = await fetchApi('/api/seller/shops');
+        const res = await fetchApi(paths.seller.shops.api.fetch_all);
         const data = (res.data as SellerShopListItem[]) ?? [];
         if (active) {
           setShops(data);

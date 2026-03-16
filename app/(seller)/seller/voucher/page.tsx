@@ -1,13 +1,12 @@
 'use client';
 
-import { CalendarIcon, Loader2, Search, X } from 'lucide-react';
+import { Loader2, Search, X } from 'lucide-react';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useEffect, useState, useCallback } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/app/(public)/(customer)/customer/account/orders/_components/no-order-found';
 import { useTranslations } from 'next-intl';
-import { cn } from '@/lib/utils';
 import { PaginationState } from '@tanstack/react-table';
 import { Input } from '@/components/ui/input';
 import {
@@ -22,10 +21,11 @@ import { fetchApi } from '@/lib/client-fetch';
 import {
   VoucherResponseData,
   VoucherResponseDTO,
-} from '@/features/voucher/voucher.dto';
-import { DataTable } from './_components/voucher-data-table';
-import { columns } from '@/app/(seller)/seller/voucher/_components/voucher-column-table';
-import { CreateVoucherDialog } from '@/app/(seller)/seller/voucher/_components/create-voucher-dialog';
+} from '@/features/voucher/types/voucher.dto';
+import { DataTable } from '@/features/voucher/components/voucher-data-table';
+import { columns } from '@/features/voucher/components/shop-voucher-columns';
+import { CreateVoucherDialog } from '@/features/voucher/components/create-shop-voucher-dialog';
+import { paths } from '@/lib/path';
 
 const LIMIT = 12;
 
@@ -110,7 +110,7 @@ export default function SellerVoucherPage() {
     let active = true;
     (async () => {
       try {
-        const res = await fetchApi('/api/seller/shops');
+        const res = await fetchApi(paths.seller.shops.api.fetch_all);
         const data = (res.data as SellerShopListItem[]) ?? [];
         if (active) {
           setShops(data);

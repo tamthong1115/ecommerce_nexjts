@@ -131,7 +131,6 @@ export default function ManageProductForm({
   const back = () => setStep((s) => Math.max(s - 1, 0));
 
   const onFinalSubmit = (data: ManageProductFormInput) => {
-    console.log('Submitting:', data);
     onSubmit(data);
   };
 

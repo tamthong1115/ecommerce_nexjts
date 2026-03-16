@@ -67,4 +67,4 @@ Create a .env file in the root directory. You must configure the keys validated 
 
 
 ## Project Structure
-### Read project structure of this project at [here](PROJECT_STRUCTURE.md)
+### Read project structure of this project at [here](docs/PROJECT_STRUCTURE.md)

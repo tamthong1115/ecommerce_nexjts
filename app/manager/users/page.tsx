@@ -100,6 +100,7 @@ const UsersPage = () => {
     g: g,
     handleCopy: handleCopy,
     setIsReset: setIsReset,
+    n: n,
   });
 
   const table = useReactTable({

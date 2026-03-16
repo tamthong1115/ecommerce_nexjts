@@ -31,9 +31,9 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { MultiUploader } from '@/components/file-uploader/multi-uploader';
 import { Star } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import { MultiUploader } from '@/features/shared/components/file-uploader/multi-uploader';
 
 export function DialogReview({ item, t }: { item: OrderItemsDTO; t: any }) {
   const [open, setOpen] = useState(false);

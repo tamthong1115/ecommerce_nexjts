@@ -43,9 +43,10 @@ export const updatePaymentIntentService = async (
     expiresAt?: Date;
   }
 ) => {
-  return prisma_clean.paymentIntent.update({
+  const { currency, ...rest } = params;
+  return prisma.paymentIntent.update({
     where: { id: id },
-    data: params,
+    data: rest,
   });
 };
 

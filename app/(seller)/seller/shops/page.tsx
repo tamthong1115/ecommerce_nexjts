@@ -3,57 +3,30 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuContent,
 } from '@/components/ui/dropdown-menu';
-import { TableCell, TableRow } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  DragEndEvent,
-  KeyboardSensor,
-  MouseSensor,
-  TouchSensor,
-  UniqueIdentifier,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import { arrayMove, useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import {
-  IconChevronDown,
-  IconDotsVertical,
-  IconGripVertical,
-  IconLayoutColumns,
-} from '@tabler/icons-react';
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  flexRender,
-  getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  Row,
-  SortingState,
-  useReactTable,
-  VisibilityState,
-} from '@tanstack/react-table';
-import TabShopSeller from './_components/tab-shop-seller';
+import { IconDotsVertical } from '@tabler/icons-react';
+import { ColumnDef } from '@tanstack/react-table';
 import { TableCellViewerSeller } from './_components/table-cell-viewer-seller';
+import { useDataTable } from '@/hooks/use-data-table';
 import { paths } from '@/lib/path';
 import { fetchApi } from '@/lib/client-fetch';
 import { toast } from 'sonner';
+import {
+  createDragColumn,
+  createSelectColumn,
+} from '@/features/shared/components/table/table-columns';
+import {
+  DataTablePage,
+  TabConfig,
+} from '@/features/shared/components/table/data-table-page';
 
 export type SellerShopListItem = {
   id: string;
@@ -73,48 +46,16 @@ export type SellerShopListItem = {
 
 export default function SellerShopsDashboard() {
   const [shops, setShops] = useState<SellerShopListItem[]>([]);
-  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [rowSelection, setRowSelection] = useState({});
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 10,
-  });
-
   const router = useRouter();
 
-  const dataIds = React.useMemo<UniqueIdentifier[]>(
-    () => shops?.map(({ id }) => id) || [],
-    [shops]
-  );
-
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (active && over && active.id !== over.id) {
-      setShops((data) => {
-        const oldIndex = dataIds.indexOf(active.id);
-        const newIndex = dataIds.indexOf(over.id);
-        return arrayMove(data, oldIndex, newIndex);
-      });
-    }
-  }
-
-  const sortableId = React.useId();
-  const sensors = useSensors(
-    useSensor(MouseSensor, {}),
-    useSensor(TouchSensor, {}),
-    useSensor(KeyboardSensor, {})
-  );
-
+  // Fetch shops data
   useEffect(() => {
     let active = true;
     (async () => {
       try {
-        const res = await fetchApi('/api/seller/shops');
+        const res = await fetchApi(paths.seller.shops.api.fetch_all);
         if (!res.success) {
           toast.error(res.message || 'Failed to fetch shops');
         }
@@ -135,40 +76,10 @@ export default function SellerShopsDashboard() {
     };
   }, []);
 
+  // Define columns
   const columns: ColumnDef<SellerShopListItem>[] = [
-    {
-      id: 'drag',
-      header: () => null,
-      cell: ({ row }) => <DragHandle id={row.original.id} />,
-    },
-    {
-      id: 'select',
-      header: ({ table }) => (
-        <div className="flex items-center justify-center">
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && 'indeterminate')
-            }
-            onCheckedChange={(value) =>
-              table.toggleAllPageRowsSelected(!!value)
-            }
-            aria-label="Select all"
-          />
-        </div>
-      ),
-      cell: ({ row }) => (
-        <div className="flex items-center justify-center">
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
-        </div>
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
+    createDragColumn<SellerShopListItem>((row) => row.id),
+    createSelectColumn<SellerShopListItem>(),
     {
       accessorKey: 'logo',
       header: 'Logo',
@@ -279,199 +190,74 @@ export default function SellerShopsDashboard() {
     },
   ];
 
-  const table = useReactTable({
+  // Use data table hook
+  const {
+    table,
+    dataState,
+    setDataState,
+    search,
+    setSearch,
+    dataIds,
+    sensors,
+    handleDragEnd,
+  } = useDataTable({
     data: shops,
     columns,
-    state: {
-      sorting,
-      columnVisibility,
-      rowSelection,
-      columnFilters,
-      pagination,
-      globalFilter: search,
-    },
+    enableDragAndDrop: true,
     getRowId: (row) => row.id,
-    enableRowSelection: true,
-    onRowSelectionChange: setRowSelection,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: setPagination,
-    onGlobalFilterChange: setSearch,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
+    initialPageSize: 10,
   });
 
-  function DragHandle({ id }: { id: string }) {
-    const { attributes, listeners } = useSortable({ id });
+  // Sync shops state with data table
+  React.useEffect(() => {
+    setDataState(shops);
+  }, [shops, setDataState]);
 
-    return (
-      <Button
-        {...attributes}
-        {...listeners}
-        variant="ghost"
-        size="icon"
-        className="text-muted-foreground size-7 hover:bg-transparent"
-      >
-        <IconGripVertical className="text-muted-foreground size-3" />
-        <span className="sr-only">Drag to reorder</span>
-      </Button>
-    );
-  }
+  // Define tabs
+  const tabs: TabConfig<SellerShopListItem>[] = [
+    {
+      value: 'all-status',
+      label: 'All',
+      filterFn: (data) => data,
+    },
+    {
+      value: 'active',
+      label: 'Active',
+      filterFn: (data) => data.filter((s) => s.status === 'ACTIVE'),
+    },
+    {
+      value: 'pending',
+      label: 'Pending',
+      filterFn: (data) => data.filter((s) => s.status === 'PENDING'),
+    },
+  ];
 
-  function DraggableRow({ row }: { row: Row<SellerShopListItem> }) {
-    const { transform, transition, setNodeRef, isDragging } = useSortable({
-      id: row.original.id,
-    });
-
-    return (
-      <TableRow
-        data-state={row.getIsSelected() && 'selected'}
-        data-dragging={isDragging}
-        ref={setNodeRef}
-        className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
-        style={{
-          transform: CSS.Transform.toString(transform),
-          transition: transition,
-        }}
-      >
-        {row.getVisibleCells().map((cell) => (
-          <TableCell key={cell.id}>
-            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-          </TableCell>
-        ))}
-      </TableRow>
-    );
-  }
+  const sortableId = React.useId();
 
   return (
-    <div className="w-full h-full p-3 flex flex-col justify-start items-center">
-      <Tabs
-        defaultValue="all-status"
-        className="w-full flex-col justify-start gap-6"
-      >
-        <div className="flex items-center justify-between px-4 lg:px-6 mb-4">
-          <h1 className="text-2xl font-bold">My Shops</h1>
-          <div className="flex gap-2">
-            <Input
-              placeholder="Search shops..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-56"
-            />
-            <Button onClick={() => router.push(paths.seller.shops.create)}>
-              Create Shop
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between px-4 lg:px-6">
-          <TabsList>
-            <TabsTrigger value="all-status">All</TabsTrigger>
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="pending">Pending</TabsTrigger>
-          </TabsList>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <IconLayoutColumns />
-                <span className="hidden lg:inline">Columns</span>
-                <IconChevronDown />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              {table
-                .getAllColumns()
-                .filter(
-                  (column) =>
-                    typeof column.accessorFn !== 'undefined' &&
-                    column.getCanHide()
-                )
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        {error && (
-          <div className="mx-4 p-4 rounded border bg-red-50 text-red-600">
-            {error}
-          </div>
-        )}
-
-        <TabsContent
-          value="all-status"
-          className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6"
-        >
-          <TabShopSeller
-            statusFilter=""
-            sensors={sensors}
-            sortableId={sortableId}
-            table={table}
-            columns={columns}
-            shopList={shops}
-            setShopList={setShops}
-            dataIds={dataIds}
-            DraggableRow={DraggableRow}
-            handleDragEnd={handleDragEnd}
-            loading={loading}
-          />
-        </TabsContent>
-
-        <TabsContent
-          value="active"
-          className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6"
-        >
-          <TabShopSeller
-            statusFilter="ACTIVE"
-            sensors={sensors}
-            sortableId={sortableId}
-            table={table}
-            columns={columns}
-            shopList={shops.filter((s) => s.status === 'ACTIVE')}
-            setShopList={setShops}
-            dataIds={dataIds}
-            DraggableRow={DraggableRow}
-            handleDragEnd={handleDragEnd}
-            loading={loading}
-          />
-        </TabsContent>
-
-        <TabsContent
-          value="pending"
-          className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6"
-        >
-          <TabShopSeller
-            statusFilter="PENDING"
-            sensors={sensors}
-            sortableId={sortableId}
-            table={table}
-            columns={columns}
-            shopList={shops.filter((s) => s.status === 'PENDING')}
-            setShopList={setShops}
-            dataIds={dataIds}
-            DraggableRow={DraggableRow}
-            handleDragEnd={handleDragEnd}
-            loading={loading}
-          />
-        </TabsContent>
-      </Tabs>
-    </div>
+    <DataTablePage
+      title="My Shops"
+      data={shops}
+      loading={loading}
+      error={error}
+      searchValue={search}
+      onSearchChange={setSearch}
+      searchPlaceholder="Search shops..."
+      table={table}
+      columns={columns}
+      tabs={tabs}
+      defaultTab="all-status"
+      headerActions={
+        <Button onClick={() => router.push(paths.seller.shops.create)}>
+          Create Shop
+        </Button>
+      }
+      enableDragAndDrop={true}
+      dataIds={dataIds}
+      sensors={sensors}
+      handleDragEnd={handleDragEnd}
+      sortableId={sortableId}
+      emptyMessage="No shops found. Create your first shop!"
+    />
   );
 }

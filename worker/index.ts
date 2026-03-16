@@ -1,5 +1,8 @@
 import { initPaymentWorker } from '@/worker/payment.worker';
 import { initWebhookWorker } from '@/worker/payment_hook.worker';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const workerType = process.argv[2];
 

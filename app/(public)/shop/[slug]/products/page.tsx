@@ -19,8 +19,6 @@ const ShopProduct = () => {
   const t = useTranslations('shop_product_page');
   const filter = searchParams.get('filter');
   const id = searchParams.get('id');
-  console.log('filter: ', filter);
-  console.log('id: ', id);
 
   useEffect(() => {
     fetchData({

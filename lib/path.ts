@@ -3,6 +3,11 @@ export const paths = {
   login: '/auth/login',
   verify_request: '/auth/verify-request',
 
+  cart: {
+    base: '/api/cart',
+    remove_item: (variantId: string) => `/api/cart/${variantId}`,
+  },
+
   products: {
     detail_id: (id: string) => `/products/${id}`,
     detail_slug: (slug: string) => `/products/slug/${slug}`,
@@ -25,6 +30,12 @@ export const paths = {
       `/seller/shops/${shopId}/messages/${conversationId}`,
   },
 
+  voucher: {
+    public: '/api/vouchers',
+    seller_list: '/api/seller/vouchers',
+    manager_list: '/api/manager/voucher',
+  },
+
   seller: {
     account: {
       edit: '/seller/account/edit',
@@ -35,6 +46,10 @@ export const paths = {
       edit: (shopId: string) => `/seller/shops/${shopId}/edit`,
       message_shop: (shopId: string) => `/seller/shops/${shopId}/messages`,
       members: (shopId: string) => `/seller/shops/${shopId}/members`,
+
+      api: {
+        fetch_all: '/api/seller/shops',
+      },
     },
   },
 

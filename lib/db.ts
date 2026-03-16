@@ -1,18 +1,4 @@
-import 'server-only';
-// // --- CHÈN ĐOẠN NÀY VÀO ĐẦU FILE ---
-// try {
-//   if (module && module.parent) {
-//     console.log('\n\n==================================================');
-//     console.log('🚨 BẮT QUẢ TANG! File này đang import lib/db:');
-//     console.log('👉 ' + module.parent.filename);
-//     console.log('==================================================\n\n');
-//   }
-// } catch (e) {
-//   // Phòng trường hợp môi trường không hỗ trợ module.parent
-//   console.trace('Trace dự phòng');
-// }
-// // -------------------------------------
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from './generated/prisma';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
 

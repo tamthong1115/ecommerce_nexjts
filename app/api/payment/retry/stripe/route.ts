@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getOrdersCanPay } from '@/features/order/order.service';
+import { getOrdersCanPay } from '@/features/order/server/order.service';
 import { ResponseFactory } from '@/lib/api-response';
 import { stripe } from '@/lib/payment';
 import { vndToUsdCents } from '@/lib/currency-helper';

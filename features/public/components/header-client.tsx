@@ -35,6 +35,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import SearchingBar from './searching-bar';
+import { NotificationBell } from '@/features/notification/components/core/notification-bell';
 
 type Role = 'USER' | 'SELLER' | 'ADMIN';
 type HeaderUser = {
@@ -89,6 +90,7 @@ const HeaderClient = ({ user }: { user: HeaderUser }) => {
                   <ShoppingCartIcon className="w-5 h-5 text-primary" />
                 </Link>
               </Button>
+              <NotificationBell role="BUYER" />
               {/*  Auth */}
               {user ? (
                 <DropdownMenu>

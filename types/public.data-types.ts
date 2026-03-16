@@ -1,4 +1,4 @@
-import { VoucherDTO } from '@/features/voucher/voucher.dto';
+import { VoucherDTO } from '@/features/voucher/types/voucher.dto';
 import { $Enums } from '@/lib/generated/prisma';
 
 export interface productDataResponse {

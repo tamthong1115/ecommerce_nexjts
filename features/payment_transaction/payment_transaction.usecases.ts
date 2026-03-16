@@ -1,3 +1,4 @@
+import { prisma } from '@/lib/db';
 import { ServiceError } from '@/lib/service-error';
 import {
   freezeShopBalanceForPayout,

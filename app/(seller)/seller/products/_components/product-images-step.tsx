@@ -1,4 +1,3 @@
-import { MultiUploader } from '@/components/file-uploader/multi-uploader';
 import {
   FormControl,
   FormField,
@@ -7,6 +6,7 @@ import {
 } from '@/components/ui/form';
 import { useFormContext } from 'react-hook-form';
 import { ManageProductFormInput } from './productSchema';
+import { MultiUploader } from '@/features/shared/components/file-uploader/multi-uploader';
 
 export default function ProductImagesStep() {
   const form = useFormContext<ManageProductFormInput>();

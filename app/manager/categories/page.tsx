@@ -246,7 +246,7 @@ const CategoryManagePage = () => {
                   className="text-left w-full"
                   onClick={() =>
                     handleDelete({
-                      id: row.original.id,
+                      url: paths.manager.category.del_one(row.original.id),
                       setIsReset: setIsReset,
                       t,
                     })
