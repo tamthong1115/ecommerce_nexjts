@@ -123,17 +123,17 @@ enum MessageRole {
   ADMIN
 }
 
-enum LedgerType {
-  ORDER_PAID // khách trả tiền
-  VOUCHER_SUBSIDY // sàn bù tiền
-  ADJUSTMENT_IN // chỉnh tay +
-  PLATFORM_FEE // phí sàn
-  SHIPPING_FEE // phí ship
-  PAYOUT
-  SETTLEMENT // pending -> available
-  REFUND // hoàn tiền cho khách
-  ADJUSTMENT_OUT // chỉnh tay -
-}
+// enum LedgerType {
+//   ORDER_PAID // khách trả tiền
+//   VOUCHER_SUBSIDY // sàn bù tiền
+//   ADJUSTMENT_IN // chỉnh tay +
+//   PLATFORM_FEE // phí sàn
+//   SHIPPING_FEE // phí ship
+//   PAYOUT
+//   SETTLEMENT // pending -> available
+//   REFUND // hoàn tiền cho khách
+//   ADJUSTMENT_OUT // chỉnh tay -
+// }
 
 model User {
   id            String    @id @default(uuid()) @db.Uuid
@@ -170,29 +170,29 @@ model User {
   VoucherRedemption         VoucherRedemption[]
   OrderDraft                OrderDraft[]
 
-  //Stats
+  // Stats
   userLogs UserInteractionLog[]
 
   @@unique([email])
   @@map("user")
 }
 
-model Session {
-  id        String   @id @default(uuid()) @db.Uuid
-  expiresAt DateTime
-  token     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ipAddress String?
-  userAgent String?
-  userId    String   @db.Uuid
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  impersonatedBy String?
-
-  @@index([userId])
-  @@map("session")
-}
+// model Session {
+//   id        String   @id @default(uuid()) @db.Uuid
+//   expiresAt DateTime
+//   token     String   @unique
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+//   ipAddress String?
+//   userAgent String?
+//   userId    String   @db.Uuid
+//   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+//
+//   impersonatedBy String?
+//
+//   @@index([userId])
+//   @@map("session")
+// }
 
 model Account {
   id                    String    @id @default(uuid()) @db.Uuid
@@ -225,17 +225,17 @@ model ShopFollower {
   @@map("shop_follower")
 }
 
-model Verification {
-  id         String   @id @default(uuid()) @db.Uuid
-  identifier String
-  value      String
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now()) @updatedAt
-
-  @@index([identifier])
-  @@map("verification")
-}
+// model Verification {
+//   id         String   @id @default(uuid()) @db.Uuid
+//   identifier String
+//   value      String
+//   expiresAt  DateTime
+//   createdAt  DateTime @default(now())
+//   updatedAt  DateTime @default(now()) @updatedAt
+//
+//   @@index([identifier])
+//   @@map("verification")
+// }
 
 model UserProfile {
   id           String    @id @default(uuid()) @db.Uuid
@@ -311,7 +311,7 @@ model Shop {
   updatedAt     DateTime   @updatedAt
   deletedAt     DateTime?
 
-  //Relation
+  // Relation
   LedgerEntries           LedgerEntry[]
   Balance                 ShopBalance?
   members                 ShopMember[]
@@ -358,26 +358,26 @@ model ShopInvitation {
   @@map("shop_invitation")
 }
 
-model Category {
-  id        String     @id @default(uuid()) @db.Uuid
-  parentId  String?    @db.Uuid
-  parent    Category?  @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: SetNull)
-  children  Category[] @relation("CategoryToCategory")
-  name      String
-  slug      String     @unique
-  position  Int        @default(0)
-  imageUrl  String?
-  publicId  String?
-  isActive  Boolean    @default(true)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @default(now()) @updatedAt
-
-  products        Product[]
-  VoucherCategory VoucherCategory[]
-
-  @@index([parentId, position])
-  @@map("category")
-}
+// model Category {
+//   id        String     @id @default(uuid()) @db.Uuid
+//   parentId  String?    @db.Uuid
+//   parent    Category?  @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: SetNull)
+//   children  Category[] @relation("CategoryToCategory")
+//   name      String
+//   slug      String     @unique
+//   position  Int        @default(0)
+//   imageUrl  String?
+//   publicId  String?
+//   isActive  Boolean    @default(true)
+//   createdAt DateTime   @default(now())
+//   updatedAt DateTime   @default(now()) @updatedAt
+//
+//   products        Product[]
+//   VoucherCategory VoucherCategory[]
+//
+//   @@index([parentId, position])
+//   @@map("category")
+// }
 
 model Tag {
   id   String @id @default(uuid()) @db.Uuid
@@ -426,7 +426,7 @@ model Product {
   VoucherProduct VoucherProduct[]
   Message        Message[]
 
-  //Metrics
+  // Metrics
   Stats    ProductDailyStat[]
   UserLogs UserInteractionLog[]
 
@@ -478,33 +478,33 @@ model ProductVariant {
   @@map("product_variant")
 }
 
-model Cart {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @unique @db.Uuid
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  items CartItem[]
-
-  @@map("cart")
-}
-
-model CartItem {
-  id        String   @id @default(uuid()) @db.Uuid
-  cartId    String   @db.Uuid
-  variantId String   @db.Uuid
-  quantity  Int      @default(1)
-  priceSnap Decimal  @db.Decimal(14, 2)
-  currency  Currency @default(VND)
-  addedAt   DateTime @default(now())
-
-  cart    Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Restrict)
-
-  @@unique([cartId, variantId])
-  @@map("cart_item")
-}
+// model Cart {
+//   id        String   @id @default(uuid()) @db.Uuid
+//   userId    String   @unique @db.Uuid
+//   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @default(now()) @updatedAt
+//
+//   items CartItem[]
+//
+//   @@map("cart")
+// }
+//
+// model CartItem {
+//   id        String   @id @default(uuid()) @db.Uuid
+//   cartId    String   @db.Uuid
+//   variantId String   @db.Uuid
+//   quantity  Int      @default(1)
+//   priceSnap Decimal  @db.Decimal(14, 2)
+//   currency  Currency @default(VND)
+//   addedAt   DateTime @default(now())
+//
+//   cart    Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+//   variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Restrict)
+//
+//   @@unique([cartId, variantId])
+//   @@map("cart_item")
+// }
 
 model Wishlist {
   id        String   @id @default(uuid()) @db.Uuid
@@ -602,7 +602,7 @@ model OrderItem {
 }
 
 model OrderDraft {
-  //field information
+  // field information
   id          String   @id @default(uuid()) @db.Uuid
   orderNumber String   @unique
   orderId     String?  @unique @db.Uuid
@@ -610,7 +610,7 @@ model OrderDraft {
   placedAt    DateTime @default(now())
   updatedAt   DateTime @default(now()) @updatedAt
 
-  //status for Order
+  // status for Order
   status        OrderStatus   @default(PENDING)
   paymentStatus PaymentStatus @default(PENDING)
   currency      Currency      @default(VND)
@@ -672,93 +672,93 @@ model OrderPayment {
   @@map("order_payment")
 }
 
-enum IntentStatus {
-  ACTIVE // đang chờ thanh toán
-  SUCCEEDED // thanh toán thành công
-  FAILED // gateway báo fail
-  EXPIRED // quá hạn
-  CANCELLED // user hủy
-}
-
-model PaymentIntent {
-  id         String          @id @default(uuid()) @db.Uuid
-  gatewayRef String?         @unique
-  status     IntentStatus
-  provider   PaymentProvider
-  orderIds   Json
-  amount     Decimal
-  currency   Currency?
-  expiresAt  DateTime
-  createdAt  DateTime        @default(now())
-
-  @@map("payment_intent")
-}
-
-model LedgerEntry {
-  id            String          @id @default(uuid()) @db.Uuid
-  walletId      String          @db.Uuid
-  walletType    WalletType      @default(SHOP)
-  amount        Decimal         @db.Decimal(19, 4)
-  direction     LedgerDirection // CREDIT hoặc DEBIT
-  balanceBefore Decimal         @default(0) @db.Decimal(19, 4)
-  balanceAfter  Decimal         @default(0) @db.Decimal(19, 4)
-  type          LedgerType
-  description   String?
-
-  transactionGroup String?
-  idempotencyKey   String? @unique
-  paymentId        String? @db.Uuid
-  orderId          String? @db.Uuid
-
-  createdAt DateTime @default(now())
-  Shop      Shop?    @relation(fields: [shopId], references: [id])
-  shopId    String?  @db.Uuid
-
-  @@index([walletId, createdAt])
-  @@index([type])
-  @@index([orderId])
-  @@index([paymentId])
-  @@index([transactionGroup])
-}
-
-model ShopBalance {
-  shopId    String   @id @db.Uuid
-  pending   Decimal  @default(0) @db.Decimal(19, 4) // Tiền đang chờ xử lý (ví dụ: khách đã trả nhưng chưa nhận hàng)
-  available Decimal  @default(0) @db.Decimal(19, 4) // Tiền có thể rút/tiêu
-  frozen    Decimal  @default(0) @db.Decimal(19, 4) // Tiền đang bị đóng băng (ví dụ: đang yêu cầu rút)
-  version   Int      @default(0) // Dùng cho Optimistic Locking
-  updatedAt DateTime @updatedAt
-  shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
-
-  @@index([shopId])
-}
-
-enum SettleStatus {
-  PENDING
-  PROCESSED
-  CANCELLED
-}
-
-model SettlementQueue {
-  id      String  @id @default(uuid())
-  shopId  String
-  orderId String  @unique // 1 đơn 1 lần trả
-  amount  Decimal @db.Decimal(19, 4)
-
-  feeAmount Decimal @default(0) @db.Decimal(19, 4)
-  netAmount Decimal @default(0) @db.Decimal(19, 4) // Số thực nhận = amount - fee
-
-  status SettleStatus // PENDING, PROCESSED, CANCELLED
-  dueAt  DateTime // Ngày đến hạn (settleDate)
-
-  retryCount Int     @default(0)
-  failReason String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([status, dueAt])
-}
+// enum IntentStatus {
+//   ACTIVE // đang chờ thanh toán
+//   SUCCEEDED // thanh toán thành công
+//   FAILED // gateway báo fail
+//   EXPIRED // quá hạn
+//   CANCELLED // user hủy
+// }
+//
+// model PaymentIntent {
+//   id         String          @id @default(uuid()) @db.Uuid
+//   gatewayRef String?         @unique
+//   status     IntentStatus
+//   provider   PaymentProvider
+//   orderIds   Json
+//   amount     Decimal
+//   currency   Currency?
+//   expiresAt  DateTime
+//   createdAt  DateTime        @default(now())
+//
+//   @@map("payment_intent")
+// }
+//
+// model LedgerEntry {
+//   id            String          @id @default(uuid()) @db.Uuid
+//   walletId      String          @db.Uuid
+//   walletType    WalletType      @default(SHOP)
+//   amount        Decimal         @db.Decimal(19, 4)
+//   direction     LedgerDirection // CREDIT hoặc DEBIT
+//   balanceBefore Decimal         @default(0) @db.Decimal(19, 4)
+//   balanceAfter  Decimal         @default(0) @db.Decimal(19, 4)
+//   type          LedgerType
+//   description   String?
+//
+//   transactionGroup String?
+//   idempotencyKey   String? @unique
+//   paymentId        String? @db.Uuid
+//   orderId          String? @db.Uuid
+//
+//   createdAt DateTime @default(now())
+//   Shop      Shop?    @relation(fields: [shopId], references: [id])
+//   shopId    String?  @db.Uuid
+//
+//   @@index([walletId, createdAt])
+//   @@index([type])
+//   @@index([orderId])
+//   @@index([paymentId])
+//   @@index([transactionGroup])
+// }
+//
+// model ShopBalance {
+//   shopId    String   @id @db.Uuid
+//   pending   Decimal  @default(0) @db.Decimal(19, 4) // Tiền đang chờ xử lý (ví dụ: khách đã trả nhưng chưa nhận hàng)
+//   available Decimal  @default(0) @db.Decimal(19, 4) // Tiền có thể rút/tiêu
+//   frozen    Decimal  @default(0) @db.Decimal(19, 4) // Tiền đang bị đóng băng (ví dụ: đang yêu cầu rút)
+//   version   Int      @default(0) // Dùng cho Optimistic Locking
+//   updatedAt DateTime @updatedAt
+//   shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+//
+//   @@index([shopId])
+// }
+//
+// enum SettleStatus {
+//   PENDING
+//   PROCESSED
+//   CANCELLED
+// }
+//
+// model SettlementQueue {
+//   id      String  @id @default(uuid())
+//   shopId  String
+//   orderId String  @unique // 1 đơn 1 lần trả
+//   amount  Decimal @db.Decimal(19, 4)
+//
+//   feeAmount Decimal @default(0) @db.Decimal(19, 4)
+//   netAmount Decimal @default(0) @db.Decimal(19, 4) // Số thực nhận = amount - fee
+//
+//   status SettleStatus // PENDING, PROCESSED, CANCELLED
+//   dueAt  DateTime // Ngày đến hạn (settleDate)
+//
+//   retryCount Int     @default(0)
+//   failReason String?
+//
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+//
+//   @@index([status, dueAt])
+// }
 
 enum PayoutStatus {
   REQUESTED
