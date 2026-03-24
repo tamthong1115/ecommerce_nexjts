@@ -11,7 +11,7 @@ export interface productRecommendDto {
   id: string;
   title: string;
   minPrice: number;
-  ratingAvg: number;
+  ratingAvg: string;
   ratingCount: number;
   soldCount: number;
   description: string;

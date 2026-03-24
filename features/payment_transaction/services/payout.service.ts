@@ -3,7 +3,7 @@ import PayoutStatus = $Enums.PayoutStatus;
 import { DbClient } from '@/types/api';
 import Decimal = Prisma.Decimal;
 import InputJsonValue = Prisma.InputJsonValue;
-import { prisma_clean } from '@/lib/queue/prisma-clean';
+import { prisma } from '@/lib/db';
 
 export const createPayoutRequest = async (
   db: DbClient,
@@ -27,7 +27,7 @@ export const createPayoutRequest = async (
 };
 
 export const getPayoutRequest = async (shopId: string) => {
-  return prisma_clean.payoutRequest.findFirst({
+  return prisma.payoutRequest.findFirst({
     where: {
       shopId: shopId,
       status: PayoutStatus.REQUESTED,

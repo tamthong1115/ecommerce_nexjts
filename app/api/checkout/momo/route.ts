@@ -9,7 +9,7 @@ import { createPaymentIntentService } from '@/features/payment/services/payment_
 import IntentStatus = $Enums.IntentStatus;
 import { paymentQueue } from '@/worker/config';
 import { Decimal } from '@prisma/client-runtime-utils';
-import { prisma_clean } from '@/lib/queue/prisma-clean';
+import { prisma } from '@/lib/db';
 
 type CheckoutPayload = {
   id: string;
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     const idenKey = body.idempotencyKey;
 
     //Check idenKey tránh double click
-    const existed = await prisma_clean.payment.findUnique({
+    const existed = await prisma.payment.findUnique({
       where: { idempotencyKey: idenKey },
     });
     if (existed && existed.rawPayload) {
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
 
     //Create local payment intent
     const expiresAt = dayjs().add(15, 'minute').toDate();
-    localIntent = await createPaymentIntentService(prisma_clean, {
+    localIntent = await createPaymentIntentService(prisma, {
       gatewayRef: null,
       provider: PaymentProvider.MOMO,
       orderIds: { orderIds: orderIds },
@@ -107,10 +107,10 @@ export async function POST(req: NextRequest) {
     // Logic Rollback kho nếu lỗi xảy ra trước khi vào Queue
     if (inventoryReserved && draftItems.length > 0) {
       console.log('Triggering Inventory Rollback...');
-      await prisma_clean
+      await prisma
         .$transaction(
           draftItems.map(({ variantId, quantity }) =>
-            prisma_clean.productVariant.update({
+            prisma.productVariant.update({
               where: { id: variantId },
               data: { stock: { increment: quantity } },
             })

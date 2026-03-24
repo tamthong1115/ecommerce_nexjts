@@ -1,17 +1,17 @@
 import crypto from 'crypto';
 import { $Enums, Currency, FulfillmentStatus, PaymentStatus } from '@prisma/client';
 import OrderStatus = $Enums.OrderStatus;
-import { prisma_clean } from '@/lib/queue/prisma-clean';
+import { prisma } from '@/lib/db';
 
 
 async function generateFakeOrders(numOrders = 2000) {
   console.log("⏳ Bắt đầu quá trình bơm dữ liệu ảo...");
 
   // 1. Lấy dữ liệu thật từ DB làm nguyên liệu (Tránh lỗi Foreign Key)
-  const users = await prisma_clean.user.findMany({ select: { id: true }, take: 100 });
+  const users = await prisma.user.findMany({ select: { id: true }, take: 100 });
 
   // Lấy các sản phẩm đang được PUBLISHED
-  const products = await prisma_clean.product.findMany({
+  const products = await prisma.product.findMany({
     where: { status: 'PUBLISHED' },
     select: { id: true, shopId: true, title: true, minPrice: true },
     take: 50
@@ -102,9 +102,9 @@ async function generateFakeOrders(numOrders = 2000) {
   console.log("💾 Đang ghi vào Database bằng Prisma (Có thể mất vài giây)...");
 
   try {
-    await prisma_clean.$transaction([
-      prisma_clean.order.createMany({ data: ordersData, skipDuplicates: true }),
-      prisma_clean.orderItem.createMany({ data: orderItemsData, skipDuplicates: true })
+    await prisma.$transaction([
+      prisma.order.createMany({ data: ordersData, skipDuplicates: true }),
+      prisma.orderItem.createMany({ data: orderItemsData, skipDuplicates: true })
     ]);
     console.log("✅ Hoàn tất! Đã bơm thành công 2000 đơn hàng ảo.");
   } catch (error) {
@@ -119,5 +119,5 @@ generateFakeOrders()
     process.exit(1);
   })
   .finally(async () => {
-    await prisma_clean.$disconnect();
+    await prisma.$disconnect();
   });

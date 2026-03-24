@@ -8,6 +8,7 @@ import banner1 from '../../../public/banners/banner-home-2.png';
 import Banner from '@/features/public/components/banner';
 import { RecommendationService } from '@/features/recommend_system/services/recommendation.services';
 import { TrendingStrategy } from '@/features/recommend_system/strategy/trending.strategy';
+import { Sparkles } from 'lucide-react';
 
 export default async function Home() {
   const recommendService = new RecommendationService();
@@ -20,7 +21,13 @@ export default async function Home() {
       <CarouselPanel />
       <CategoryPromotionPanel />
       <Banner banner={banner2} />
-      <TopDealItems data={trendingProducts} size={'5'} />
+      <TopDealItems
+        data={trendingProducts}
+        size={'5'}
+        icon={<Sparkles size={20} />}
+        title="Sản phẩm đặc biệt"
+        color="text-orange-600"
+      />
       <NewArrivals size={'5'} />
       <Banner banner={banner1} />
       <SuggestDealToday size="5" />

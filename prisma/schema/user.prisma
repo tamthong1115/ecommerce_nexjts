@@ -47,6 +47,7 @@ model User {
   OrderDraft                OrderDraft[]
   Slot                      Slot[]
   OrderSlot                 OrderSlot[]
+  userInteractionLogs       UserInteractionLog[]
 
   @@unique([email])
   @@map("user")

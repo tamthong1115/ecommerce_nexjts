@@ -12,10 +12,10 @@ import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import { RatingStars } from './rating-starts';
 import Link from 'next/link';
-import { productRecommendDto } from '@/features/recommend_system/recommend.dto';
+import { productItemType } from '@/types/public.data-types';
 
 interface productItemProps {
-  item: productRecommendDto;
+  item: productItemType;
   showDesc?: boolean;
   showRating?: boolean;
   showFooter?: boolean;

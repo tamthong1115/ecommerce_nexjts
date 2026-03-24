@@ -3,11 +3,11 @@ import { StockManager } from '@/lib/stock-manager';
 import { customerPaidOrderSuccessUsecase } from '@/features/payment_transaction/payment_transaction.usecases';
 import IntentStatus = $Enums.IntentStatus;
 import 'dotenv/config';
-import { prisma_clean } from '@/lib/queue/prisma-clean';
+import { prisma } from '@/lib/db';
 
 export async function handleStripeWebhook(eventType: string, session: any) {
   // 2. Tìm Payment Record
-  const payment = await prisma_clean.payment.findUnique({
+  const payment = await prisma.payment.findUnique({
     where: {
       provider_externalId: {
         externalId: session.id,
@@ -34,7 +34,7 @@ export async function handleStripeWebhook(eventType: string, session: any) {
 
   // --- CASE THÀNH CÔNG ---
   if (eventType === 'checkout.session.completed') {
-    await prisma_clean.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
       // Update Payment
       await tx.payment.update({
         where: { id: payment.id, status: 'PENDING' },
@@ -79,7 +79,7 @@ export async function handleStripeWebhook(eventType: string, session: any) {
   ) {
     console.log('❌ Stripe Handler: Failed/Expired. Rolling back...');
 
-    await prisma_clean.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
       await tx.payment.update({
         where: { id: payment.id },
         data: { status: 'FAILED' },

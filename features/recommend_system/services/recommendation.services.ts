@@ -5,8 +5,8 @@ import {
   RecommendResponseDTO,
 } from '@/features/recommend_system/recommend.dto';
 import { serverFetch } from '@/lib/server-fetch';
-import { prisma_clean } from '@/lib/queue/prisma-clean';
 import consola from 'consola';
+import { prisma } from '@/lib/db';
 
 const CACHE_TTL = 3600;
 
@@ -66,7 +66,7 @@ export class RecommendationService {
   private async fetchFullProductsFromDB(
     productIds: string[]
   ): Promise<productRecommendDto[]> {
-    const products = await prisma_clean.product.findMany({
+    const products = await prisma.product.findMany({
       where: { id: { in: productIds } },
       select: {
         id: true,
@@ -110,9 +110,9 @@ export class RecommendationService {
           id: p.id,
           title: p.title,
           minPrice: Number(p.minPrice),
-          ratingAvg: Number(p.ratingAvg),
+          ratingAvg: String(p.ratingAvg),
           ratingCount: Number(p.ratingCount),
-          soldCount: p.soldCount,
+          soldCount: p.soldCount ?? 0,
           description: p.description,
           origin: p.origin,
           imageUrl: p.images?.[0]?.url || '',

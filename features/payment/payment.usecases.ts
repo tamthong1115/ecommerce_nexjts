@@ -6,7 +6,7 @@ import { getItemsQtyByDraftId } from '@/features/order_draft/order_draft.service
 import { createOrder } from '@/app/actions/order';
 import { getActiveIntent } from '@/features/payment/services/payment_intent.service';
 import { StockManager } from '@/lib/stock-manager';
-import { prisma_clean } from '@/lib/queue/prisma-clean';
+import { prisma } from '@/lib/db';
 
 export const createCheckoutRequestUseCase = async (
   db: PrismaClient,
@@ -87,7 +87,7 @@ export async function prepareOrderForCheckout(
 
   try {
     // 2. Lock Stock (Transaction)
-    orderResult = await prisma_clean.$transaction(async (tx) => {
+    orderResult = await prisma.$transaction(async (tx) => {
       for (const { variantId, quantity } of draftItems) {
         const result = await tx.productVariant.updateMany({
           where: {
@@ -126,7 +126,7 @@ export async function prepareOrderForCheckout(
   const orderIds = orderList.map((o) => o.id);
 
   // 4. Check Active Intent
-  const activeIntent = await getActiveIntent(prisma_clean, {
+  const activeIntent = await getActiveIntent(prisma, {
     provider: provider,
     status: $Enums.IntentStatus.ACTIVE,
     orderIds: orderIds,

@@ -12,7 +12,7 @@
 import { faker } from '@faker-js/faker';
 import pg from 'pg';
 import 'dotenv/config';
-import { prisma_clean } from '@/lib/queue/prisma-clean';
+import { prisma } from '@/lib/db';
 
 
 // ── Prisma bootstrap (same pattern as seed.ts) ──────────────────────────
@@ -66,12 +66,12 @@ async function main() {
   console.log('📊 Recommendation Seed — starting...');
 
   // 1. Fetch existing data ------------------------------------------------
-  const products = await prisma_clean.product.findMany({
+  const products = await prisma.product.findMany({
     where: { status: 'PUBLISHED' },
     select: { id: true, categoryId: true, minPrice: true },
   });
 
-  const users = await prisma_clean.user.findMany({
+  const users = await prisma.user.findMany({
     select: { id: true },
   });
 
@@ -91,8 +91,8 @@ async function main() {
 
   // 2. Clear old recommendation data -------------------------------------
   console.log('🧹 Clearing existing ProductDailyStat & UserInteractionLog...');
-  await prisma_clean.userInteractionLog.deleteMany();
-  await prisma_clean.productDailyStat.deleteMany();
+  await prisma.userInteractionLog.deleteMany();
+  await prisma.productDailyStat.deleteMany();
 
   // 3. Assign popularity tiers to products --------------------------------
   //    20% popular (3×), 60% normal (1×), 20% cold (0.3×)
@@ -150,7 +150,7 @@ async function main() {
 
       // Flush in batches
       if (statRows.length >= BATCH_SIZE) {
-        await prisma_clean.productDailyStat.createMany({ data: statRows });
+        await prisma.productDailyStat.createMany({ data: statRows });
         statRowCount += statRows.length;
         statRows = [];
       }
@@ -159,7 +159,7 @@ async function main() {
 
   // Flush remaining
   if (statRows.length > 0) {
-    await prisma_clean.productDailyStat.createMany({ data: statRows });
+    await prisma.productDailyStat.createMany({ data: statRows });
     statRowCount += statRows.length;
   }
   console.log(`  ✅ Created ${statRowCount} ProductDailyStat rows`);
@@ -246,7 +246,7 @@ async function main() {
 
       // Flush in batches
       if (logRows.length >= BATCH_SIZE) {
-        await prisma_clean.userInteractionLog.createMany({ data: logRows });
+        await prisma.userInteractionLog.createMany({ data: logRows });
         logRowCount += logRows.length;
         logRows = [];
 
@@ -259,7 +259,7 @@ async function main() {
 
   // Flush remaining
   if (logRows.length > 0) {
-    await prisma_clean.userInteractionLog.createMany({ data: logRows });
+    await prisma.userInteractionLog.createMany({ data: logRows });
     logRowCount += logRows.length;
   }
 
@@ -273,6 +273,6 @@ main()
     process.exit(1);
   })
   .finally(async () => {
-    await prisma_clean.$disconnect();
+    await prisma.$disconnect();
     await pool.end();
   });

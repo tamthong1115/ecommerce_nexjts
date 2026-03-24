@@ -9,7 +9,7 @@ import { updatePaymentIntentService } from '@/features/payment/services/payment_
 import { createCheckoutRequestUseCase } from '@/features/payment/payment.usecases';
 import PaymentStatus = $Enums.PaymentStatus;
 import Currency = $Enums.Currency;
-import { prisma_clean } from '@/lib/queue/prisma-clean';
+import { prisma } from '@/lib/db';
 
 interface PaymentJobData {
   //Generic payment params
@@ -52,7 +52,7 @@ const processPaymentJob = async (job: Job<PaymentJobData>) => {
     });
 
     //Tạo data payment && order
-    await createCheckoutRequestUseCase(prisma_clean, {
+    await createCheckoutRequestUseCase(prisma, {
       params: {
         provider: provider,
         method: job.data.method,
@@ -93,9 +93,9 @@ export const initPaymentWorker = () => {
 
       try {
         // Thực hiện transaction cộng lại kho
-        await prisma_clean.$transaction(
+        await prisma.$transaction(
           draftItems.map((item: any) =>
-            prisma_clean.productVariant.update({
+            prisma.productVariant.update({
               where: { id: item.variantId },
               data: { stock: { increment: item.quantity } },
             })

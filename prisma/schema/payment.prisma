@@ -64,11 +64,12 @@ model Payment {
 
 model PaymentIntent {
   id         String          @id @default(uuid()) @db.Uuid
-  gatewayRef String          @unique
+  gatewayRef String?         @unique
   status     IntentStatus
   provider   PaymentProvider
   orderIds   Json
   amount     Decimal
+  currency   Currency?
   expiresAt  DateTime
   createdAt  DateTime        @default(now())
 

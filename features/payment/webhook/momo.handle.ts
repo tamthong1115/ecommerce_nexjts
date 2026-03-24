@@ -3,12 +3,12 @@ import { $Enums } from '@/lib/generated/prisma';
 import PaymentStatus = $Enums.PaymentStatus;
 import { customerPaidOrderSuccessUsecase } from '@/features/payment_transaction/payment_transaction.usecases';
 import 'dotenv/config';
-import { prisma_clean } from '@/lib/queue/prisma-clean';
+import { prisma } from '@/lib/db';
 
 export async function handleMomoWebhook(payload: any) {
   const { orderId, resultCode, transId, requestId } = payload;
 
-  const payment = await prisma_clean.payment.findFirst({
+  const payment = await prisma.payment.findFirst({
     where: {
       externalId: orderId,
       provider: $Enums.PaymentProvider.MOMO,
@@ -39,7 +39,7 @@ export async function handleMomoWebhook(payload: any) {
   const orderIds = orderDetails.map((o) => o.id);
 
   if (resultCode == 0 || resultCode == 9000) {
-    await prisma_clean.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
       // Update Payment
       const updateResult = await tx.payment.updateMany({
         where: {
@@ -90,7 +90,7 @@ export async function handleMomoWebhook(payload: any) {
     );
 
     // 1. Update DB Failed
-    await prisma_clean.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
       await tx.paymentIntent.updateMany({
         where: { gatewayRef: requestId },
         data: { status: $Enums.IntentStatus.FAILED },

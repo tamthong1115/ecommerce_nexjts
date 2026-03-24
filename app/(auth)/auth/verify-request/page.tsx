@@ -123,7 +123,7 @@ export default function VerifyRequest() {
               onSuccess: () => {
                 toast.success(t('t_sign_in_success'));
               },
-              onError: (err) => {
+              onError: (err: Error) => {
                 console.error(err);
                 toast.error(t('t_invalid_code'));
               },
@@ -227,7 +227,7 @@ export default function VerifyRequest() {
             </Button>
           </div>
 
-          {/* Back to Login */}
+          {/* Back to log */}
           <div className="pt-4 border-t border-border">
             <Button
               variant="ghost"

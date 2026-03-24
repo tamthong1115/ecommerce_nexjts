@@ -1,6 +1,6 @@
-import DetailPage from '@/app/(public)/products/[id]/DetailClient';
 import { RecommendationService } from '@/features/recommend_system/services/recommendation.services';
 import { TfidfStrategy } from '@/features/recommend_system/strategy/tfidf';
+import DetailPage from '@/app/(public)/products/[id]/detail-client';
 
 export default async function ProductDetailPage({
   params,

@@ -15,11 +15,15 @@ import {
 } from '@/components/ui/carousel';
 import { ProductItem } from '../../components/product-item';
 import { productRecommendDto } from '@/features/recommend_system/recommend.dto';
+import { ProductRecommendationItem } from '@/components/custom/product-recommendation-uI';
+import { Sparkles } from 'lucide-react';
+import React from 'react';
 
 type TopDealItemsProps = {
   data: productRecommendDto[];
   title?: string;
   icon?: React.ReactNode;
+  color?: string;
   size: string;
   limitItem?: number;
   showDesc?: boolean;
@@ -41,7 +45,8 @@ export const TopDealItems = ({
   title,
   icon,
   size,
-  showDesc,
+  color,
+  showDesc = true,
   showRating,
   showFooter,
 }: TopDealItemsProps) => {
@@ -91,12 +96,15 @@ export const TopDealItems = ({
     <div className="w-full flex flex-col justify-start items-start gap-1 p-2 bg-background-secondary rounded-lg">
       <div className="w-full flex flex-row justify-between items-center p-2 mb-2">
         <p
-          className={`w-fit flex flex-row gap-2 font-bold select-none items-center ${title ? 'text-primary' : 'text-error'}`}
+          className={`w-fit flex flex-row gap-2 font-bold text-lg select-none items-center ${color ? color : 'text-error'}`}
         >
           {icon ? icon : <AiFillLike color="red" size={20} />}
           {title ? title : t('title')}
         </p>
-        <Link href="/search" className="text-primary hover:cursor-pointer">
+        <Link
+          href="/search"
+          className={` ${color ? color : 'text-primary'}  hover:cursor-pointer`}
+        >
           {t('watch_more')}
         </Link>
       </div>
@@ -113,11 +121,14 @@ export const TopDealItems = ({
               className={`pl-2 md:pl-4 basis-1/2 md:basis-1/3 ${basisClass}`}
             >
               <div className="h-full">
-                <ProductItem
+                <ProductRecommendationItem
                   item={item}
+                  badgeText="Sản phẩm hot"
                   showDesc={showDesc}
+                  isNew={true}
                   showRating={showRating}
                   showFooter={showFooter}
+                  soldCount={item.soldCount}
                 />
               </div>
             </CarouselItem>
@@ -129,22 +140,3 @@ export const TopDealItems = ({
     </div>
   );
 };
-
-// useEffect(() => {
-//   const loadDeals = async () => {
-//     try {
-//       // FIX 2: Use correct generic type for array response
-//       const res = await fetchApi<productItemType[]>('/api/product', {
-//         params: { page: 1, limit: limitItem, type: 'deal' },
-//       });
-//
-//       if (res.success && res.data) {
-//         setData(res.data);
-//       }
-//     } catch (error) {
-//       console.error('Failed to load top deals:', error);
-//     }
-//   };
-//
-//   loadDeals();
-// }, [limitItem]);
