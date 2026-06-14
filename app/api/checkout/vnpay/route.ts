@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ResponseFactory } from '@/lib/api-response';
 import dayjs from 'dayjs';
 import crypto from 'crypto';
-import { prisma } from '@/lib/db';
 import { prepareOrderForCheckout } from '@/features/payment/payment.usecases';
 import { $Enums } from '@/lib/generated/prisma';
 import PaymentProvider = $Enums.PaymentProvider;
@@ -11,6 +10,7 @@ import { createPaymentIntentService } from '@/features/payment/services/payment_
 import IntentStatus = $Enums.IntentStatus;
 import { paymentHookQueue, paymentQueue } from '@/worker/config';
 import { Decimal } from '@prisma/client-runtime-utils';
+import { prisma } from '@/lib/db';
 
 export function sortObject(
   obj: Record<string, string | number>

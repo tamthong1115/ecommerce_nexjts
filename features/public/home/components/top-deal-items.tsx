@@ -1,10 +1,7 @@
 'use client';
 
-import { fetchApi } from '@/lib/client-fetch';
-import { productItemType } from '@/types/public.data-types';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 import Autoplay from 'embla-carousel-autoplay';
 import { AiFillLike } from 'react-icons/ai';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,8 +14,16 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel';
 import { ProductItem } from '../../components/product-item';
+import { productRecommendDto } from '@/features/recommend_system/recommend.dto';
+import { ProductRecommendationItem } from '@/components/custom/product-recommendation-uI';
+import { Sparkles } from 'lucide-react';
+import React from 'react';
 
 type TopDealItemsProps = {
+  data: productRecommendDto[];
+  title?: string;
+  icon?: React.ReactNode;
+  color?: string;
   size: string;
   limitItem?: number;
   showDesc?: boolean;
@@ -36,38 +41,18 @@ const basisClasses = {
 };
 
 export const TopDealItems = ({
+  data,
+  title,
+  icon,
   size,
-  limitItem = 15,
-  showDesc,
+  color,
+  showDesc = true,
   showRating,
   showFooter,
 }: TopDealItemsProps) => {
   const t = useTranslations('home_layout.top_deal_items');
-
-  // FIX 1: Store array directly
-  const [data, setData] = useState<productItemType[] | null>(null);
-
   const basisClass =
     basisClasses[size as keyof typeof basisClasses] || 'lg:basis-1/4';
-
-  useEffect(() => {
-    const loadDeals = async () => {
-      try {
-        // FIX 2: Use correct generic type for array response
-        const res = await fetchApi<productItemType[]>('/api/product', {
-          params: { page: 1, limit: limitItem, type: 'deal' },
-        });
-
-        if (res.success && res.data) {
-          setData(res.data);
-        }
-      } catch (error) {
-        console.error('Failed to load top deals:', error);
-      }
-    };
-
-    loadDeals();
-  }, [limitItem]);
 
   // --- SKELETON LOADING STATE ---
   if (!data) {
@@ -109,43 +94,41 @@ export const TopDealItems = ({
   // --- ACTUAL CONTENT ---
   return (
     <div className="w-full flex flex-col justify-start items-start gap-1 p-2 bg-background-secondary rounded-lg">
-      {/* top title */}
       <div className="w-full flex flex-row justify-between items-center p-2 mb-2">
-        <p className="w-fit flex flex-row gap-2 text-error font-bold select-none items-center">
-          <AiFillLike color="red" size={20} />
-          {t('title')}
+        <p
+          className={`w-fit flex flex-row gap-2 font-bold text-lg select-none items-center ${color ? color : 'text-error'}`}
+        >
+          {icon ? icon : <AiFillLike color="red" size={20} />}
+          {title ? title : t('title')}
         </p>
-        <Link href="/search" className="text-primary hover:cursor-pointer">
+        <Link
+          href="/search"
+          className={` ${color ? color : 'text-primary'}  hover:cursor-pointer`}
+        >
           {t('watch_more')}
         </Link>
       </div>
 
-      {/* item list */}
       <Carousel
-        opts={{
-          align: 'start',
-          loop: true,
-        }}
-        plugins={[
-          Autoplay({
-            delay: 4000,
-            stopOnInteraction: true,
-          }),
-        ]}
+        opts={{ align: 'start', loop: true }}
+        plugins={[Autoplay({ delay: 4000 })]}
         className="w-full px-2"
       >
         <CarouselContent className="-ml-2 md:-ml-4">
-          {data.map((item, index) => (
+          {data.map((item: productRecommendDto) => (
             <CarouselItem
-              key={index}
+              key={item.id}
               className={`pl-2 md:pl-4 basis-1/2 md:basis-1/3 ${basisClass}`}
             >
               <div className="h-full">
-                <ProductItem
+                <ProductRecommendationItem
                   item={item}
+                  badgeText="Sản phẩm hot"
                   showDesc={showDesc}
+                  isNew={true}
                   showRating={showRating}
                   showFooter={showFooter}
+                  soldCount={item.soldCount}
                 />
               </div>
             </CarouselItem>

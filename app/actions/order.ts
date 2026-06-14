@@ -1,12 +1,12 @@
 'use server';
 
 import { getCurrentUserId } from '@/lib/auth';
-import { prisma } from '@/lib/db';
 import { OrderStatus, Prisma } from '@/lib/generated/prisma';
 import { revalidatePath } from 'next/cache';
 import { OrderWithRelations } from '@/types/order.data-types';
 import { OrderDTO } from '@/types/dtos/order.dto';
 import { DbClient } from '@/types/api';
+import { prisma } from '@/lib/db';
 
 type CreateOrderResult =
   | { success: true; order: OrderWithRelations[] }

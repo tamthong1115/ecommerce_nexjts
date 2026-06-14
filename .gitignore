@@ -32,6 +32,17 @@ yarn-error.log*
 # ..env files (can opt-in for committing if needed)
 .env*
 .env.local
+recommendation-service/.env
+recommendation-service/data
+recommendation-service/models
+recommendation-service/data/*.csv
+*.pkl
+recommendation-service/__pycache__/
+*.py[cod]
+recommendation-service/.venv
+
+
+.dockerignore
 
 # vercel
 .vercel

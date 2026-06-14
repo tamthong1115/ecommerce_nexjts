@@ -1,5 +1,4 @@
 import { NextRequest } from 'next/server';
-import { prisma } from '@/lib/db';
 import { vndToUsdCents } from '@/lib/currency-helper';
 import { $Enums } from '@/lib/generated/prisma';
 import PaymentProvider = $Enums.PaymentProvider;
@@ -12,6 +11,7 @@ import redisClient from '@/lib/redis';
 import { paymentQueue } from '@/worker/config';
 import { prepareOrderForCheckout } from '@/features/payment/payment.usecases';
 import { Decimal } from '@prisma/client-runtime-utils';
+import { prisma } from '@/lib/db';
 
 type CheckoutPayload = {
   id: string;

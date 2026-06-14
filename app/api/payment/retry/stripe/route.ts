@@ -3,7 +3,6 @@ import { getOrdersCanPay } from '@/features/order/server/order.service';
 import { ResponseFactory } from '@/lib/api-response';
 import { stripe } from '@/lib/payment';
 import { vndToUsdCents } from '@/lib/currency-helper';
-import { Decimal } from '@/lib/generated/prisma/runtime/library';
 import dayjs from 'dayjs';
 import { createPaymentIntentService } from '@/features/payment/services/payment_intent.service';
 import { prisma } from '@/lib/db';
@@ -12,6 +11,7 @@ import PaymentProvider = $Enums.PaymentProvider;
 import IntentStatus = $Enums.IntentStatus;
 import Currency = $Enums.Currency;
 import redisClient from '@/lib/redis';
+import { Decimal } from '@/lib/generated/prisma/runtime/client';
 
 export async function POST(req: NextRequest) {
   const localIntent: { id: string } | null = null;

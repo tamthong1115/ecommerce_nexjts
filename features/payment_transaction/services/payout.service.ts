@@ -1,7 +1,8 @@
-import { $Enums } from '@/lib/generated/prisma';
-import { Decimal, InputJsonValue } from '@/lib/generated/prisma/runtime/client';
+import { $Enums, Prisma } from '@/lib/generated/prisma';
 import PayoutStatus = $Enums.PayoutStatus;
 import { DbClient } from '@/types/api';
+import Decimal = Prisma.Decimal;
+import InputJsonValue = Prisma.InputJsonValue;
 import { prisma } from '@/lib/db';
 
 export const createPayoutRequest = async (

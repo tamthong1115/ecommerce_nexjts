@@ -2,7 +2,6 @@ import { NextRequest } from 'next/server';
 import { ResponseFactory } from '@/lib/api-response';
 import dayjs from 'dayjs';
 import { prepareOrderForCheckout } from '@/features/payment/payment.usecases';
-import { prisma } from '@/lib/db';
 import { $Enums } from '@/lib/generated/prisma';
 import PaymentProvider = $Enums.PaymentProvider;
 import Currency = $Enums.Currency;
@@ -10,6 +9,7 @@ import { createPaymentIntentService } from '@/features/payment/services/payment_
 import IntentStatus = $Enums.IntentStatus;
 import { paymentQueue } from '@/worker/config';
 import { Decimal } from '@prisma/client-runtime-utils';
+import { prisma } from '@/lib/db';
 
 type CheckoutPayload = {
   id: string;

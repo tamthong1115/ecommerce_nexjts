@@ -1,8 +1,8 @@
-import IORedis from 'ioredis';
+import Redis, { RedisOptions } from 'ioredis';
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:4000';
 
-const connectionOptions = {
+const connectionOptions: RedisOptions = {
   maxRetriesPerRequest: null,
 
   retryStrategy(times: number) {
@@ -10,10 +10,10 @@ const connectionOptions = {
   },
 };
 
-const globalForRedis = global as unknown as { redis: IORedis };
+const globalForRedis = global as unknown as { redis: Redis };
 
 export const redisClient =
-  globalForRedis.redis || new IORedis(REDIS_URL, connectionOptions);
+  globalForRedis.redis || new Redis(REDIS_URL, connectionOptions);
 
 if (process.env.NODE_ENV !== 'production') {
   globalForRedis.redis = redisClient;

@@ -1,11 +1,10 @@
-// import { InputJsonValue } from '@prisma/client/runtime/library';
 import InputJsonValue = Prisma.InputJsonValue;
 import { $Enums, Prisma } from '@/lib/generated/prisma';
 import { DbClient } from '@/types/api';
 import PaymentProvider = $Enums.PaymentProvider;
-import { prisma } from '@/lib/db';
 import IntentStatus = $Enums.IntentStatus;
 import Currency = $Enums.Currency;
+import { prisma } from '@/lib/db';
 
 export const createPaymentIntentService = async (
   db: DbClient,
@@ -21,11 +20,12 @@ export const createPaymentIntentService = async (
 ) => {
   return db.paymentIntent.create({
     data: {
-      gatewayRef: params.gatewayRef ?? '',
+      gatewayRef: params.gatewayRef,
       provider: params.provider,
       status: params.status,
       orderIds: params.orderIds,
       amount: params.amount,
+      currency: params.currency,
       expiresAt: params.expiresAt,
     },
   });
