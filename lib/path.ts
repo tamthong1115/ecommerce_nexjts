@@ -92,6 +92,11 @@ export const paths = {
       create: '/api/manager/warehouse',
       del_one: (id: string) => `/api/manager/warehouse?id=${id}`,
     },
+
+    system_settings:{
+      default: '/manager/system-settings',
+      email: '/manager/system-settings/email'
+    }
   },
 
   reviews: {

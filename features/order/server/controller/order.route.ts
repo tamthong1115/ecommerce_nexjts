@@ -1,6 +1,6 @@
 import { ResponseFactory } from '@/lib/api-response';
 import { prisma } from '@/lib/db';
-import { requireSeller } from '@/lib/require-role';
+import { requireSeller } from '@/lib/require-admin';
 import { HttpStatus } from '@/types/api';
 import { NextRequest } from 'next/server';
 import { $Enums, Prisma } from '@/lib/generated/prisma';

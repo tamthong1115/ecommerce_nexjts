@@ -11,6 +11,7 @@ import { NotificationRole, NotificationType } from '@/lib/generated/prisma';
 import { sendNotification } from '@/features/notification/server/controller/notification.action';
 
 import { ChannelType } from '@/features/notification/types/notification.type';
+import { devConfig } from './dev-config';
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -98,6 +99,11 @@ export const auth = betterAuth({
   plugins: [
     emailOTP({
       async sendVerificationOTP({ email, otp }) {
+        
+        if (devConfig.mockEmails) {
+          console.log('Verification OTP:', otp);
+          return;
+        }
         await sendNotification({
           to: email,
           recipientRole: NotificationRole.BUYER,

@@ -1,6 +1,6 @@
 'use server';
 
-import { requireRole, requireSeller } from '@/lib/require-role';
+import { requireAdmin, requireSeller } from '@/lib/require-admin';
 import { ResponseFactory } from '@/lib/api-response';
 import { ApiResponse } from '@/types/api';
 import { disableVoucherService } from '@/features/voucher/server/voucher.service';
@@ -35,7 +35,7 @@ export const disableVoucherByAdminAction = async (
   voucherId: string
 ): Promise<ApiResponse<{ success: boolean }>> => {
   try {
-    const session = await requireRole();
+    const session = await requireAdmin();
 
     if (!session?.user?.id) {
       return ResponseFactory.error({ message: 'Unauthorized', code: 401 });
