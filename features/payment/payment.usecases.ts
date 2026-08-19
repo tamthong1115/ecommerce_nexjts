@@ -3,19 +3,19 @@ import { $Enums, PrismaClient } from '@/lib/generated/prisma';
 import { createPaymentService } from '@/features/payment/services/payment.service';
 import PaymentProvider = $Enums.PaymentProvider;
 import { getItemsQtyByDraftId } from '@/features/order_draft/order_draft.service';
-import { prisma } from '@/lib/db';
 import { createOrder } from '@/app/actions/order';
 import { getActiveIntent } from '@/features/payment/services/payment_intent.service';
 import { StockManager } from '@/lib/stock-manager';
+import { prisma } from '@/lib/db';
 
 export const createCheckoutRequestUseCase = async (
-  prisma: PrismaClient,
+  db: PrismaClient,
   input: {
     params: CreatePaymentInput;
     orderList: string[];
   }
 ) => {
-  return prisma.$transaction(async (tx) => {
+  return db.$transaction(async (tx) => {
     const payment = await createPaymentService(tx, {
       provider: input.params.provider,
       method: input.params.method,

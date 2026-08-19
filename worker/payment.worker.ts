@@ -7,9 +7,9 @@ import PaymentProvider = $Enums.PaymentProvider;
 import { createPaymentStrategy } from '@/features/payment/strategy/payment.factory';
 import { updatePaymentIntentService } from '@/features/payment/services/payment_intent.service';
 import { createCheckoutRequestUseCase } from '@/features/payment/payment.usecases';
-import { prisma } from '@/lib/db';
 import PaymentStatus = $Enums.PaymentStatus;
 import Currency = $Enums.Currency;
+import { prisma } from '@/lib/db';
 
 interface PaymentJobData {
   //Generic payment params
@@ -79,7 +79,7 @@ const processPaymentJob = async (job: Job<PaymentJobData>) => {
 export const initPaymentWorker = () => {
   const worker = new Worker(PAYMENT_QUEUE_NAME, processPaymentJob, {
     connection: redisClient,
-    concurrency: 10, // Xử lý song song 5 job
+    concurrency: 10,
     removeOnComplete: { count: 1000, age: 24 * 3600 }, // Giữ 1000 job thành công trong 24h
     removeOnFail: { count: 5000 }, // Giữ nhiều job lỗi hơn để debug
   });

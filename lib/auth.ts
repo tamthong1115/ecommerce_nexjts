@@ -3,15 +3,16 @@ import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { env } from './env';
 import { admin, emailOTP } from 'better-auth/plugins';
 
-import { prisma } from '@/lib/db';
 import { headers } from 'next/headers';
 import { nextCookies } from 'better-auth/next-js';
 import { getUserNameOrEmailPrefix } from '@/lib/utils';
-import { NotificationRole, NotificationType } from '@/lib/generated/prisma';
 import { sendNotification } from '@/features/notification/server/controller/notification.action';
 
 import { ChannelType } from '@/features/notification/types/notification.type';
 import { devConfig } from './dev-config';
+import { $Enums, NotificationType } from '@prisma/client';
+import NotificationRole = $Enums.NotificationRole;
+import { prisma } from '@/lib/db';
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -99,7 +100,7 @@ export const auth = betterAuth({
   plugins: [
     emailOTP({
       async sendVerificationOTP({ email, otp }) {
-        
+
         if (devConfig.mockEmails) {
           console.log('Verification OTP:', otp);
           return;

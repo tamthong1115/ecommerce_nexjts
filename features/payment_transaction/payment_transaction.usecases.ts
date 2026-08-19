@@ -1,4 +1,3 @@
-import { prisma } from '@/lib/db';
 import { ServiceError } from '@/lib/service-error';
 import {
   freezeShopBalanceForPayout,
@@ -26,15 +25,10 @@ import PayoutStatus = $Enums.PayoutStatus;
 import { getPaymentId } from '@/features/payment/services/order_payment.service';
 import LedgerType = $Enums.LedgerType;
 import { DbClient } from '@/types/api';
-import { Decimal } from '@/lib/generated/prisma/runtime/client';
+import Decimal = Prisma.Decimal;
+import { prisma } from '@/lib/db';
 
 const toDecimal = (val: Decimal | number) => new Decimal(val);
-
-// export const updateLocalPaymentHook = async (
-//   db: DbClient,
-//   eventType: string,
-//   payload: any
-// ) => {)
 
 export const customerPaidOrderSuccessUsecase = async (
   db: DbClient,

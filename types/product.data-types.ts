@@ -1,3 +1,6 @@
+import { $Enums } from '@prisma/client';
+import VoucherType = $Enums.VoucherType;
+
 export interface SellerProductListItem {
   id: string;
   title: string;
@@ -41,7 +44,7 @@ export interface SearchProduct {
     name: string;
   } | null;
   voucher: {
-    type: string;
+    type: VoucherType;
     value: number;
     maxDiscount: number;
   } | null;

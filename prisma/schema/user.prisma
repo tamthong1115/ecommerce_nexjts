@@ -8,6 +8,9 @@ enum Role {
   user
   seller
   admin
+  user
+  seller
+  admin
 }
 
 //==================== MODELS ===================//
@@ -23,7 +26,22 @@ model User {
   updatedAt     DateTime  @default(now()) @updatedAt
   sessions      Session[]
   accounts      Account[]
+  id            String    @id @default(uuid()) @db.Uuid
+  name          String
+  stripeAccount String?
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  shopCount     Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+  sessions      Session[]
+  accounts      Account[]
 
+  role       Role      @default(user)
+  banned     Boolean?  @default(false)
+  banReason  String?
+  banExpires DateTime?
   role       Role      @default(user)
   banned     Boolean?  @default(false)
   banReason  String?
@@ -56,6 +74,8 @@ model User {
 
   @@unique([email])
   @@map("user")
+  @@unique([email])
+  @@map("user")
 }
 
 model Account {
@@ -73,7 +93,23 @@ model Account {
   password              String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+  id                    String    @id @default(uuid()) @db.Uuid
+  accountId             String
+  providerId            String
+  userId                String    @db.Uuid
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
+  @@index([userId])
+  @@map("account")
   @@index([userId])
   @@map("account")
 }
@@ -89,7 +125,18 @@ model UserProfile {
   bio          String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @unique @db.Uuid
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailForBill String?
+  phone        String?
+  birthDate    DateTime?
+  gender       String?
+  bio          String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
+  @@map("user_profile")
   @@map("user_profile")
 }
 
@@ -111,7 +158,44 @@ model Address {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   deletedAt  DateTime?
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @db.Uuid
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName   String
+  phone      String
+  line1      String
+  line2      String?
+  ward       String?
+  district   String?
+  city       String
+  province   String?
+  country    String    @default("VN")
+  postalCode String?
+  isDefault  Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
 
   @@index([userId, isDefault])
   @@map("address")
+  @@index([userId, isDefault])
+  @@map("address")
+}
+
+model UserInteractionLog {
+  id        String  @id @default(uuid()) @db.Uuid
+  userId    String? @db.Uuid
+  sessionId String? @db.Uuid
+  productId String  @db.Uuid
+
+  interactionType String
+  weight          Float  @default(1.0)
+
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@map("user_interaction_log")
 }

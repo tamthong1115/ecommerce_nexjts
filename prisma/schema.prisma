@@ -1,0 +1,1061 @@
+// generator client {
+//   provider      = "prisma-client-js"
+//   output        = "../lib/generated/prisma"
+//   binaryTargets = ["native", "rhel-openssl-3.0.x"]
+// }
+//
+// datasource db {
+//   provider = "postgresql"
+// }
+//
+// // ---------- Enums ----------
+//
+// enum Role {
+//   user
+//   seller
+//   admin
+// }
+//
+// enum ShopStatus {
+//   PENDING
+//   ACTIVE
+//   SUSPENDED
+//   CLOSED
+// }
+//
+// enum ShopMemberRole {
+//   OWNER
+//   STAFF
+//   MANAGER
+// }
+//
+// enum ProductStatus {
+//   DRAFT
+//   PUBLISHED
+//   ARCHIVED
+// }
+//
+// enum Visibility {
+//   PUBLIC
+//   UNLISTED
+//   PRIVATE
+// }
+//
+// enum OrderStatus {
+//   PENDING
+//   AWAITING_PAYMENT
+//   PAID
+//   PROCESSING
+//   PARTIALLY_FULFILLED
+//   FULFILLED
+//   PARTIALLY_SHIPPED
+//   SHIPPED
+//   DELIVERED
+//   CANCELED
+//   REFUNDED
+//   EXPIRED
+// }
+//
+// enum PaymentStatus {
+//   PENDING //(Đang chờ xử lý)
+//   PAID //(Đã thanh toán)
+//   PARTIALLY_REFUNDED //(Hoàn tiền một phần)
+//   REFUNDED //(Đã hoàn tiền toàn bộ)
+//   FAILED //(Thất bại)
+// }
+//
+// enum LedgerDirection {
+//   CREDIT // Cộng tiền vào (+/Tăng)
+//   DEBIT // Trừ tiền ra (-/Giảm)
+// }
+//
+// enum WalletType {
+//   SHOP // Ví của người bán
+//   USER // Ví của người mua
+//   PLATFORM // Ví của sàn (thu phí sàn, giữ tiền hộ)
+// }
+//
+// enum FulfillmentStatus {
+//   NOT_FULFILLED
+//   PARTIALLY_FULFILLED
+//   FULFILLED
+//   RETURNED
+// }
+//
+// enum PaymentProvider {
+//   CASH
+//   STRIPE
+//   PAYPAL
+//   CASSO
+//   VNPAY
+//   MOMO
+//   OTHER
+// }
+//
+// enum ConversationType {
+//   ORDER_INQUIRY // User <-> Seller (Linked to a specific product/order?)
+//   SUPPORT_TICKET // User/Seller <-> Admin
+//   GENERAL // General chat
+// }
+//
+// enum ConversationStatus {
+//   OPEN
+//   RESOLVED
+//   ARCHIVED
+// }
+//
+// enum MessageType {
+//   TEXT
+//   IMAGE
+//   SYSTEM
+//   PRODUCT_CARD
+//   ORDER_CARD
+// }
+//
+// enum Currency {
+//   VND
+//   USD
+// }
+//
+// enum MessageRole {
+//   USER
+//   SHOP
+//   ADMIN
+// }
+//
+// // enum LedgerType {
+// //   ORDER_PAID // khách trả tiền
+// //   VOUCHER_SUBSIDY // sàn bù tiền
+// //   ADJUSTMENT_IN // chỉnh tay +
+// //   PLATFORM_FEE // phí sàn
+// //   SHIPPING_FEE // phí ship
+// //   PAYOUT
+// //   SETTLEMENT // pending -> available
+// //   REFUND // hoàn tiền cho khách
+// //   ADJUSTMENT_OUT // chỉnh tay -
+// // }
+//
+// model User {
+//   id            String    @id @default(uuid()) @db.Uuid
+//   name          String
+//   stripeAccount String?
+//   email         String
+//   emailVerified Boolean   @default(false)
+//   image         String?
+//   shopCount     Int       @default(0)
+//   createdAt     DateTime  @default(now())
+//   updatedAt     DateTime  @default(now()) @updatedAt
+//   sessions      Session[]
+//   accounts      Account[]
+//
+//   role       Role      @default(user)
+//   banned     Boolean?  @default(false)
+//   banReason  String?
+//   banExpires DateTime?
+//
+//   profile                   UserProfile?
+//   addresses                 Address[]
+//   notifications             Notification[]
+//   carts                     Cart[]
+//   wishlist                  Wishlist?
+//   shopsOwned                Shop[]                    @relation("ShopsOwned")
+//   shopMemberships           ShopMember[]
+//   followedShops             ShopFollower[]
+//   orders                    Order[]
+//   reviews                   Review[]
+//   productQuestions          ProductQuestion[]
+//   conversationsParticipants ConversationParticipant[]
+//   messagesSentUser          Message[]                 @relation("MessageFromUser")
+//   ReturnRequest             ReturnRequest[]
+//   VoucherRedemption         VoucherRedemption[]
+//   OrderDraft                OrderDraft[]
+//
+//   // Stats
+//   userLogs UserInteractionLog[]
+//
+//   @@unique([email])
+//   @@map("user")
+// }
+//
+// // model Session {
+// //   id        String   @id @default(uuid()) @db.Uuid
+// //   expiresAt DateTime
+// //   token     String   @unique
+// //   createdAt DateTime @default(now())
+// //   updatedAt DateTime @updatedAt
+// //   ipAddress String?
+// //   userAgent String?
+// //   userId    String   @db.Uuid
+// //   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+// //
+// //   impersonatedBy String?
+// //
+// //   @@index([userId])
+// //   @@map("session")
+// // }
+//
+// model Account {
+//   id                    String    @id @default(uuid()) @db.Uuid
+//   accountId             String
+//   providerId            String
+//   userId                String    @db.Uuid
+//   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   accessToken           String?
+//   refreshToken          String?
+//   idToken               String?
+//   accessTokenExpiresAt  DateTime?
+//   refreshTokenExpiresAt DateTime?
+//   scope                 String?
+//   password              String?
+//   createdAt             DateTime  @default(now())
+//   updatedAt             DateTime  @updatedAt
+//
+//   @@index([userId])
+//   @@map("account")
+// }
+//
+// model ShopFollower {
+//   id     String @id @default(uuid()) @db.Uuid
+//   shopId String @db.Uuid
+//   userId String @db.Uuid
+//   shop   Shop   @relation(fields: [shopId], references: [id], onDelete: Cascade)
+//   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+//
+//   @@unique([userId, shopId])
+//   @@map("shop_follower")
+// }
+//
+// // model Verification {
+// //   id         String   @id @default(uuid()) @db.Uuid
+// //   identifier String
+// //   value      String
+// //   expiresAt  DateTime
+// //   createdAt  DateTime @default(now())
+// //   updatedAt  DateTime @default(now()) @updatedAt
+// //
+// //   @@index([identifier])
+// //   @@map("verification")
+// // }
+//
+// model UserProfile {
+//   id           String    @id @default(uuid()) @db.Uuid
+//   userId       String    @unique @db.Uuid
+//   user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   emailForBill String?
+//   phone        String?
+//   birthDate    DateTime?
+//   gender       String?
+//   bio          String?
+//   createdAt    DateTime  @default(now())
+//   updatedAt    DateTime  @updatedAt
+//
+//   @@map("user_profile")
+// }
+//
+// model Address {
+//   id         String    @id @default(uuid()) @db.Uuid
+//   userId     String    @db.Uuid
+//   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   fullName   String
+//   phone      String
+//   line1      String
+//   line2      String?
+//   ward       String?
+//   district   String?
+//   city       String
+//   province   String?
+//   country    String    @default("VN")
+//   postalCode String?
+//   isDefault  Boolean   @default(false)
+//   createdAt  DateTime  @default(now())
+//   updatedAt  DateTime  @updatedAt
+//   deletedAt  DateTime?
+//
+//   @@index([userId, isDefault])
+//   @@map("address")
+// }
+//
+// model Notification {
+//   id        String    @id @default(uuid()) @db.Uuid
+//   userId    String    @db.Uuid
+//   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   type      String
+//   title     String
+//   body      String
+//   metadata  Json?
+//   readAt    DateTime?
+//   createdAt DateTime  @default(now())
+//
+//   @@index([userId, readAt])
+//   @@map("notification")
+// }
+//
+// model Shop {
+//   id            String     @id @default(uuid()) @db.Uuid
+//   ownerId       String     @db.Uuid
+//   owner         User       @relation("ShopsOwned", fields: [ownerId], references: [id], onDelete: Restrict)
+//   name          String
+//   slug          String     @unique
+//   description   String?
+//   logoUrl       String?
+//   logoPublicId  String?
+//   coverUrl      String?
+//   coverPublicId String?
+//   status        ShopStatus @default(PENDING)
+//   ratingAvg     Decimal    @default(0) @db.Decimal(2, 1)
+//   ratingCount   Int        @default(0)
+//   contactEmail  String?
+//   contactPhone  String?
+//   followerCount Int        @default(0)
+//   createdAt     DateTime   @default(now())
+//   updatedAt     DateTime   @updatedAt
+//   deletedAt     DateTime?
+//
+//   // Relation
+//   LedgerEntries           LedgerEntry[]
+//   Balance                 ShopBalance?
+//   members                 ShopMember[]
+//   followers               ShopFollower[]
+//   products                Product[]
+//   orders                  Order[]
+//   conversations           Conversation[]
+//   Voucher                 Voucher[]
+//   ConversationParticipant ConversationParticipant[]
+//   Message                 Message[]
+//   orderItems              OrderItem[]
+//   ShopInvitation          ShopInvitation[]
+//
+//   @@index([ownerId, status])
+//   @@map("shop")
+// }
+//
+// model ShopMember {
+//   id        String         @id @default(uuid()) @db.Uuid
+//   shopId    String         @db.Uuid
+//   userId    String         @db.Uuid
+//   role      ShopMemberRole @default(STAFF)
+//   createdAt DateTime       @default(now())
+//
+//   shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+//   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+//
+//   @@unique([shopId, userId])
+//   @@map("shop_member")
+// }
+//
+// model ShopInvitation {
+//   id        String         @id @default(uuid())
+//   email     String
+//   shopId    String         @db.Uuid
+//   token     String         @unique
+//   role      ShopMemberRole @default(STAFF)
+//   expiresAt DateTime
+//   createdAt DateTime       @default(now())
+//
+//   shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+//
+//   @@unique([shopId, email])
+//   @@map("shop_invitation")
+// }
+//
+// // model Category {
+// //   id        String     @id @default(uuid()) @db.Uuid
+// //   parentId  String?    @db.Uuid
+// //   parent    Category?  @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: SetNull)
+// //   children  Category[] @relation("CategoryToCategory")
+// //   name      String
+// //   slug      String     @unique
+// //   position  Int        @default(0)
+// //   imageUrl  String?
+// //   publicId  String?
+// //   isActive  Boolean    @default(true)
+// //   createdAt DateTime   @default(now())
+// //   updatedAt DateTime   @default(now()) @updatedAt
+// //
+// //   products        Product[]
+// //   VoucherCategory VoucherCategory[]
+// //
+// //   @@index([parentId, position])
+// //   @@map("category")
+// // }
+//
+// model Tag {
+//   id   String @id @default(uuid()) @db.Uuid
+//   name String
+//   slug String @unique
+//
+//   products Product[]
+//
+//   @@map("tag")
+// }
+//
+// model Product {
+//   id          String        @id @default(uuid()) @db.Uuid
+//   shopId      String        @db.Uuid
+//   shop        Shop          @relation(fields: [shopId], references: [id], onDelete: Cascade)
+//   categoryId  String?       @db.Uuid
+//   category    Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+//   title       String
+//   slug        String        @unique
+//   origin      String?
+//   description String?
+//   status      ProductStatus @default(DRAFT)
+//   visibility  Visibility    @default(PUBLIC)
+//   attributes  Json?
+//   ratingAvg   Decimal       @default(0) @db.Decimal(2, 1)
+//   ratingCount Int           @default(0)
+//   soldCount   Int           @default(0)
+//   minPrice    Decimal       @db.Decimal(14, 2)
+//   maxPrice    Decimal       @db.Decimal(14, 2)
+//   currency    Currency      @default(VND)
+//   createdAt   DateTime      @default(now())
+//   updatedAt   DateTime      @default(now()) @updatedAt
+//   deletedAt   DateTime?
+//
+//   images   ProductImage[]
+//   variants ProductVariant[]
+//   // system tags
+//   tags     Tag[]
+//
+//   keywords String[]
+//
+//   reviews        Review[]
+//   questions      ProductQuestion[]
+//   wishlisted     WishlistItem[]
+//   orderItems     OrderItem[]
+//   VoucherProduct VoucherProduct[]
+//   Message        Message[]
+//
+//   // Metrics
+//   Stats    ProductDailyStat[]
+//   UserLogs UserInteractionLog[]
+//
+//   @@index([shopId, status, visibility])
+//   @@index([categoryId])
+//   @@map("product")
+// }
+//
+// model ProductImage {
+//   id        String   @id @default(uuid()) @db.Uuid
+//   productId String   @db.Uuid
+//   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+//   url       String
+//   publicId  String?
+//   alt       String?
+//   position  Int      @default(0)
+//   createdAt DateTime @default(now())
+//
+//   @@index([productId, position])
+//   @@map("product_image")
+// }
+//
+// model ProductVariant {
+//   id            String   @id @default(uuid()) @db.Uuid
+//   productId     String   @db.Uuid
+//   product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+//   sku           String   @unique
+//   name          String?
+//   price         Decimal  @db.Decimal(14, 2)
+//   image         String
+//   imagePublicId String?
+//   compareAt     Decimal? @db.Decimal(14, 2)
+//   currency      Currency @default(VND)
+//   stock         Int      @default(0)
+//   reserved      Int      @default(0)
+//   weightGrams   Int?
+//   lengthMm      Int?
+//   widthMm       Int?
+//   heightMm      Int?
+//   attributes    Json?
+//   isActive      Boolean  @default(true)
+//   createdAt     DateTime @default(now())
+//   updatedAt     DateTime @default(now()) @updatedAt
+//
+//   orderItems OrderItem[]
+//   cartItems  CartItem[]
+//
+//   @@index([productId, isActive])
+//   @@map("product_variant")
+// }
+//
+// // model Cart {
+// //   id        String   @id @default(uuid()) @db.Uuid
+// //   userId    String   @unique @db.Uuid
+// //   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+// //   createdAt DateTime @default(now())
+// //   updatedAt DateTime @default(now()) @updatedAt
+// //
+// //   items CartItem[]
+// //
+// //   @@map("cart")
+// // }
+// //
+// // model CartItem {
+// //   id        String   @id @default(uuid()) @db.Uuid
+// //   cartId    String   @db.Uuid
+// //   variantId String   @db.Uuid
+// //   quantity  Int      @default(1)
+// //   priceSnap Decimal  @db.Decimal(14, 2)
+// //   currency  Currency @default(VND)
+// //   addedAt   DateTime @default(now())
+// //
+// //   cart    Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+// //   variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Restrict)
+// //
+// //   @@unique([cartId, variantId])
+// //   @@map("cart_item")
+// // }
+//
+// model Wishlist {
+//   id        String   @id @default(uuid()) @db.Uuid
+//   userId    String   @unique @db.Uuid
+//   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   createdAt DateTime @default(now())
+//
+//   items WishlistItem[]
+//
+//   @@map("wishlist")
+// }
+//
+// model WishlistItem {
+//   id         String   @id @default(uuid()) @db.Uuid
+//   wishlistId String   @db.Uuid
+//   productId  String   @db.Uuid
+//   createdAt  DateTime @default(now())
+//
+//   wishlist Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+//   product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+//
+//   @@unique([wishlistId, productId])
+//   @@map("wishlist_item")
+// }
+//
+// model Order {
+//   id                String            @id @default(uuid()) @db.Uuid
+//   orderNumber       String            @unique
+//   userId            String            @db.Uuid
+//   shopId            String?           @db.Uuid
+//   status            OrderStatus       @default(PENDING)
+//   paymentStatus     PaymentStatus     @default(PENDING)
+//   fulfillmentStatus FulfillmentStatus @default(NOT_FULFILLED)
+//   currency          Currency          @default(VND)
+//
+//   itemsTotal    Decimal @db.Decimal(14, 2)
+//   shippingFee   Decimal @default(0) @db.Decimal(14, 2)
+//   discountTotal Decimal @default(0) @db.Decimal(14, 2)
+//   taxTotal      Decimal @default(0) @db.Decimal(14, 2)
+//   grandTotal    Decimal @db.Decimal(14, 2)
+//
+//   shippingAddress Json
+//   billingAddress  Json?
+//   contactEmail    String?
+//   contactPhone    String?
+//
+//   notes      String?
+//   placedAt   DateTime  @default(now())
+//   updatedAt  DateTime  @default(now()) @updatedAt
+//   canceledAt DateTime?
+//
+//   user              User                @relation(fields: [userId], references: [id], onDelete: Restrict)
+//   shop              Shop?               @relation(fields: [shopId], references: [id], onDelete: Restrict)
+//   items             OrderItem[]
+//   shipments         Shipment[]
+//   refunds           Refund[]
+//   vouchers          OrderVoucher[]
+//   ReturnRequest     ReturnRequest[]
+//   VoucherRedemption VoucherRedemption[]
+//   drafts            OrderDraft?
+//   payments          OrderPayment[]
+//   Message           Message[]
+//
+//   @@index([userId, placedAt])
+//   @@index([shopId, status])
+//   @@map("order")
+// }
+//
+// model OrderItem {
+//   id           String  @id @default(uuid()) @db.Uuid
+//   orderId      String? @db.Uuid
+//   orderDraftId String? @db.Uuid
+//   productId    String  @db.Uuid
+//   shopId       String? @db.Uuid
+//
+//   variantId String? @db.Uuid
+//   title     String
+//   sku       String?
+//   unitPrice Decimal @db.Decimal(14, 2)
+//   quantity  Int
+//   discount  Decimal @default(0) @db.Decimal(14, 2)
+//   total     Decimal @db.Decimal(14, 2)
+//   metadata  Json?
+//
+//   order      Order?          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+//   orderDraft OrderDraft?     @relation(fields: [orderDraftId], references: [id], onDelete: Cascade)
+//   product    Product         @relation(fields: [productId], references: [id], onDelete: Restrict)
+//   shop       Shop?           @relation(fields: [shopId], references: [id], onDelete: Restrict)
+//   variant    ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+//   review     Review?
+//   ReturnItem ReturnItem[]
+//
+//   @@index([orderId])
+//   @@map("order_item")
+// }
+//
+// model OrderDraft {
+//   // field information
+//   id          String   @id @default(uuid()) @db.Uuid
+//   orderNumber String   @unique
+//   orderId     String?  @unique @db.Uuid
+//   userId      String   @db.Uuid
+//   placedAt    DateTime @default(now())
+//   updatedAt   DateTime @default(now()) @updatedAt
+//
+//   // status for Order
+//   status        OrderStatus   @default(PENDING)
+//   paymentStatus PaymentStatus @default(PENDING)
+//   currency      Currency      @default(VND)
+//
+//   //
+//   itemsTotal    Decimal @db.Decimal(14, 2)
+//   shippingFee   Decimal @default(0) @db.Decimal(14, 2)
+//   discountTotal Decimal @default(0) @db.Decimal(14, 2)
+//   grandTotal    Decimal @db.Decimal(14, 2)
+//
+//   shippingInfor Json
+//
+//   notes    String?
+//   items    OrderItem[]
+//   vouchers OrderVoucher[]
+//
+//   user  User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+//   order Order? @relation(fields: [orderId], references: [id], onDelete: Cascade)
+//
+//   @@index([userId, placedAt])
+//   @@index([orderId])
+//   @@map("order_draft")
+// }
+//
+// model Payment {
+//   id             String          @id @default(uuid()) @db.Uuid
+//   userId         String?         @db.Uuid
+//   provider       PaymentProvider
+//   method         String?
+//   amount         Decimal         @db.Decimal(19, 4)
+//   currency       Currency        @default(VND)
+//   status         PaymentStatus   @default(PENDING)
+//   idempotencyKey String?         @unique
+//   externalId     String?         @unique
+//   reference      String?
+//   rawPayload     Json?
+//   createdAt      DateTime        @default(now())
+//   updatedAt      DateTime        @default(now()) @updatedAt
+//
+//   orders OrderPayment[]
+//   Refund Refund[]
+//
+//   @@unique([provider, idempotencyKey])
+//   @@unique([provider, externalId])
+//   @@index([userId, createdAt])
+//   @@map("payment")
+// }
+//
+// model OrderPayment {
+//   id        String  @id @default(uuid())
+//   orderId   String  @db.Uuid
+//   paymentId String  @db.Uuid
+//   amount    Decimal @default(0) @db.Decimal(19, 4)
+//
+//   order   Order   @relation(fields: [orderId], references: [id])
+//   payment Payment @relation(fields: [paymentId], references: [id])
+//
+//   @@unique([orderId, paymentId])
+//   @@map("order_payment")
+// }
+//
+// // enum IntentStatus {
+// //   ACTIVE // đang chờ thanh toán
+// //   SUCCEEDED // thanh toán thành công
+// //   FAILED // gateway báo fail
+// //   EXPIRED // quá hạn
+// //   CANCELLED // user hủy
+// // }
+// //
+// // model PaymentIntent {
+// //   id         String          @id @default(uuid()) @db.Uuid
+// //   gatewayRef String?         @unique
+// //   status     IntentStatus
+// //   provider   PaymentProvider
+// //   orderIds   Json
+// //   amount     Decimal
+// //   currency   Currency?
+// //   expiresAt  DateTime
+// //   createdAt  DateTime        @default(now())
+// //
+// //   @@map("payment_intent")
+// // }
+// //
+// // model LedgerEntry {
+// //   id            String          @id @default(uuid()) @db.Uuid
+// //   walletId      String          @db.Uuid
+// //   walletType    WalletType      @default(SHOP)
+// //   amount        Decimal         @db.Decimal(19, 4)
+// //   direction     LedgerDirection // CREDIT hoặc DEBIT
+// //   balanceBefore Decimal         @default(0) @db.Decimal(19, 4)
+// //   balanceAfter  Decimal         @default(0) @db.Decimal(19, 4)
+// //   type          LedgerType
+// //   description   String?
+// //
+// //   transactionGroup String?
+// //   idempotencyKey   String? @unique
+// //   paymentId        String? @db.Uuid
+// //   orderId          String? @db.Uuid
+// //
+// //   createdAt DateTime @default(now())
+// //   Shop      Shop?    @relation(fields: [shopId], references: [id])
+// //   shopId    String?  @db.Uuid
+// //
+// //   @@index([walletId, createdAt])
+// //   @@index([type])
+// //   @@index([orderId])
+// //   @@index([paymentId])
+// //   @@index([transactionGroup])
+// // }
+// //
+// // model ShopBalance {
+// //   shopId    String   @id @db.Uuid
+// //   pending   Decimal  @default(0) @db.Decimal(19, 4) // Tiền đang chờ xử lý (ví dụ: khách đã trả nhưng chưa nhận hàng)
+// //   available Decimal  @default(0) @db.Decimal(19, 4) // Tiền có thể rút/tiêu
+// //   frozen    Decimal  @default(0) @db.Decimal(19, 4) // Tiền đang bị đóng băng (ví dụ: đang yêu cầu rút)
+// //   version   Int      @default(0) // Dùng cho Optimistic Locking
+// //   updatedAt DateTime @updatedAt
+// //   shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+// //
+// //   @@index([shopId])
+// // }
+// //
+// // enum SettleStatus {
+// //   PENDING
+// //   PROCESSED
+// //   CANCELLED
+// // }
+// //
+// // model SettlementQueue {
+// //   id      String  @id @default(uuid())
+// //   shopId  String
+// //   orderId String  @unique // 1 đơn 1 lần trả
+// //   amount  Decimal @db.Decimal(19, 4)
+// //
+// //   feeAmount Decimal @default(0) @db.Decimal(19, 4)
+// //   netAmount Decimal @default(0) @db.Decimal(19, 4) // Số thực nhận = amount - fee
+// //
+// //   status SettleStatus // PENDING, PROCESSED, CANCELLED
+// //   dueAt  DateTime // Ngày đến hạn (settleDate)
+// //
+// //   retryCount Int     @default(0)
+// //   failReason String?
+// //
+// //   createdAt DateTime @default(now())
+// //   updatedAt DateTime @updatedAt
+// //
+// //   @@index([status, dueAt])
+// // }
+//
+// enum PayoutStatus {
+//   REQUESTED
+//   PROCESSING
+//   COMPLETED
+//   REJECTED
+// }
+//
+// model PayoutRequest {
+//   id     String       @id @default(uuid())
+//   shopId String       @db.Uuid
+//   amount Decimal      @db.Decimal(19, 4)
+//   status PayoutStatus // REQUESTED, PROCESSING, COMPLETED, REJECTED
+//
+//   bankInfo Json // Thông tin TK ngân hàng nhận tiền
+//   txRef    String? // Mã tham chiếu chuyển khoản ngân hàng
+//
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+// }
+//
+// model Shipment {
+//   id             String    @id @default(uuid()) @db.Uuid
+//   orderId        String    @db.Uuid
+//   carrier        String?
+//   trackingNumber String?
+//   status         String?
+//   shippedAt      DateTime?
+//   deliveredAt    DateTime?
+//   addressSnap    Json
+//   createdAt      DateTime  @default(now())
+//
+//   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+//
+//   @@index([orderId])
+//   @@map("shipment")
+// }
+//
+// model Refund {
+//   id        String   @id @default(uuid()) @db.Uuid
+//   orderId   String   @db.Uuid
+//   paymentId String?  @db.Uuid
+//   amount    Decimal  @db.Decimal(14, 2)
+//   reason    String?
+//   status    String   @default("PENDING")
+//   createdAt DateTime @default(now())
+//
+//   order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+//   payment Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+//
+//   @@index([orderId])
+//   @@map("refund")
+// }
+//
+// model ReturnRequest {
+//   id        String   @id @default(uuid()) @db.Uuid
+//   orderId   String   @db.Uuid
+//   userId    String   @db.Uuid
+//   reason    String?
+//   status    String   @default("OPEN")
+//   createdAt DateTime @default(now())
+//
+//   order Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+//   user  User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   items ReturnItem[]
+//
+//   @@index([orderId, status])
+//   @@map("return_request")
+// }
+//
+// model ReturnItem {
+//   id              String  @id @default(uuid()) @db.Uuid
+//   returnRequestId String  @db.Uuid
+//   orderItemId     String  @db.Uuid
+//   quantity        Int
+//   reason          String?
+//
+//   returnRequest ReturnRequest @relation(fields: [returnRequestId], references: [id], onDelete: Cascade)
+//   orderItem     OrderItem     @relation(fields: [orderItemId], references: [id], onDelete: Restrict)
+//
+//   @@map("return_item")
+// }
+//
+// model Review {
+//   id          String   @id @default(uuid()) @db.Uuid
+//   productId   String   @db.Uuid
+//   userId      String   @db.Uuid
+//   orderItemId String?  @unique @db.Uuid
+//   rating      Int
+//   title       String?
+//   body        String?
+//   images      Json?
+//   likes       Int      @default(0)
+//   createdAt   DateTime @default(now())
+//   updatedAt   DateTime @default(now()) @updatedAt
+//
+//   product   Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+//   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   orderItem OrderItem? @relation(fields: [orderItemId], references: [id], onDelete: SetNull)
+//
+//   @@unique([userId, productId, orderItemId])
+//   @@index([productId, rating])
+//   @@map("review")
+// }
+//
+// model ProductQuestion {
+//   id         String    @id @default(uuid()) @db.Uuid
+//   productId  String    @db.Uuid
+//   userId     String    @db.Uuid
+//   body       String
+//   answer     String?
+//   answeredAt DateTime?
+//   createdAt  DateTime  @default(now())
+//
+//   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+//   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+//
+//   @@index([productId])
+//   @@map("product_question")
+// }
+//
+// enum VoucherType {
+//   PERCENT
+//   FIXED
+//   SHIPPING
+// }
+//
+// model Voucher {
+//   id           String      @id @default(uuid()) @db.Uuid
+//   code         String      @unique
+//   type         VoucherType
+//   value        Decimal     @db.Decimal(14, 2)
+//   maxDiscount  Decimal?    @db.Decimal(14, 2)
+//   minSubtotal  Decimal?    @db.Decimal(14, 2)
+//   currency     Currency    @default(VND)
+//   startAt      DateTime
+//   endAt        DateTime
+//   usageLimit   Int?
+//   perUserLimit Int?
+//   shopId       String?     @db.Uuid
+//   isActive     Boolean     @default(true)
+//   createdAt    DateTime    @default(now())
+//
+//   shop        Shop?               @relation(fields: [shopId], references: [id], onDelete: SetNull)
+//   categories  VoucherCategory[]
+//   products    VoucherProduct[]
+//   redemptions VoucherRedemption[]
+//   orders      OrderVoucher[]
+//
+//   @@index([shopId, isActive, startAt, endAt])
+//   @@map("voucher")
+// }
+//
+// model VoucherCategory {
+//   voucherId  String   @db.Uuid
+//   categoryId String   @db.Uuid
+//   voucher    Voucher  @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+//   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+//
+//   @@id([voucherId, categoryId])
+//   @@map("voucher_category")
+// }
+//
+// model VoucherProduct {
+//   voucherId String  @db.Uuid
+//   productId String  @db.Uuid
+//   voucher   Voucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+//   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+//
+//   @@id([voucherId, productId])
+//   @@map("voucher_product")
+// }
+//
+// model VoucherRedemption {
+//   id        String   @id @default(uuid()) @db.Uuid
+//   voucherId String   @db.Uuid
+//   orderId   String   @db.Uuid
+//   userId    String   @db.Uuid
+//   usedAt    DateTime @default(now())
+//
+//   voucher Voucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+//   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+//   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+//
+//   @@unique([voucherId, orderId, userId])
+//   @@map("voucher_redemption")
+// }
+//
+// model OrderVoucher {
+//   id           String      @id @default(uuid()) @db.Uuid
+//   orderId      String?     @db.Uuid
+//   voucherId    String      @db.Uuid
+//   order        Order?      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+//   voucher      Voucher     @relation(fields: [voucherId], references: [id], onDelete: Restrict)
+//   orderDraft   OrderDraft? @relation(fields: [orderDraftId], references: [id])
+//   orderDraftId String?     @db.Uuid
+//
+//   @@unique([orderId, voucherId])
+//   @@unique([voucherId, orderDraftId])
+//   @@map("order_voucher")
+// }
+//
+// model Conversation {
+//   id      String             @id @default(uuid()) @db.Uuid
+//   Shop    Shop?              @relation(fields: [shopId], references: [id])
+//   shopId  String?            @db.Uuid
+//   type    ConversationType   @default(GENERAL)
+//   status  ConversationStatus @default(OPEN)
+//   subject String?
+//
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @default(now()) @updatedAt
+//
+//   participants ConversationParticipant[]
+//   messages     Message[]
+//
+//   @@index([updatedAt])
+//   @@map("conversation")
+// }
+//
+// model ConversationParticipant {
+//   id             String @id @default(uuid()) @db.Uuid
+//   conversationId String @db.Uuid
+//
+//   // logic: A participant is EITHER a User (Customer/Admin) OR a Shop (Seller)
+//   userId     String?   @db.Uuid
+//   shopId     String?   @db.Uuid
+//   lastReadAt DateTime?
+//   joinedAt   DateTime  @default(now())
+//
+//   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+//   user         User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   shop         Shop?        @relation(fields: [shopId], references: [id], onDelete: Cascade)
+//
+//   @@unique([conversationId, userId, shopId])
+//   @@map("conversation_participant")
+// }
+//
+// model Message {
+//   id             String      @id @default(uuid()) @db.Uuid
+//   conversationId String      @db.Uuid
+//   senderRole     MessageRole @default(USER)
+//   senderUserId   String?     @db.Uuid
+//   senderShopId   String?     @db.Uuid
+//
+//   type        MessageType @default(TEXT)
+//   content     String
+//   attachments Json? // Array of { url, type, name }
+//
+//   relatedProductId String? @db.Uuid
+//   relatedOrderId   String? @db.Uuid
+//
+//   relatedProduct Product? @relation(fields: [relatedProductId], references: [id])
+//   relatedOrder   Order?   @relation(fields: [relatedOrderId], references: [id])
+//
+//   createdAt DateTime @default(now())
+//
+//   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+//   senderUser   User?        @relation("MessageFromUser", fields: [senderUserId], references: [id], onDelete: SetNull)
+//   senderShop   Shop?        @relation(fields: [senderShopId], references: [id], onDelete: SetNull)
+//
+//   @@index([conversationId, createdAt])
+//   @@map("message")
+// }
+//
+// // Model for recommendation engine, not linked to other models
+// model ProductDailyStat {
+//   id        String   @id @default(uuid()) @db.Uuid
+//   productId String   @db.Uuid
+//   date      DateTime @db.Date
+//
+//   views   Int     @default(0)
+//   carts   Int     @default(0)
+//   sales   Int     @default(0)
+//   revenue Decimal @default(0) @db.Decimal(14, 2)
+//
+//   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+//
+//   @@unique([productId, date])
+//   @@index([date, sales(sort: Desc)])
+//   @@map("product_daily_stat")
+// }
+//
+// model UserInteractionLog {
+//   id        String  @id @default(uuid()) @db.Uuid
+//   userId    String? @db.Uuid
+//   sessionId String? @db.Uuid
+//   productId String  @db.Uuid
+//
+//   interactionType String
+//   weight          Float  @default(1.0)
+//
+//   createdAt DateTime @default(now())
+//
+//   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+//   user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+//
+//   @@index([createdAt])
+//   @@map("user_interaction_log")
+// }

@@ -1,36 +1,40 @@
 model Order {
-  id                String              @id @default(uuid()) @db.Uuid
-  orderNumber       String              @unique
-  userId            String              @db.Uuid
-  shopId            String?             @db.Uuid
-  status            OrderStatus         @default(PENDING)
-  paymentStatus     PaymentStatus       @default(PENDING)
-  fulfillmentStatus FulfillmentStatus   @default(NOT_FULFILLED)
-  currency          Currency            @default(VND)
-  itemsTotal        Decimal             @db.Decimal(14, 2)
-  shippingFee       Decimal             @default(0) @db.Decimal(14, 2)
-  discountTotal     Decimal             @default(0) @db.Decimal(14, 2)
-  taxTotal          Decimal             @default(0) @db.Decimal(14, 2)
-  grandTotal        Decimal             @db.Decimal(14, 2)
-  shippingAddress   Json
-  billingAddress    Json?
-  contactEmail      String?
-  contactPhone      String?
-  notes             String?
-  placedAt          DateTime            @default(now())
-  updatedAt         DateTime            @default(now()) @updatedAt
-  canceledAt        DateTime?
-  Message           Message[]
-  shop              Shop?               @relation(fields: [shopId], references: [id], onDelete: Restrict)
+  id                String            @id @default(uuid()) @db.Uuid
+  orderNumber       String            @unique
+  userId            String            @db.Uuid
+  shopId            String?           @db.Uuid
+  status            OrderStatus       @default(PENDING)
+  paymentStatus     PaymentStatus     @default(PENDING)
+  fulfillmentStatus FulfillmentStatus @default(NOT_FULFILLED)
+  currency          Currency          @default(VND)
+
+  itemsTotal    Decimal @db.Decimal(14, 2)
+  shippingFee   Decimal @default(0) @db.Decimal(14, 2)
+  discountTotal Decimal @default(0) @db.Decimal(14, 2)
+  taxTotal      Decimal @default(0) @db.Decimal(14, 2)
+  grandTotal    Decimal @db.Decimal(14, 2)
+
+  shippingAddress Json
+  billingAddress  Json?
+  contactEmail    String?
+  contactPhone    String?
+
+  notes      String?
+  placedAt   DateTime  @default(now())
+  updatedAt  DateTime  @default(now()) @updatedAt
+  canceledAt DateTime?
+
   user              User                @relation(fields: [userId], references: [id])
-  drafts            OrderDraft?
+  shop              Shop?               @relation(fields: [shopId], references: [id], onDelete: Restrict)
   items             OrderItem[]
+  shipments         Shipment[]
+  refunds           Refund[]
+  vouchers          OrderVoucher[]
+  ReturnRequest     ReturnRequest[]
+  drafts            OrderDraft?
+  Message           Message[]
   payments          OrderPayment[]
   orderSlots        OrderSlot[]
-  vouchers          OrderVoucher[]
-  refunds           Refund[]
-  ReturnRequest     ReturnRequest[]
-  shipments         Shipment[]
   VoucherRedemption VoucherRedemption[]
 
   @@index([userId, placedAt])
