@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { getSessionUser } from '@/lib/auth';
-import { requireSeller } from '@/lib/require-role';
+import { requireSeller } from '@/lib/require-admin';
 import { ShopMemberRole } from '@/lib/generated/prisma';
 import { ResponseFactory } from '@/lib/api-response';
 import { HttpStatus } from '@/types/api';

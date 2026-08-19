@@ -1,7 +1,7 @@
 import { ResponseFactory } from '@/lib/api-response';
 import { prisma } from '@/lib/db';
 import { Prisma, ShopStatus } from '@/lib/generated/prisma';
-import { sendShopStatusChangeEmail } from '@/lib/mailer';
+import { sendShopStatusChangeEmail } from '@/features/notification/server/email/lib/mailer';
 import { withAuth } from '@/lib/with-auth';
 import { HttpStatus } from '@/types/api';
 import { NextRequest } from 'next/server';

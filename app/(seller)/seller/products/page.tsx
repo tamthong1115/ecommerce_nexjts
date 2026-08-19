@@ -49,7 +49,6 @@ import {
   useReactTable,
   VisibilityState,
 } from '@tanstack/react-table';
-import TabProductSeller from './_components/tab-product-seller';
 import { fetchApi } from '@/lib/client-fetch';
 import { toast } from 'sonner';
 import { SellerProductListItem } from '@/types/product.data-types';

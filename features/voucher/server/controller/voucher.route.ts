@@ -11,7 +11,7 @@ import { prisma } from '@/lib/db';
 import { $Enums } from '@/lib/generated/prisma';
 import Role = $Enums.Role;
 import { createVoucherSchema } from '@/features/voucher/validation';
-import { requireSeller } from '@/lib/require-role';
+import { requireSeller } from '@/lib/require-admin';
 
 class VoucherController {
   public getVouchers = async (req: NextRequest) => {

@@ -1,0 +1,45 @@
+model ActionLog {
+  id      String  @id @default(uuid()) @db.Uuid
+  actorId String? @db.Uuid
+  actor   User?   @relation(fields: [actorId], references: [id])
+
+  actionType   ActionType
+  actionSource ActionSource?
+  actionCode   String
+
+  targetTable String?
+  targetId    String?
+
+  requestId String?
+  actorIp   String?
+  userAgent String?
+
+  oldData  Json?
+  newData  Json?
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([actionCode])
+  @@index([targetTable, targetId])
+  @@index([actorId])
+  @@index([createdAt])
+  @@map("action_log")
+}
+
+enum ActionType {
+  CREATE
+  UPDATE
+  DELETE
+  RESTORE
+  IMPORT
+  EXPORT
+  READ
+  EXECUTE
+}
+
+enum ActionSource {
+  API
+  SYSTEM
+  JOB
+}

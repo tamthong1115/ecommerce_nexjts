@@ -27,6 +27,7 @@ import { BsGraphUpArrow } from 'react-icons/bs';
 import { CiBoxList, CiShop } from 'react-icons/ci';
 import { GoPeople } from 'react-icons/go';
 import { FaWarehouse } from 'react-icons/fa';
+import { paths } from '@/lib/path';
 
 type Role = 'USER' | 'SELLER' | 'ADMIN';
 
@@ -208,6 +209,10 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
           {
             title: t('t_payment'),
             url: '#',
+          },
+          {
+            title: 'Email',
+            url: paths.manager.system_settings.email,
           },
         ],
       },

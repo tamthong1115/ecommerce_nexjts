@@ -63,3 +63,6 @@ docker-compose-hoang.yml
 start-dev.sh
 
 
+/.agent
+/.gemini
+/.opencode

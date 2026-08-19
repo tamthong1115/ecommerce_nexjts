@@ -1,38 +1,43 @@
 model Product {
-  id          String        @id @default(uuid()) @db.Uuid
-  shopId      String        @db.Uuid
-  categoryId  String?       @db.Uuid
-  title       String
-  slug        String        @unique
-  origin      String?
-  description String?
-  status      ProductStatus @default(DRAFT)
-  visibility  Visibility    @default(PUBLIC)
-  attributes  Json?
-  ratingAvg   Decimal       @default(0) @db.Decimal(2, 1)
-  ratingCount Int           @default(0)
-  soldCount   Int           @default(0)
-  minPrice    Decimal       @db.Decimal(14, 2)
-  maxPrice    Decimal       @db.Decimal(14, 2)
-  currency    Currency      @default(VND)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @default(now()) @updatedAt
-  deletedAt   DateTime?
+  id             String            @id @default(uuid()) @db.Uuid
+  shopId         String            @db.Uuid
+  categoryId     String?           @db.Uuid
+  title          String
+  slug           String            @unique
+  origin         String?
+  description    String?
+  status         ProductStatus     @default(DRAFT)
+  visibility     Visibility        @default(PUBLIC)
+  attributes     Json?
+  ratingAvg      Decimal           @default(0) @db.Decimal(2, 1)
+  ratingCount    Int               @default(0)
+  soldCount      Int               @default(0)
+  minPrice       Decimal           @db.Decimal(14, 2)
+  maxPrice       Decimal           @db.Decimal(14, 2)
+  currency       Currency          @default(VND)
+  keywords       String[]
+  Message        Message[]
+  orderItems     OrderItem[]
+  category       Category?         @relation(fields: [categoryId], references: [id])
+  shop           Shop              @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  images         ProductImage[]
+  questions      ProductQuestion[]
+  variants       ProductVariant[]
+  reviews        Review[]
+  VoucherProduct VoucherProduct[]
+  wishlisted     WishlistItem[]
+  tags           Tag[]             @relation("ProductToTag")
 
-  keywords           String[]
-  Message            Message[]
-  orderItems         OrderItem[]
-  category           Category?            @relation(fields: [categoryId], references: [id])
-  shop               Shop                 @relation(fields: [shopId], references: [id], onDelete: Cascade)
-  images             ProductImage[]
-  questions          ProductQuestion[]
-  variants           ProductVariant[]
-  reviews            Review[]
-  VoucherProduct     VoucherProduct[]
-  wishlisted         WishlistItem[]
-  tags               Tag[]                @relation("ProductToTag")
-  productDailyStat   ProductDailyStat[]
-  userInteractionLog UserInteractionLog[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @default(now()) @updatedAt
+  deletedAt      DateTime?
+  createdById     String? @db.Uuid
+  updatedById     String? @db.Uuid
+  createdByAction String?
+  updatedByAction String?
+
+  creator User? @relation("ProductCreator", fields: [createdById], references: [id])
+  updater User? @relation("ProductUpdater", fields: [updatedById], references: [id])
 
   @@index([shopId, status, visibility])
   @@index([categoryId])

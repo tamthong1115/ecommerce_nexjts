@@ -1,12 +1,12 @@
 'use server';
 
-import { requireSeller } from '@/lib/require-role';
+import { requireSeller } from '@/lib/require-admin';
 import { prisma } from '@/lib/db';
 import { randomBytes } from 'node:crypto';
 import { ShopMemberRole } from '@/lib/generated/prisma'; // Check this path
 import { env } from '@/lib/env';
 import { paths } from '@/lib/path';
-import { sendShopInvitationEmail } from '@/lib/mailer';
+import { sendShopInvitationEmail } from '@/features/notification/server/email/lib/mailer';
 import { InviteMemberSchema } from '@/app/(seller)/seller/shops/[shopId]/members/schema';
 import { ResponseFactory } from '@/lib/api-response';
 import { revalidatePath } from 'next/cache';

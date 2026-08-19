@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
-import { requireSeller } from '@/lib/require-role';
+import { requireSeller } from '@/lib/require-admin';
 import { ShopStatus } from '@/lib/generated/prisma';
 
 const updateShopSchema = z.object({

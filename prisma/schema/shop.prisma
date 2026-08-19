@@ -43,6 +43,14 @@ model Shop {
   slots                   Slot[]
   Voucher                 Voucher[]
 
+  createdById     String? @db.Uuid
+  updatedById     String? @db.Uuid
+  createdByAction String?
+  updatedByAction String?
+
+  creator User? @relation("ShopCreator", fields: [createdById], references: [id])
+  updater User? @relation("ShopUpdater", fields: [updatedById], references: [id])
+
   @@index([ownerId, status])
   @@map("shop")
 }

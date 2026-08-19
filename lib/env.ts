@@ -30,6 +30,8 @@ export const env = createEnv({
     REDIS_URL: z.string().min(1),
     CRON_SECRET: z.string().min(1),
     GOOGLE_API_KEY: z.string().min(1),
+    SETTINGS_ENCRYPTION_KEY: z.string().min(1),
+    EMAIL_FROM: z.string().min(1),
   },
   client: {
     NEXT_PUBLIC_WEB_NAME: z.string().min(1),

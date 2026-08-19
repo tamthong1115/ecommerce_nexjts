@@ -4,18 +4,15 @@ import { IEmailProvider, SendEmailOptions } from '../email-provider.interface';
 
 const webName = env.NEXT_PUBLIC_WEB_NAME;
 
+type SmtpConfig = { host: string; port: number; user: string; pass: string };
+
 export class NodemailerProvider implements IEmailProvider {
   private transporter: Transporter;
 
-  constructor() {
-    const host = env.EMAIL_SMTP_HOST;
-    const port = env.EMAIL_SMTP_PORT ? Number(env.EMAIL_SMTP_PORT) : 587;
-    const user = env.EMAIL_SMTP_USER;
-    const pass = env.EMAIL_SMTP_PASS;
-
-    if (!host || !user || !pass) {
+  constructor(cfg: SmtpConfig) {
+    const { host, port, user, pass } = cfg;
+    if (!host || !user || !pass)
       throw new Error('SMTP configuration is missing');
-    }
 
     this.transporter = nodemailer.createTransport({
       host,
@@ -34,6 +31,7 @@ export class NodemailerProvider implements IEmailProvider {
         to: options.to,
         subject: options.subject,
         html: options.html,
+        text: options.text,
       });
 
       console.log(

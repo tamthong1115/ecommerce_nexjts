@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { requireSeller } from '@/lib/require-role';
+import { requireSeller } from '@/lib/require-admin';
 import { ResponseFactory } from '@/lib/api-response';
 import { HttpStatus } from '@/types/api';
 import { prisma } from '@/lib/db';

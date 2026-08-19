@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useId } from 'react';
 import { Loading } from '@/components/loading';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -23,8 +23,12 @@ import {
   closestCenter,
   DndContext,
   DragEndEvent,
-  SensorDescriptor,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
   UniqueIdentifier,
+  useSensor,
+  useSensors,
 } from '@dnd-kit/core';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import {
@@ -43,32 +47,50 @@ import {
   Row,
   Table as TanstackTable,
 } from '@tanstack/react-table';
+import { DraggableTableRow } from './draggable-table-row';
 
 interface SortableTableProps<TData> {
   loading: boolean;
   data: TData[];
-  dataIds: UniqueIdentifier[];
   table: TanstackTable<TData>;
   columns: ColumnDef<TData>[];
-  DraggableRow: React.ComponentType<{ row: Row<TData> }>;
-  handleDragEnd: (event: DragEndEvent) => void;
-  sensors: SensorDescriptor<any>[];
-  sortableId: string;
+  getRowId: (originalRow: TData) => UniqueIdentifier;
+  onReorder?: (activeId: UniqueIdentifier, overId: UniqueIdentifier) => void;
   emptyMessage?: React.ReactNode;
 }
 
 export function SortableTable<TData>({
   loading,
   data,
-  dataIds,
   table,
   columns,
-  DraggableRow,
-  handleDragEnd,
-  sensors,
-  sortableId,
+  getRowId,
+  onReorder,
   emptyMessage = 'No results found.',
 }: SortableTableProps<TData>) {
+  const sortableId = useId();
+
+  const sensors = useSensors(
+    useSensor(MouseSensor, {}),
+    useSensor(TouchSensor, {}),
+    useSensor(KeyboardSensor, {})
+  )
+
+  const dataIds = useMemo<UniqueIdentifier[]>(
+    () => data.map(getRowId),
+    [data, getRowId]
+  )
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+
+    if (active && over && active.id !== over.id) {
+      if (onReorder) {
+        onReorder(active.id, over.id)
+      }
+    }
+  }
+
   if (loading) return <Loading />;
 
   return (
@@ -91,9 +113,9 @@ export function SortableTable<TData>({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                       </TableHead>
                     );
                   })}
@@ -107,7 +129,11 @@ export function SortableTable<TData>({
                   strategy={verticalListSortingStrategy}
                 >
                   {table.getRowModel().rows.map((row) => (
-                    <DraggableRow key={row.id} row={row} />
+                    <DraggableTableRow
+                      key={row.id}
+                      row={row}
+                      enableDragAndDrop={!!onReorder}
+                    />
                   ))}
                 </SortableContext>
               ) : (

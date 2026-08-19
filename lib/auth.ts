@@ -9,6 +9,7 @@ import { getUserNameOrEmailPrefix } from '@/lib/utils';
 import { sendNotification } from '@/features/notification/server/controller/notification.action';
 
 import { ChannelType } from '@/features/notification/types/notification.type';
+import { devConfig } from './dev-config';
 import { $Enums, NotificationType } from '@prisma/client';
 import NotificationRole = $Enums.NotificationRole;
 import { prisma } from '@/lib/db';
@@ -99,6 +100,11 @@ export const auth = betterAuth({
   plugins: [
     emailOTP({
       async sendVerificationOTP({ email, otp }) {
+
+        if (devConfig.mockEmails) {
+          console.log('Verification OTP:', otp);
+          return;
+        }
         await sendNotification({
           to: email,
           recipientRole: NotificationRole.BUYER,

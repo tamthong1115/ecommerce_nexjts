@@ -1,5 +1,4 @@
 import { render } from '@react-email/components';
-import { EmailProviderFactory } from '@/features/notification/server/email/email.factory';
 import { VerifyEmail } from '@/features/notification/components/core/email-templates/verify-email';
 import { ResetPasswordEmail } from '@/features/notification/components/core/email-templates/reset-password';
 
@@ -9,29 +8,29 @@ import {
   NotificationPayload,
   OtpPayload,
   PasswordResetPayload,
+  SystemPayload,
 } from '../../types/notification.type';
 import { NotificationType } from '@/lib/generated/prisma';
 import { prisma } from '@/lib/db';
+import { resolveEmailProvider } from '@/features/notification/server/email/email-provider.resolver';
+import { SystemReminderEmail } from '@/features/notification/components/core/email-templates/system-reminder-email';
 
 export class EmailSender implements INotificationSender {
   readonly channel = ChannelType.EMAIL;
-  private provider = EmailProviderFactory.getProvider();
 
   supports(type: NotificationType): boolean {
-    return (
-      type !== NotificationType.SYSTEM && type !== NotificationType.MAINTENANCE
-    );
+    return type !== NotificationType.MAINTENANCE;
   }
 
   async send(payload: NotificationPayload): Promise<void> {
     console.log(`[EmailSender] Processing ${payload.type} for ${payload.to}`);
-
     const { html, subject } = await this.renderEmailContent(payload);
-
-    await this.provider.sendEmail({
+    const { provider, from } = await resolveEmailProvider();
+    await provider.sendEmail({
       to: payload.to,
-      subject: subject,
-      html: html,
+      subject,
+      html,
+      from,
     });
   }
 
@@ -46,6 +45,21 @@ export class EmailSender implements INotificationSender {
           html,
           subject: p.subject || 'Verify your email address',
         };
+      }
+
+      case NotificationType.SYSTEM: {
+        const p = payload as SystemPayload;
+        const title = p.subject || 'System Reminder';
+        const html = await render(
+          SystemReminderEmail({
+            title,
+            message: p.body,
+            level: p.metadata?.level || 'INFO',
+            actionUrl: p.metadata?.actionUrl,
+            actionLabel: p.metadata?.actionUrl ? 'Open' : undefined,
+          })
+        );
+        return { html, subject: title };
       }
 
       case NotificationType.SECURITY: {

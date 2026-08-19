@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db';
-import { requireSeller } from '@/lib/require-role';
+import { requireSeller } from '@/lib/require-admin';
 import { OrderStatus } from '@/lib/generated/prisma';
 import { getShopIdByUserId } from '@/app/data/shop.data';
 
