@@ -28,16 +28,18 @@ model Product {
   wishlisted     WishlistItem[]
   tags           Tag[]             @relation("ProductToTag")
 
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @default(now()) @updatedAt
-  deletedAt      DateTime?
-  createdById     String? @db.Uuid
-  updatedById     String? @db.Uuid
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @default(now()) @updatedAt
+  deletedAt       DateTime?
+  createdById     String?   @db.Uuid
+  updatedById     String?   @db.Uuid
   createdByAction String?
   updatedByAction String?
 
-  creator User? @relation("ProductCreator", fields: [createdById], references: [id])
-  updater User? @relation("ProductUpdater", fields: [updatedById], references: [id])
+  creator             User?                @relation("ProductCreator", fields: [createdById], references: [id])
+  updater             User?                @relation("ProductUpdater", fields: [updatedById], references: [id])
+  productDailyStats   ProductDailyStat[]
+  userInteractionLogs UserInteractionLog[]
 
   @@index([shopId, status, visibility])
   @@index([categoryId])
