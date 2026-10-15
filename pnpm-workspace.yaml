@@ -8,3 +8,9 @@ allowBuilds:
   protobufjs: true
   sharp: false
   unrs-resolver: false
+
+overrides:
+  '@types/react': '19.2.7'
+  '@types/react-dom': '19.2.3'
+  '@types/pg': '8.11.11'
+  ioredis: '^5.10.0'
