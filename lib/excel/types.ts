@@ -15,6 +15,7 @@ export interface CellMapping {
 export interface ColumnMapping {
     column: string;
     key: string;
+    header?: string;
     type?: EType;
     required?: boolean
 }

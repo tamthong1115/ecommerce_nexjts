@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { redisClient } from '@/lib/redis';
+import { syncCurrencyRate } from '@/lib/sync-currency-rate';
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
@@ -8,18 +8,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
-    if (!res.ok) throw new Error(`Fetch failed: ${res.statusText}`);
-
-    const data = await res.json();
-    const rate = data.rates.VND;
-
-    if (!rate) throw new Error('Not found rate VND in api');
-
-    await redisClient.setex('currency-rate', 604800, rate.toString());
-
-    console.log(`Đã cập nhật tỉ giá: ${rate}`);
-
+    const rate = await syncCurrencyRate();
     return NextResponse.json({ success: true, rate }, { status: 200 });
   } catch (err) {
     console.error(err);

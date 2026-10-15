@@ -22,4 +22,5 @@ if (process.env.NODE_ENV !== 'production') {
 redisClient.on('connect', () => console.log('✅ Redis Connected via ioredis'));
 redisClient.on('error', (err) => console.error('❌ Redis Error:', err));
 
+export const connection = redisClient;
 export default redisClient;

@@ -1,85 +1,65 @@
 import { getRequestConfig } from 'next-intl/server';
 import { cookies } from 'next/headers';
-import { defaultLocale } from '@/i18n/config';
+import { defaultLocale, locales, Locale } from '@/i18n/config';
 
 const COOKIE_NAME = 'NEXT_LOCALE';
 
-export async function getUserLocale() {
-  return (await cookies()).get(COOKIE_NAME)?.value || defaultLocale;
+export async function getUserLocale(): Promise<Locale> {
+  const rawLocale = (await cookies()).get(COOKIE_NAME)?.value;
+  if (rawLocale && (locales as readonly string[]).includes(rawLocale)) {
+    return rawLocale as Locale;
+  }
+  return defaultLocale;
+}
+
+const MESSAGE_DOMAINS = [
+  'main/auth',
+  'main/cart',
+  'main/checkout',
+  'main/common',
+  'main/customer',
+  'main/home',
+  'main/product',
+  'main/search',
+  'main/shop',
+  'manager/category',
+  'manager/dashboard',
+  'manager/general',
+  'manager/notification',
+  'manager/product',
+  'manager/shop',
+  'manager/statistic',
+  'manager/user',
+  'manager/warehouse',
+  'seller/seller',
+] as const;
+
+async function loadMessagesForLocale(locale: Locale): Promise<Record<string, unknown>> {
+  const loadedModules = await Promise.all(
+    MESSAGE_DOMAINS.map(async (domain) => {
+      try {
+        const mod = await import(`../messages/${locale}/${domain}.json`);
+        return mod.default;
+      } catch {
+        try {
+          const fallbackMod = await import(`../messages/${defaultLocale}/${domain}.json`);
+          return fallbackMod.default;
+        } catch {
+          return {};
+        }
+      }
+    })
+  );
+
+  return Object.assign({}, ...loadedModules);
 }
 
 export default getRequestConfig(async () => {
   const locale = await getUserLocale();
-
-  // Load all files
-  const [
-    auth,
-    cart,
-    checkout,
-    common,
-    customer,
-    home,
-    product,
-    search,
-    shop,
-    m_general,
-    m_dashboard,
-    m_category,
-    m_product,
-    m_shop,
-    m_user,
-    m_warehouse,
-    m_statistic,
-    m_notification,
-    seller,
-  ] = await Promise.all([
-    // Main domain files
-    import(`../messages/${locale}/main/auth.json`),
-    import(`../messages/${locale}/main/cart.json`),
-    import(`../messages/${locale}/main/checkout.json`),
-    import(`../messages/${locale}/main/common.json`),
-    import(`../messages/${locale}/main/customer.json`),
-    import(`../messages/${locale}/main/home.json`),
-    import(`../messages/${locale}/main/product.json`),
-    import(`../messages/${locale}/main/search.json`),
-    import(`../messages/${locale}/main/shop.json`),
-    // manager domains
-    import(`../messages/${locale}/manager/m_general.json`),
-    import(`../messages/${locale}/manager/m_dashboard.json`),
-    import(`../messages/${locale}/manager/m_category.json`),
-    import(`../messages/${locale}/manager/m_product.json`),
-    import(`../messages/${locale}/manager/m_shop.json`),
-    import(`../messages/${locale}/manager/m_user.json`),
-    import(`../messages/${locale}/manager/m_warehouse.json`),
-    import(`../messages/${locale}/manager/m_statistic.json`),
-    import(`../messages/${locale}/manager/m_notification.json`),
-    // seller domains
-    import(`../messages/${locale}/seller/seller.json`),
-  ]);
+  const messages = await loadMessagesForLocale(locale);
 
   return {
     locale,
-    messages: {
-      // So if cart.json contains "cart_page": {...}, it becomes accessible as t('cart_page').
-      ...auth.default,
-      ...cart.default,
-      ...checkout.default,
-      ...common.default,
-      ...customer.default,
-      ...home.default,
-      ...product.default,
-      ...search.default,
-      ...shop.default,
-      ...seller.default,
-      ...m_general.default,
-      ...m_product.default,
-      ...m_user.default,
-      ...m_dashboard.default,
-      ...m_category.default,
-      ...m_shop.default,
-      ...m_warehouse.default,
-      ...m_statistic.default,
-      ...m_notification.default,
-    },
+    messages,
   };
 });

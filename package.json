@@ -6,6 +6,8 @@
     "dev": "next dev --turbopack",
     "worker:payment": "tsx worker/index.ts payment",
     "worker:webhook": "tsx worker/index.ts webhook",
+    "worker:notification": "tsx worker/index.ts notification",
+    "worker:cron": "tsx worker/index.ts cron",
     "worker:all": "tsx worker/index.ts",
     "build": "next build --turbopack",
     "start": "next start",
@@ -13,8 +15,7 @@
     "lint:fix": "eslint --fix",
     "format": "prettier --write .",
     "check-format": "prettier --check .",
-    "postinstall": "prisma generate",
-    "notification-worker": "tsx --env-file=.env worker/notification.worker.ts"
+    "postinstall": "prisma generate"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

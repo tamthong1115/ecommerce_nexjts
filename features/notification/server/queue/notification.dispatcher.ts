@@ -1,5 +1,6 @@
 import { EmailSender, InAppSender } from './notification.senders';
 import {
+  ChannelType,
   INotificationSender,
   NotificationPayload,
 } from '../../types/notification.type';
@@ -49,12 +50,23 @@ export class NotificationDispatcher {
       })
     );
 
-    const failures = results.filter((r) => r.status === 'rejected');
-    if (failures.length > 0) {
-      console.error(
-        `[NotificationService] ${failures.length}/${supportedSenders.length} senders failed for ${payload.type}`
-      );
+    const failedChannels = supportedSenders
+      .filter((_, i) => results[i].status === 'rejected')
+      .map((s) => s.channel);
+
+    // Throw only after every sender ran, so the queue retries just the failed channels.
+    if (failedChannels.length > 0) {
+      throw new NotificationDeliveryError(payload.type, failedChannels);
     }
+  }
+}
+
+export class NotificationDeliveryError extends Error {
+  constructor(
+    type: string,
+    readonly failedChannels: ChannelType[]
+  ) {
+    super(`Notification ${type} failed on: ${failedChannels.join(', ')}`);
   }
 }
 

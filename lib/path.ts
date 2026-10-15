@@ -96,6 +96,10 @@ export const paths = {
     system_settings:{
       default: '/manager/system-settings',
       email: '/manager/system-settings/email'
+    },
+    logs: {
+      fetch_all: '/api/manager/logs',
+      page: '/manager/logs',
     }
   },
 

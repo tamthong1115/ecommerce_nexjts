@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useMemo, useId } from 'react';
-import { Loading } from '@/components/loading';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select,
   SelectContent,
@@ -40,6 +40,7 @@ import {
   IconChevronRight,
   IconChevronsLeft,
   IconChevronsRight,
+  IconLoader2,
 } from '@tabler/icons-react';
 import {
   ColumnDef,
@@ -48,54 +49,99 @@ import {
   Table as TanstackTable,
 } from '@tanstack/react-table';
 import { DraggableTableRow } from './draggable-table-row';
+import { cn } from '@/lib/utils';
 
-interface SortableTableProps<TData> {
-  loading: boolean;
-  data: TData[];
-  table: TanstackTable<TData>;
-  columns: ColumnDef<TData>[];
-  getRowId: (originalRow: TData) => UniqueIdentifier;
+export interface ReorderConfig {
+  enabled?: boolean;
   onReorder?: (activeId: UniqueIdentifier, overId: UniqueIdentifier) => void;
+}
+
+export interface SortableTableProps<TData> {
+  table: TanstackTable<TData>;
+  data?: TData[];
+  columns?: ColumnDef<TData>[];
+  loading?: boolean;
   emptyMessage?: React.ReactNode;
+  totalRows?: number;
+
+  // Reorder / Drag and Drop
+  reorder?: ReorderConfig;
+  onReorder?: (activeId: UniqueIdentifier, overId: UniqueIdentifier) => void;
+  getRowId?: (originalRow: TData) => UniqueIdentifier;
+
+  // Escape hatches / Legacy support
+  dataIds?: UniqueIdentifier[];
+  sensors?: any[];
+  handleDragEnd?: (event: DragEndEvent) => void;
+  sortableId?: string;
+  DraggableRow?: React.ComponentType<{ row: Row<TData>; enableDragAndDrop?: boolean }>;
 }
 
 export function SortableTable<TData>({
-  loading,
-  data,
   table,
-  columns,
-  getRowId,
-  onReorder,
+  data: propData,
+  columns: propColumns,
+  loading = false,
   emptyMessage = 'No results found.',
+  totalRows,
+  reorder,
+  onReorder: legacyOnReorder,
+  getRowId,
+  dataIds: propDataIds,
+  sensors: propSensors,
+  handleDragEnd: propHandleDragEnd,
+  sortableId: propSortableId,
+  DraggableRow: CustomDraggableRow,
 }: SortableTableProps<TData>) {
-  const sortableId = useId();
+  const generatedId = useId();
+  const sortableId = propSortableId || generatedId;
 
-  const sensors = useSensors(
+  // Resolve data and columns from table if not explicitly passed
+  const data = propData ?? (table.options.data as TData[]);
+  const columns = propColumns ?? (table.options.columns as ColumnDef<TData>[]);
+
+  // Resolve reorder callback
+  const activeReorderFn = reorder?.onReorder ?? legacyOnReorder;
+  const isDndEnabled = reorder?.enabled !== false && !!activeReorderFn;
+
+  const defaultSensors = useSensors(
     useSensor(MouseSensor, {}),
     useSensor(TouchSensor, {}),
     useSensor(KeyboardSensor, {})
-  )
+  );
+  const sensors = propSensors && propSensors.length > 0 ? propSensors : defaultSensors;
 
-  const dataIds = useMemo<UniqueIdentifier[]>(
-    () => data.map(getRowId),
-    [data, getRowId]
-  )
+  // Resolve dataIds
+  const dataIds = useMemo<UniqueIdentifier[]>(() => {
+    if (propDataIds && propDataIds.length > 0) return propDataIds;
+    if (getRowId) return data.map(getRowId);
+    return table.getRowModel().rows.map((row) => (row.original as any)?.id ?? row.id);
+  }, [propDataIds, getRowId, data, table]);
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event
-
-    if (active && over && active.id !== over.id) {
-      if (onReorder) {
-        onReorder(active.id, over.id)
-      }
+  function defaultHandleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (active && over && active.id !== over.id && activeReorderFn) {
+      activeReorderFn(active.id, over.id);
     }
   }
 
-  if (loading) return <Loading />;
+  const handleDragEnd = propHandleDragEnd || defaultHandleDragEnd;
+
+  const rowCount = table.getRowModel().rows.length;
+  const isInitialLoading = loading && rowCount === 0;
+  const isRefetching = loading && rowCount > 0;
+  const skeletonRowCount = Math.min(table.getState().pagination?.pageSize || 5, 8);
 
   return (
     <>
-      <div className="overflow-hidden rounded-lg border">
+      <div className="relative overflow-hidden rounded-lg border">
+        {/* Subtle top loading indicator during refetching */}
+        {isRefetching && (
+          <div className="absolute inset-x-0 top-0 z-20 h-1 bg-primary/20 overflow-hidden">
+            <div className="h-full bg-primary animate-pulse w-full" />
+          </div>
+        )}
+
         <DndContext
           collisionDetection={closestCenter}
           modifiers={[restrictToVerticalAxis]}
@@ -113,34 +159,58 @@ export function SortableTable<TData>({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                       </TableHead>
                     );
                   })}
                 </TableRow>
               ))}
             </TableHeader>
-            <TableBody className="**:data-[slot=table-cell]:first:w-8">
-              {data.length !== 0 ? (
+            <TableBody
+              className={cn(
+                '**:data-[slot=table-cell]:first:w-8',
+                isRefetching && 'opacity-60 transition-opacity pointer-events-none'
+              )}
+            >
+              {/* Skeleton Rows on initial load (prevents layout shift) */}
+              {isInitialLoading ? (
+                Array.from({ length: skeletonRowCount }).map((_, rowIndex) => (
+                  <TableRow key={`skeleton-row-${rowIndex}`}>
+                    {columns.map((_, colIndex) => (
+                      <TableCell key={`skeleton-col-${colIndex}`} className="py-3">
+                        <Skeleton className="h-5 w-full max-w-[85%]" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : rowCount !== 0 ? (
                 <SortableContext
                   items={dataIds}
                   strategy={verticalListSortingStrategy}
                 >
-                  {table.getRowModel().rows.map((row) => (
-                    <DraggableTableRow
-                      key={row.id}
-                      row={row}
-                      enableDragAndDrop={!!onReorder}
-                    />
-                  ))}
+                  {table.getRowModel().rows.map((row) =>
+                    CustomDraggableRow ? (
+                      <CustomDraggableRow
+                        key={row.id}
+                        row={row}
+                        enableDragAndDrop={isDndEnabled}
+                      />
+                    ) : (
+                      <DraggableTableRow
+                        key={row.id}
+                        row={row}
+                        enableDragAndDrop={isDndEnabled}
+                      />
+                    )
+                  )}
                 </SortableContext>
               ) : (
                 <TableRow>
                   <TableCell
                     colSpan={columns.length}
-                    className="h-24 text-center"
+                    className="h-24 text-center text-muted-foreground"
                   >
                     {emptyMessage}
                   </TableCell>
@@ -152,9 +222,16 @@ export function SortableTable<TData>({
       </div>
 
       <div className="flex items-center justify-between px-4 mt-4">
-        <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-          {table.getFilteredSelectedRowModel().rows.length} of{' '}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+        <div className="text-muted-foreground hidden flex-1 text-sm lg:flex items-center gap-2">
+          {table.getFilteredSelectedRowModel().rows.length > 0
+            ? `${table.getFilteredSelectedRowModel().rows.length} of ${totalRows ?? rowCount} row(s) selected.`
+            : `Total ${totalRows ?? rowCount} item(s)`}
+          {isRefetching && (
+            <span className="flex items-center gap-1 text-xs text-primary animate-pulse">
+              <IconLoader2 className="size-3 animate-spin" />
+              Updating...
+            </span>
+          )}
         </div>
         <div className="flex w-full items-center gap-8 lg:w-fit">
           <div className="hidden items-center gap-2 lg:flex">
@@ -183,7 +260,7 @@ export function SortableTable<TData>({
           </div>
           <div className="flex w-fit items-center justify-center text-sm font-medium">
             Page {table.getState().pagination.pageIndex + 1} of{' '}
-            {table.getPageCount()}
+            {Math.max(1, table.getPageCount())}
           </div>
           <div className="ml-auto flex items-center gap-2 lg:ml-0">
             <Button

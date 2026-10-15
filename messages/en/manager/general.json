@@ -1,0 +1,55 @@
+{
+  "admin_explain": {
+    "t_title": "Additional Information",
+    "t_accept": "Accept"
+  },
+  "admin_layout": {
+    "admin_app_sidebar": {
+      "t_quick_access": "Quick Access",
+      "t_dashboard": "Dashboard",
+      "t_category": "Category",
+      "t_category_management": "Category Management",
+      "t_product": "Product",
+      "t_product_management": "Product Management",
+      "t_complaint": "Complaint",
+      "t_shop": "Shop",
+      "t_shop_management": "Shop Management",
+      "t_support": "Support",
+      "t_user": "User",
+      "t_user_management": "User Management",
+      "t_warehouse": "Warehouse",
+      "t_warehouse_list": "Warehouse List",
+      "t_warehouse_management": "Warehouse Management",
+      "t_region_list": "Region Management",
+      "t_statistic": "Statistics",
+      "t_revenue": "Revenue",
+      "t_traffic": "Traffic",
+      "t_settings": "Settings",
+      "t_general": "General",
+      "t_security": "Security",
+      "t_notification": "Notification",
+      "t_feedback": "Feedback",
+      "t_payment": "Payment",
+      "t_account_settings": "Account",
+      "t_connected": "Connected",
+      "t_logout": "Logout"
+    }
+  },
+  "admin_tab_table_view": {
+    "t_no_category_found": "No categories found",
+    "t_of": "of",
+    "t_rows_selected": "rows selected.",
+    "t_rows_per_page": "Rows per page",
+    "t_page": "Page"
+  },
+  "admin_search_bar": {
+    "t_search_action": "Search",
+    "t_filter_by": "Filter by",
+    "t_name": "Name",
+    "t_id": "ID",
+    "t_title": "Title",
+    "t_shopId": "Shop ID",
+    "t_ownerId": "Owner ID",
+    "t_email": "Email"
+  }
+}

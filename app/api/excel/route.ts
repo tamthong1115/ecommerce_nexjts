@@ -25,6 +25,7 @@ const cellMappingSchema = z.object({
 const columnMappingSchema = z.object({
   column: z.string().min(1),
   key: z.string().min(1),
+  header: z.string().optional(),
   type: z.nativeEnum(EType).optional(),
   required: z.boolean().optional(),
 });

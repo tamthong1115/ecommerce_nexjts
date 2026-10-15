@@ -29,6 +29,7 @@ export function writeTable(
     const { col: colIdx } = addressToRowCol(`${col.column}1`);
     return {
       key: col.key,
+      header: col.header ?? col.key,
       colIdx,
       type: col.type,
     };
@@ -38,7 +39,7 @@ export function writeTable(
   if (table.headerRow) {
     for (const col of resolvedColumns) {
       const cell = ws.getCell(table.headerRow, col.colIdx);
-      cell.value = col.key;
+      cell.value = col.header;
     }
   }
 

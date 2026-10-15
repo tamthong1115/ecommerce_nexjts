@@ -1,21 +1,8 @@
-import { Queue } from 'bullmq';
-import { connection } from '@/lib/queue/ioredis-connection';
+import { getQueue, NOTIFICATION_QUEUE_NAME } from '@/worker/config';
 import { NotificationPayload } from '@/features/notification/types/notification.type';
 
-export const NOTIFICATION_QUEUE_NAME = 'notification-queue';
+export { NOTIFICATION_QUEUE_NAME };
 
-export const notificationQueue = new Queue<NotificationPayload>(
-  NOTIFICATION_QUEUE_NAME,
-  {
-    connection,
-    defaultJobOptions: {
-      attempts: 3,
-      backoff: {
-        type: 'exponential',
-        delay: 1000,
-      },
-      removeOnComplete: true,
-      removeOnFail: false,
-    },
-  }
+export const notificationQueue = getQueue<NotificationPayload>(
+  NOTIFICATION_QUEUE_NAME
 );

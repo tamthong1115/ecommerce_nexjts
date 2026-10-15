@@ -39,11 +39,8 @@ export async function POST(req: NextRequest) {
           eventType: event.type,
           payload: event.data.object,
         },
-        {
-          attempts: 5,
-          backoff: { type: 'exponential', delay: 2000 },
-          removeOnComplete: true,
-        }
+        // Stable id: gateway redeliveries of the same event are ignored.
+        { jobId: `stripe-${event.id}` }
       );
     }
 

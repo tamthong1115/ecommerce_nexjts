@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="bf98633f-e009-4b9f-b52a-ca8d5b1c5206" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/messages/en/manager/general.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/messages/en/manager/notification.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/messages/en/manager/product.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/messages/en/manager/shop.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/messages/en/manager/statistic.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/messages/en/manager/user.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/messages/en/manager/warehouse.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/betterCommentsSettings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.agent.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.ask.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.ask2agent.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.edit.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/data_source_mapping.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/db-forest-config.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/project.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/ecommerce_nexjts.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ecommerce_nexjts.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/jsLinters/eslint.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/prettier.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/prettier.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/queries/Query.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/sqldialects.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.vscode/settings.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(seller)/seller/shops/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(seller)/seller/shops/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/cart/[id]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/cart/[id]/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/cart/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/cart/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/checkout/momo/ipn/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/checkout/momo/ipn/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/checkout/vnpay/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/checkout/vnpay/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/cron/update-currency-rate/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/cron/update-currency-rate/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/excel/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/excel/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/manager/voucher/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/manager/voucher/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/notification/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/notification/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/reviews/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/reviews/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/search/analyze-image/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/search/analyze-image/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/search/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/search/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/search/suggestions/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/search/suggestions/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/seller/order-stats/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/seller/order-stats/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/seller/orders/[id]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/seller/orders/[id]/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/seller/orders/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/seller/orders/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/seller/products/[productId]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/seller/products/[productId]/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/seller/products/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/seller/products/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/seller/vouchers/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/seller/vouchers/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/stripe/webhook/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/stripe/webhook/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/vouchers/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/vouchers/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/custom/select-language.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/custom/select-language.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/TABLE_COMPONENTS.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/TABLE_COMPONENTS.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/cart/server/cart.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/features/cart/server/cart.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/manager/_components/app-sidebar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/features/manager/_components/app-sidebar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/notification/server/controller/notification.action.ts" beforeDir="false" afterPath="$PROJECT_DIR$/features/notification/server/controller/notification.action.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/notification/server/queue/notification.dispatcher.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/features/notification/server/queue/notification.dispatcher.test.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/notification/server/queue/notification.dispatcher.ts" beforeDir="false" afterPath="$PROJECT_DIR$/features/notification/server/queue/notification.dispatcher.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/notification/server/queue/notification.queue.ts" beforeDir="false" afterPath="$PROJECT_DIR$/features/notification/server/queue/notification.queue.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/notification/server/service/notification.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/features/notification/server/service/notification.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/order/order.dto.ts" beforeDir="false" afterPath="$PROJECT_DIR$/features/order/order.dto.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/order/server/order.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/features/order/server/order.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/order_draft/order_draft.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/features/order_draft/order_draft.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/payment/payment.dto.ts" beforeDir="false" afterPath="$PROJECT_DIR$/features/payment/payment.dto.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/payment/payment.usecases.ts" beforeDir="false" afterPath="$PROJECT_DIR$/features/payment/payment.usecases.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/payment_transaction/payment_transaction.usecases.ts" beforeDir="false" afterPath="$PROJECT_DIR$/features/payment_transaction/payment_transaction.usecases.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/product/product.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/features/product/product.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/review/server/controller/review.route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/features/review/server/controller/review.route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/review/server/review.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/features/review/server/review.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/search/server/controller/search.route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/features/search/server/controller/search.route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/shared/components/table/data-table-page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/features/shared/components/table/data-table-page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/shared/components/table/data-table-pagination.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/features/shared/components/table/data-table-pagination.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/shared/components/table/sortable-table.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/features/shared/components/table/sortable-table.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/shared/hooks/use-data-table.ts" beforeDir="false" afterPath="$PROJECT_DIR$/features/shared/hooks/use-data-table.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/voucher/server/controller/voucher.action.ts" beforeDir="false" afterPath="$PROJECT_DIR$/features/voucher/server/controller/voucher.action.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/voucher/server/voucher.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/features/voucher/server/voucher.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/features/voucher/validation.ts" beforeDir="false" afterPath="$PROJECT_DIR$/features/voucher/validation.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hooks/use-data-table.ts" beforeDir="false" afterPath="$PROJECT_DIR$/hooks/use-data-table.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/i18n/config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/i18n/config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/i18n/request.ts" beforeDir="false" afterPath="$PROJECT_DIR$/i18n/request.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/excel/operations/range.ops.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/excel/operations/range.ops.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/excel/types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/excel/types.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/path.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/path.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/queue/ioredis-connection.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/redis.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/redis.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/messages/en/manager/admin.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/messages/vi/manager/m_category.json" beforeDir="false" afterPath="$PROJECT_DIR$/messages/vi/manager/category.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/messages/vi/manager/m_dashboard.json" beforeDir="false" afterPath="$PROJECT_DIR$/messages/vi/manager/dashboard.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/messages/vi/manager/m_general.json" beforeDir="false" afterPath="$PROJECT_DIR$/messages/vi/manager/general.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/messages/vi/manager/m_notification.json" beforeDir="false" afterPath="$PROJECT_DIR$/messages/vi/manager/notification.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/messages/vi/manager/m_product.json" beforeDir="false" afterPath="$PROJECT_DIR$/messages/vi/manager/product.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/messages/vi/manager/m_shop.json" beforeDir="false" afterPath="$PROJECT_DIR$/messages/vi/manager/shop.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/messages/vi/manager/m_statistic.json" beforeDir="false" afterPath="$PROJECT_DIR$/messages/vi/manager/statistic.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/messages/vi/manager/m_user.json" beforeDir="false" afterPath="$PROJECT_DIR$/messages/vi/manager/user.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/messages/vi/manager/m_warehouse.json" beforeDir="false" afterPath="$PROJECT_DIR$/messages/vi/manager/warehouse.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pnpm-workspace.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pnpm-workspace.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/recommendation-service/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/recommendation-service/.idea/copilot.data.migration.agent.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/recommendation-service/.idea/copilot.data.migration.ask2agent.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/recommendation-service/.idea/copilot.data.migration.edit.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/recommendation-service/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/recommendation-service/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/recommendation-service/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/recommendation-service/.idea/recommendation-service.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/recommendation-service/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vercel.json" beforeDir="false" afterPath="$PROJECT_DIR$/vercel.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/worker/config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/worker/config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/worker/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/worker/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/worker/notification.worker.ts" beforeDir="false" afterPath="$PROJECT_DIR$/worker/notification.worker.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/worker/payment.worker.ts" beforeDir="false" afterPath="$PROJECT_DIR$/worker/payment.worker.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/worker/payment_hook.worker.ts" beforeDir="false" afterPath="$PROJECT_DIR$/worker/payment_hook.worker.ts" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 8,
+  "fromUser": false
+}]]></component>
+  <component name="ProjectId" id="3KiAhp9z9ofAziXzewbmRWzt3Gp" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "refactor",
+    "ignore.virus.scanning.warn.message": "true",
+    "js.debugger.nextJs.config.created.client": "true",
+    "js.debugger.nextJs.config.created.server": "true",
+    "last_opened_file_path": "C:/Users/Thong/MyDocs/SourceCodes/ecommerce_nexjts",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "nodejs_package_manager_path": "pnpm",
+    "settings.editor.selected.configurable": "terminal",
+    "ts.external.directory.path": "C:\\Users\\Thong\\MyDocs\\SourceCodes\\ecommerce_nexjts\\node_modules\\typescript\\lib"
+  }
+}]]></component>
+  <component name="RunManager" selected="npm.Next.js: server-side">
+    <configuration name="Next.js: debug client-side" type="JavascriptDebugType" uri="http://localhost:3000/">
+      <method v="2" />
+    </configuration>
+    <configuration name="Next.js: server-side" type="js.build_tools.npm">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="dev" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-WS-262.10968.77" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="bf98633f-e009-4b9f-b52a-ca8d5b1c5206" name="Changes" comment="" />
+      <created>1792030140259</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1792030140259</updated>
+      <workItem from="1792030142112" duration="1697000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

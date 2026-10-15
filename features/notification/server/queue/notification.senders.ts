@@ -14,6 +14,8 @@ import { NotificationType } from '@/lib/generated/prisma';
 import { prisma } from '@/lib/db';
 import { resolveEmailProvider } from '@/features/notification/server/email/email-provider.resolver';
 import { SystemReminderEmail } from '@/features/notification/components/core/email-templates/system-reminder-email';
+import { logAction } from '@/lib/action-logger';
+import { ActionSource, ActionType } from '@prisma/client';
 
 export class EmailSender implements INotificationSender {
   readonly channel = ChannelType.EMAIL;
@@ -26,12 +28,51 @@ export class EmailSender implements INotificationSender {
     console.log(`[EmailSender] Processing ${payload.type} for ${payload.to}`);
     const { html, subject } = await this.renderEmailContent(payload);
     const { provider, from } = await resolveEmailProvider();
-    await provider.sendEmail({
-      to: payload.to,
-      subject,
-      html,
-      from,
-    });
+
+    try {
+      await provider.sendEmail({
+        to: payload.to,
+        subject,
+        html,
+        from,
+      });
+
+      await logAction({
+        actionType: ActionType.EXECUTE,
+        actionSource: ActionSource.JOB,
+        actionCode: `EMAIL_SENT_${payload.type}`,
+        targetTable: 'Notification',
+        targetId: payload.referenceId,
+        metadata: {
+          channel: ChannelType.EMAIL,
+          recipient: payload.to,
+          recipientRole: payload.recipientRole,
+          subject,
+          type: payload.type,
+          from,
+          status: 'SUCCESS',
+        },
+      });
+    } catch (error) {
+      await logAction({
+        actionType: ActionType.EXECUTE,
+        actionSource: ActionSource.JOB,
+        actionCode: `EMAIL_FAILED_${payload.type}`,
+        targetTable: 'Notification',
+        targetId: payload.referenceId,
+        metadata: {
+          channel: ChannelType.EMAIL,
+          recipient: payload.to,
+          recipientRole: payload.recipientRole,
+          subject,
+          type: payload.type,
+          from,
+          status: 'FAILED',
+          error: error instanceof Error ? error.message : String(error),
+        },
+      });
+      throw error;
+    }
   }
 
   private async renderEmailContent(

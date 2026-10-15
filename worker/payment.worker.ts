@@ -1,7 +1,7 @@
 import { Worker, Job } from 'bullmq';
 import { redisClient } from '@/lib/redis';
-import { PAYMENT_QUEUE_NAME } from './config';
-import 'dotenv/config';
+import { PAYMENT_QUEUE_NAME, newConnection } from './config';
+import { StockManager } from '@/lib/stock-manager';
 import { $Enums } from '@/lib/generated/prisma';
 import PaymentProvider = $Enums.PaymentProvider;
 import { createPaymentStrategy } from '@/features/payment/strategy/payment.factory';
@@ -30,7 +30,7 @@ interface PaymentJobData {
   //local specific
   provider: PaymentProvider;
   intentId: string;
-  draftItems: any[];
+  draftItems: { variantId: string; quantity: number }[];
   currency: Currency;
   method: string;
 }
@@ -39,78 +39,71 @@ const processPaymentJob = async (job: Job<PaymentJobData>) => {
   const { provider, intentId, orderIds, amount, idempotencyKey, currency } =
     job.data;
 
-  console.log(`🔨 Worker đang xử lý Job ${job.id} - Provider: ${provider}`);
+  const strategy = createPaymentStrategy(provider);
+  const result = await strategy.createPaymentUrl(job.data);
 
-  try {
-    const strategy = createPaymentStrategy(provider);
-    const result = await strategy.createPaymentUrl(job.data);
+  if (!result.url) throw new Error('Không tạo được Payment URL');
 
-    if (!result.url) throw new Error('Không tạo được Payment URL');
+  await updatePaymentIntentService(intentId, {
+    gatewayRef: result.externalId,
+  });
 
-    await updatePaymentIntentService(intentId, {
-      gatewayRef: result.externalId,
-    });
+  //Tạo data payment && order
+  await createCheckoutRequestUseCase(prisma, {
+    params: {
+      provider: provider,
+      method: job.data.method,
+      amount: amount,
+      status: PaymentStatus.PENDING,
+      currency: currency,
+      externalId: result.externalId,
+      idempotencyKey: idempotencyKey,
+      rawPayload: result.rawPayload,
+    },
+    orderList: orderIds,
+  });
 
-    //Tạo data payment && order
-    await createCheckoutRequestUseCase(prisma, {
-      params: {
-        provider: provider,
-        method: job.data.method,
-        amount: amount,
-        status: PaymentStatus.PENDING,
-        currency: currency,
-        externalId: result.externalId,
-        idempotencyKey: idempotencyKey,
-        rawPayload: result.rawPayload,
-      },
-      orderList: orderIds,
-    });
-
-    await redisClient.setex(`payment_url:${intentId}`, 1800, result.url);
-    console.log(`✅ Job ${job.id} Success. URL: ${result.url}`);
-    return { success: true, url: result.url };
-  } catch (error) {
-    console.error(`❌ Job ${job.id} Failed:`, error);
-    throw error;
-  }
+  await redisClient.setex(`payment_url:${intentId}`, 1800, result.url);
+  return { success: true, url: result.url };
 };
 
 // Hàm khởi tạo Worker
 export const initPaymentWorker = () => {
   const worker = new Worker(PAYMENT_QUEUE_NAME, processPaymentJob, {
-    connection: redisClient,
+    connection: newConnection(),
     concurrency: 10,
-    removeOnComplete: { count: 1000, age: 24 * 3600 }, // Giữ 1000 job thành công trong 24h
-    removeOnFail: { count: 5000 }, // Giữ nhiều job lỗi hơn để debug
   });
 
-  worker.on('failed', async (job, err) => {
-    console.error(`Job ${job?.id} thất bại sau các lần thử: ${err.message}`);
-    if (job && job.data.draftItems) {
-      console.log('Đang thực hiện Rollback kho (Hoàn trả tồn kho)...');
-
-      const { draftItems } = job.data;
-
-      try {
-        // Thực hiện transaction cộng lại kho
-        await prisma.$transaction(
-          draftItems.map((item: any) =>
-            prisma.productVariant.update({
-              where: { id: item.variantId },
-              data: { stock: { increment: item.quantity } },
-            })
-          )
-        );
-        console.log('Rollback kho thành công!');
-      } catch (rollbackError) {
-        console.error(
-          'Rollback kho thất bại! Cần check database thủ công.',
-          rollbackError
-        );
-      }
+  // `failed` fires on every attempt; only compensate on the last one.
+  worker.on('failed', async (job) => {
+    if (!job || !isFinalAttempt(job)) return;
+    try {
+      await rollbackDraftStock(job);
+    } catch (err) {
+      console.error('Stock rollback failed, check DB manually:', err);
     }
   });
 
-  console.log('✅ Payment Worker đã sẵn sàng!');
   return worker;
 };
+
+// Return reserved stock (DB + Redis) once a job has exhausted its retries.
+export const rollbackDraftStock = async (job: Job<PaymentJobData>) => {
+  const { draftItems } = job.data;
+  if (!draftItems?.length) return;
+
+  await prisma.$transaction(
+    draftItems.map((item) =>
+      prisma.productVariant.update({
+        where: { id: item.variantId },
+        data: { stock: { increment: item.quantity } },
+      })
+    )
+  );
+  for (const item of draftItems) {
+    await StockManager.releaseStock(item.variantId, item.quantity);
+  }
+};
+
+export const isFinalAttempt = (job: Job) =>
+  job.attemptsMade >= (job.opts.attempts ?? 1);

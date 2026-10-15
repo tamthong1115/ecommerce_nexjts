@@ -191,27 +191,24 @@ export default function SellerShopsDashboard() {
   ];
 
   // Use data table hook
-  const {
-    table,
-    dataState,
-    setDataState,
-    search,
-    setSearch,
-    dataIds,
-    sensors,
-    handleDragEnd,
-  } = useDataTable({
+  const { table } = useDataTable({
     data: shops,
     columns,
-    enableDragAndDrop: true,
     getRowId: (row) => row.id,
     initialPageSize: 10,
   });
 
-  // Sync shops state with data table
-  React.useEffect(() => {
-    setDataState(shops);
-  }, [shops, setDataState]);
+  const handleReorder = (activeId: string | number, overId: string | number) => {
+    setShops((prev) => {
+      const oldIndex = prev.findIndex((s) => s.id === activeId);
+      const newIndex = prev.findIndex((s) => s.id === overId);
+      if (oldIndex === -1 || newIndex === -1) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(oldIndex, 1);
+      next.splice(newIndex, 0, moved);
+      return next;
+    });
+  };
 
   // Define tabs
   const tabs: TabConfig<SellerShopListItem>[] = [
@@ -232,31 +229,21 @@ export default function SellerShopsDashboard() {
     },
   ];
 
-  const sortableId = React.useId();
-
   return (
     <DataTablePage
       title="My Shops"
-      data={shops}
+      table={table}
       loading={loading}
       error={error}
-      searchValue={search}
-      onSearchChange={setSearch}
-      searchPlaceholder="Search shops..."
-      table={table}
-      columns={columns}
+      search="Search shops..."
       tabs={tabs}
-      defaultTab="all-status"
-      headerActions={
+      actions={
         <Button onClick={() => router.push(paths.seller.shops.create)}>
           Create Shop
         </Button>
       }
-      enableDragAndDrop={true}
-      dataIds={dataIds}
-      sensors={sensors}
-      handleDragEnd={handleDragEnd}
-      sortableId={sortableId}
+      reorder={{ onReorder: handleReorder }}
+      exportExcel={{ filename: 'my-shops.xlsx' }}
       emptyMessage="No shops found. Create your first shop!"
     />
   );

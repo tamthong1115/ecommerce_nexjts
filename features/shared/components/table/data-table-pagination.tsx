@@ -20,16 +20,24 @@ import {
 
 interface DataTablePaginationProps<TData> {
   table: TanstackTable<TData>;
+  totalRows?: number;
+  pageSizeOptions?: number[];
 }
 
 export function DataTablePagination<TData>({
   table,
+  totalRows,
+  pageSizeOptions = [10, 20, 30, 40, 50],
 }: DataTablePaginationProps<TData>) {
+  const selectedCount = table.getFilteredSelectedRowModel().rows.length;
+  const count = totalRows !== undefined ? totalRows : table.getFilteredRowModel().rows.length;
+
   return (
     <div className="flex items-center justify-between px-4 mt-4">
       <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-        {table.getFilteredSelectedRowModel().rows.length} of{' '}
-        {table.getFilteredRowModel().rows.length} row(s) selected.
+        {selectedCount > 0
+          ? `${selectedCount} of ${count} row(s) selected.`
+          : `Total ${count} item(s)`}
       </div>
       <div className="flex w-full items-center gap-8 lg:w-fit">
         <div className="hidden items-center gap-2 lg:flex">
@@ -46,7 +54,7 @@ export function DataTablePagination<TData>({
               <SelectValue placeholder={table.getState().pagination.pageSize} />
             </SelectTrigger>
             <SelectContent side="top">
-              {[10, 20, 30, 40, 50].map((pageSize) => (
+              {pageSizeOptions.map((pageSize) => (
                 <SelectItem key={pageSize} value={`${pageSize}`}>
                   {pageSize}
                 </SelectItem>
@@ -56,7 +64,7 @@ export function DataTablePagination<TData>({
         </div>
         <div className="flex w-fit items-center justify-center text-sm font-medium">
           Page {table.getState().pagination.pageIndex + 1} of{' '}
-          {table.getPageCount()}
+          {Math.max(1, table.getPageCount())}
         </div>
         <div className="ml-auto flex items-center gap-2 lg:ml-0">
           <Button

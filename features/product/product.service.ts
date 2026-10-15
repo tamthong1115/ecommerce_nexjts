@@ -1,1 +1,1 @@
-import { prisma } from '@/lib/db';
+export * from './services/product.service';

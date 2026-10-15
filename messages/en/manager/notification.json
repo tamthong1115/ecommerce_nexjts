@@ -1,0 +1,30 @@
+{
+  "admin_notification": {
+    "t_action_noti": "Action",
+    "t_success_desc_noti": "Resource loaded successfully",
+    "t_copy_desc_noti": "Information copied successfully!",
+    "t_del_desc_noti": "Object deleted successfully!",
+
+    "t_update_desc_noti": "Information updated successfully!",
+    "t_update_failed_desc_noti": "Failed to update information!",
+
+    "t_action_failed_noti": "Action Failed",
+    "t_unauthorized_desc_noti": "Account authorization failed",
+    "t_success_failed_desc_noti": "Failed to load resource.",
+    "t_copy_failed_desc_noti": "Failed to copy information!",
+    "t_del_failed_desc_noti": "Failed to delete object!",
+    "t_del_warehouse_failed_desc_noti": "Failed to delete warehouse: warehouse is not empty or not deactivated",
+    "t_process_failed_noti": "Process Failed",
+    "t_conn_failed_desc_noti": "Cannot connect to server!",
+    "t_not_found": "No data found",
+
+    "t_create_desc_noti": "Object created successfully!",
+    "t_create_failed_desc_noti": "Failed to create object",
+
+    "t_missing_query": "Missing query data.",
+    "t_missing_data": "Missing form data.",
+
+    "t_slot_invalid": "Total slots must be greater than total partitions",
+    "t_number_invalid": "Invalid format: number expected, string received"
+  }
+}
