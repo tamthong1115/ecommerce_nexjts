@@ -1,9 +1,25 @@
 import { Prisma } from '@prisma/client';
 import { getTraceContext } from './request-context';
 
-const AUDITED_MODELS = ['Shop', 'Product', 'Order'];
+const AUDITED_MODELS = ['Shop', 'Product', 'Order', 'Category', 'Voucher', 'Warehouse', 'User'];
 const SOFT_DELETE_MODELS = ['Shop', 'Product', 'User'];
-const AUDIT_FIELDS_MODELS = ['Shop', 'Product']; // Models with createdById, updatedById
+const AUDIT_FIELDS_MODELS = ['Shop', 'Product'];
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function safeCreateActionLog(client: any, data: any) {
+  try {
+    const actorId = data.actorId && UUID_REGEX.test(data.actorId) ? data.actorId : null;
+    await client.actionLog.create({
+      data: {
+        ...data,
+        actorId,
+      },
+    });
+  } catch (err) {
+    console.error('[PrismaExtension] Failed to record action log:', err);
+  }
+}
 
 export const auditAndSoftDeleteExtension = Prisma.defineExtension((client) => {
   return client.$extends({
@@ -37,18 +53,16 @@ export const auditAndSoftDeleteExtension = Prisma.defineExtension((client) => {
           const result = await query(args);
 
           if (AUDITED_MODELS.includes(model)) {
-            await (client as any).actionLog.create({
-              data: {
-                actorId: ctx?.userId,
-                actionType: 'CREATE',
-                actionSource: ctx?.actionSource || 'API',
-                actionCode: `CREATE_${model.toUpperCase()}`,
-                targetTable: model,
-                targetId: (result as any).id,
-                newData: JSON.parse(JSON.stringify(result)),
-                actorIp: ctx?.ip,
-                userAgent: ctx?.userAgent
-              }
+            await safeCreateActionLog(client, {
+              actorId: ctx?.userId,
+              actionType: 'CREATE',
+              actionSource: ctx?.actionSource || 'API',
+              actionCode: `CREATE_${model.toUpperCase()}`,
+              targetTable: model,
+              targetId: (result as any)?.id ? String((result as any).id) : null,
+              newData: JSON.parse(JSON.stringify(result)),
+              actorIp: ctx?.ip,
+              userAgent: ctx?.userAgent,
             });
           }
 
@@ -78,19 +92,17 @@ export const auditAndSoftDeleteExtension = Prisma.defineExtension((client) => {
           const result = await query(args);
 
           if (AUDITED_MODELS.includes(model)) {
-            await (client as any).actionLog.create({
-              data: {
-                actorId: ctx?.userId,
-                actionType: 'UPDATE',
-                actionSource: ctx?.actionSource || 'API',
-                actionCode: `UPDATE_${model.toUpperCase()}`,
-                targetTable: model,
-                targetId: (result as any).id,
-                oldData: oldData ? JSON.parse(JSON.stringify(oldData)) : undefined,
-                newData: JSON.parse(JSON.stringify(result)),
-                actorIp: ctx?.ip,
-                userAgent: ctx?.userAgent
-              }
+            await safeCreateActionLog(client, {
+              actorId: ctx?.userId,
+              actionType: 'UPDATE',
+              actionSource: ctx?.actionSource || 'API',
+              actionCode: `UPDATE_${model.toUpperCase()}`,
+              targetTable: model,
+              targetId: (result as any)?.id ? String((result as any).id) : null,
+              oldData: oldData ? JSON.parse(JSON.stringify(oldData)) : undefined,
+              newData: JSON.parse(JSON.stringify(result)),
+              actorIp: ctx?.ip,
+              userAgent: ctx?.userAgent,
             });
           }
 
@@ -112,7 +124,6 @@ export const auditAndSoftDeleteExtension = Prisma.defineExtension((client) => {
 
           let result;
           if (hasSoftDelete) {
-            // Perform soft delete
             const modelDelegate = (client as any)[model.charAt(0).toLowerCase() + model.slice(1)];
             result = await modelDelegate.update({
               where: args.where,
@@ -126,18 +137,16 @@ export const auditAndSoftDeleteExtension = Prisma.defineExtension((client) => {
           }
 
           if (AUDITED_MODELS.includes(model)) {
-            await (client as any).actionLog.create({
-              data: {
-                actorId: ctx?.userId,
-                actionType: 'DELETE',
-                actionSource: ctx?.actionSource || 'API',
-                actionCode: `DELETE_${model.toUpperCase()}`,
-                targetTable: model,
-                targetId: (result as any).id,
-                oldData: oldData ? JSON.parse(JSON.stringify(oldData)) : undefined,
-                actorIp: ctx?.ip,
-                userAgent: ctx?.userAgent
-              }
+            await safeCreateActionLog(client, {
+              actorId: ctx?.userId,
+              actionType: 'DELETE',
+              actionSource: ctx?.actionSource || 'API',
+              actionCode: `DELETE_${model.toUpperCase()}`,
+              targetTable: model,
+              targetId: (result as any)?.id ? String((result as any).id) : null,
+              oldData: oldData ? JSON.parse(JSON.stringify(oldData)) : undefined,
+              actorIp: ctx?.ip,
+              userAgent: ctx?.userAgent,
             });
           }
 

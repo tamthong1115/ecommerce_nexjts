@@ -193,11 +193,8 @@ export async function GET(req: NextRequest) {
         provider: $Enums.PaymentProvider.VNPAY,
         payload: vnp_Params,
       },
-      {
-        attempts: 5,
-        backoff: { type: 'exponential', delay: 2000 },
-        removeOnComplete: true,
-      }
+      // Stable id: gateway redeliveries of the same transaction are ignored.
+      { jobId: `vnpay-${vnp_Params.vnp_TxnRef}-${vnp_Params.vnp_TransactionNo}` }
     );
 
     return NextResponse.json({ RspCode: '00', Message: 'Confirm Success' });

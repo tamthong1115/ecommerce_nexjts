@@ -66,11 +66,8 @@ export async function POST(req: Request) {
         provider: $Enums.PaymentProvider.MOMO,
         payload: body,
       },
-      {
-        attempts: 5,
-        backoff: { type: 'exponential', delay: 2000 },
-        removeOnComplete: true,
-      }
+      // Stable id: gateway redeliveries of the same transaction are ignored.
+      { jobId: `momo-${body.orderId}-${body.transId}` }
     );
 
     return new NextResponse(null, { status: 204 });

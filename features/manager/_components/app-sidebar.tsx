@@ -4,6 +4,7 @@ import {
   AudioWaveform,
   Command,
   GalleryVerticalEnd,
+  History,
   Settings2,
   SquareTerminal,
   Ticket,
@@ -190,6 +191,17 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
           {
             title: t('t_shop'),
             url: '#',
+          },
+        ],
+      },
+      {
+        title: 'Nhật ký hệ thống',
+        url: '#',
+        icon: History,
+        items: [
+          {
+            title: 'Lịch sử thao tác',
+            url: paths.manager.logs.page,
           },
         ],
       },

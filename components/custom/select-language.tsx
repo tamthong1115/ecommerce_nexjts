@@ -66,17 +66,6 @@ export const SelectLanguage = () => {
               <p>English</p>
             </div>
           </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value={'jp'}>
-            <div className="flex flex-row justify-center items-center gap-2 hover:cursor-pointer">
-              <Image
-                width="48"
-                height="48"
-                src="https://img.icons8.com/?size=100&id=22435&format=png&color=000000"
-                alt="japan"
-              />
-              <p>日本語</p>
-            </div>
-          </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>

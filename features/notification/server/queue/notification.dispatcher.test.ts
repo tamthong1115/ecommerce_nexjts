@@ -93,7 +93,7 @@ describe('NotificationDispatcher', () => {
     expect(inAppSender.send).not.toHaveBeenCalled();
   });
 
-  it('should not fail completely if one sender fails', async () => {
+  it('should run every sender, then throw listing the failed channels', async () => {
     // Setup
     emailSender.supports.mockReturnValue(true);
     inAppSender.supports.mockReturnValue(true);
@@ -103,12 +103,11 @@ describe('NotificationDispatcher', () => {
     emailSender.send.mockRejectedValue(error);
     inAppSender.send.mockResolvedValue(undefined);
 
-    // Execute
-    await dispatcher.notify(basePayload);
-
-    // Assert
+    // Execute + Assert: throws so BullMQ retries, carrying only the failed channel
+    await expect(dispatcher.notify(basePayload)).rejects.toMatchObject({
+      failedChannels: [ChannelType.EMAIL],
+    });
     expect(emailSender.send).toHaveBeenCalled();
-    expect(inAppSender.send).toHaveBeenCalled(); 
-    // Should not throw
+    expect(inAppSender.send).toHaveBeenCalled();
   });
 });
