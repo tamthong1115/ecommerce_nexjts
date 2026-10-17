@@ -1,10 +1,12 @@
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-
 import { ReactNode } from 'react';
 import { AppSidebarSeller } from '@/app/(seller)/_components/sidebar/app-sidebar-seller';
 import { SiteHeaderSeller } from '@/app/(seller)/_components/sidebar/site-header-seller';
+import { requireSeller } from '@/lib/require-admin';
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export default async function AdminLayout({ children }: { children: ReactNode }) {
+  await requireSeller();
+
   return (
     <SidebarProvider
       style={

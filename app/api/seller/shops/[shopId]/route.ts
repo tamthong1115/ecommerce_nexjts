@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireSeller } from '@/lib/require-admin';
-import { ShopStatus } from '@/lib/generated/prisma';
 
 const updateShopSchema = z.object({
   name: z.string().min(1, 'Name is required').optional(),
@@ -18,7 +17,6 @@ const updateShopSchema = z.object({
   coverPublicId: z.string().nullable().optional(),
   contactEmail: z.string().email().nullable().optional(),
   contactPhone: z.string().nullable().optional(),
-  status: z.enum(ShopStatus).optional(),
 });
 
 export async function GET(

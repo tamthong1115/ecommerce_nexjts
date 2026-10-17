@@ -17,6 +17,11 @@
     "t_promotion": "Khuyến mãi",
     "t_discount": "Giảm giá trực tiếp",
     "t_total_payment": "Tổng thanh toán",
-    "t_by_action": "Mua hàng"
+    "t_by_action": "Mua hàng",
+    "add_to_cart_success": "Thêm vào giỏ hàng thành công",
+    "add_to_cart_failed": "Thêm vào giỏ hàng thất bại",
+    "update_cart_failed": "Cập nhật giỏ hàng thất bại",
+    "item_removed": "Đã xóa sản phẩm khỏi giỏ hàng",
+    "cart_cleared": "Đã làm trống giỏ hàng"
   }
 }

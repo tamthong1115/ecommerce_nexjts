@@ -2,11 +2,11 @@ import { ResponseFactory } from '@/lib/api-response';
 import { prisma } from '@/lib/db';
 import { Prisma, ShopStatus } from '@/lib/generated/prisma';
 import { sendShopStatusChangeEmail } from '@/features/notification/server/email/lib/mailer';
-import { withAuth } from '@/lib/with-auth';
+import { withAdmin } from '@/lib/with-auth';
 import { HttpStatus } from '@/types/api';
 import { NextRequest } from 'next/server';
 
-export const GET = withAuth(async (userId: string, request: NextRequest) => {
+export const GET = withAdmin(async (userId: string, request: NextRequest) => {
   const { searchParams } = new URL(request.url);
 
   const page = Number(searchParams.get('page')) || 1;
@@ -61,7 +61,7 @@ export const GET = withAuth(async (userId: string, request: NextRequest) => {
   );
 });
 
-export const PUT = withAuth(async (userId: string, request: NextRequest) => {
+export const PUT = withAdmin(async (userId: string, request: NextRequest) => {
   try {
     const body = await request.json();
     const { id, status } = body;

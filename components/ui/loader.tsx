@@ -37,3 +37,5 @@ export function AppLoader({
     </span>
   );
 }
+
+export const Loading = AppLoader;

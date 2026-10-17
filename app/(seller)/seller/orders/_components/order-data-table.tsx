@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/table';
 import { OrderDTO } from '@/types/dtos/order.dto';
 import { OrderDataTablePagination } from '@/app/(seller)/seller/orders/_components/order-table-pagination';
+import { ExportExcelButton } from '@/features/shared/components/table/export-excel-button';
 
 interface DataTableProps<TData extends OrderDTO, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -49,6 +50,13 @@ export function DataTable<TData extends OrderDTO, TValue>({
 
   return (
     <>
+      <div className="flex items-center justify-end px-4 py-2">
+        <ExportExcelButton
+          table={OrderTable}
+          filename="danh-sach-don-hang.xlsx"
+          sheetName="Đơn hàng"
+        />
+      </div>
       <div className="overflow-hidden px-4 py-2">
         <Table>
           <TableHeader>

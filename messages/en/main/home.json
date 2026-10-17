@@ -58,7 +58,8 @@
       "extensions": "Utilities",
       "promotion": "Card & E-Wallet Offers",
       "pay_top_up": "Bill Payment & Top-up",
-      "pay_later": "Buy Now, Pay Later"
+      "pay_later": "Buy Now, Pay Later",
+      "load_failed": "Failed to load categories"
     },
     "category_promotion_panel": {
       "deal_vip": "Exclusive VIP 50% Deal",

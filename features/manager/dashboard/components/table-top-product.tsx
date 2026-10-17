@@ -39,6 +39,7 @@ import { Separator } from '@/components/ui/separator';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import TabTableView from '@/features/manager/_components/tab-table-view';
+import { ExportExcelButton } from '@/features/shared/components/table/export-excel-button';
 import { fetchData } from '@/funcs/fetch';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -578,6 +579,11 @@ const TableTopProduct = () => {
             View
           </Label>
           <div className="flex items-center gap-2">
+            <ExportExcelButton
+              table={table}
+              filename="top-san-pham-ban-chay.xlsx"
+              sheetName="Top Sản phẩm"
+            />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">

@@ -34,7 +34,19 @@ export class ExcelJSAdapter implements ExcelAdapter {
     }
 
     if (schema.table && data) {
-      const tableData = data[schema.table.columns[0]?.key] || data.rows || data.items || [];
+      let tableData: unknown = null;
+      if (Array.isArray(data.rows)) {
+        tableData = data.rows;
+      } else if (Array.isArray(data.items)) {
+        tableData = data.items;
+      } else if (Array.isArray(data.data)) {
+        tableData = data.data;
+      } else if (schema.table.columns[0]?.key && Array.isArray(data[schema.table.columns[0].key])) {
+        tableData = data[schema.table.columns[0].key];
+      } else {
+        tableData = Object.values(data).find(Array.isArray) || [];
+      }
+
       if (Array.isArray(tableData)) {
         writeTable(ws, tableData as Record<string, unknown>[], schema.table, options?.columnWidths);
       }

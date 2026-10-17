@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db';
 import { GetOrderStatsInput, OrderStatsResult } from '../types/order.dto';
 import { getCurrentUserId } from '@/lib/auth';
 import { $Enums, Prisma } from '@/lib/generated/prisma';
+import { releaseRedemptions } from '@/features/promotion/services/redemption.service';
 import PaymentStatus = $Enums.PaymentStatus;
 import OrderStatus = $Enums.OrderStatus;
 import QueryMode = Prisma.QueryMode;
@@ -136,6 +137,10 @@ export const updateSellerOrderStatus = async (
     where: { id: orderId },
     data: { status: newStatus },
   });
+
+  if (newStatus === OrderStatus.CANCELED) {
+    await releaseRedemptions(prisma, { orderId });
+  }
 
   return updatedOrder;
 };

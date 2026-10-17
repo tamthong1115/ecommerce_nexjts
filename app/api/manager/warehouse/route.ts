@@ -1,11 +1,11 @@
 import { ResponseFactory } from '@/lib/api-response';
 import { prisma } from '@/lib/db';
 import { Prisma, Region, WarehouseStatus } from '@/lib/generated/prisma';
-import { withAuth } from '@/lib/with-auth';
+import { withAdmin } from '@/lib/with-auth';
 import { HttpStatus } from '@/types/api';
 import { NextRequest } from 'next/server';
 
-export const GET = withAuth(async (userId: string, request: NextRequest) => {
+export const GET = withAdmin(async (userId: string, request: NextRequest) => {
   try {
     if (!userId) {
       return ResponseFactory.toNextResponse(
@@ -75,7 +75,7 @@ export const GET = withAuth(async (userId: string, request: NextRequest) => {
   }
 });
 
-export const POST = withAuth(async (userId: string, request: NextRequest) => {
+export const POST = withAdmin(async (userId: string, request: NextRequest) => {
   try {
     if (!userId) {
       return ResponseFactory.toNextResponse(
@@ -167,7 +167,7 @@ export const POST = withAuth(async (userId: string, request: NextRequest) => {
   }
 });
 
-export const DELETE = withAuth(async (userId: string, request: NextRequest) => {
+export const DELETE = withAdmin(async (userId: string, request: NextRequest) => {
   try {
     if (!userId) {
       return ResponseFactory.toNextResponse(
@@ -229,7 +229,7 @@ export const DELETE = withAuth(async (userId: string, request: NextRequest) => {
   }
 });
 
-export const PATCH = withAuth(async (userId: string, request: NextRequest) => {
+export const PATCH = withAdmin(async (userId: string, request: NextRequest) => {
   try {
     if (!userId) {
       return ResponseFactory.toNextResponse(

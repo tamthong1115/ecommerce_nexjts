@@ -144,6 +144,39 @@ export function MultiUploader({
     }
   };
 
+  const renderItemContent = (file: FileItem) => {
+    if (file.uploading) {
+      return (
+        <RenderUploadingState
+          progress={file.progress}
+          file={{} as File}
+        />
+      );
+    }
+
+    if (file.error) {
+      return <div className="p-2 text-red-500 text-center text-sm">Error</div>;
+    }
+
+    return (
+      <>
+        <Image
+          fill
+          src={file.url}
+          alt={file.publicId}
+          className="object-cover"
+        />
+        <button
+          type="button"
+          onClick={() => removeFile(file)}
+          className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition"
+        >
+          <Trash2 size={16} />
+        </button>
+      </>
+    );
+  };
+
   return (
     <div className="space-y-4">
       <div className="text-sm text-muted-foreground">
@@ -156,30 +189,7 @@ export function MultiUploader({
             key={i}
             className="relative group border rounded overflow-hidden h-32"
           >
-            {file.uploading ? (
-              <RenderUploadingState
-                progress={file.progress}
-                file={{} as File}
-              />
-            ) : file.error ? (
-              <div className="p-2 text-red-500 text-center text-sm">Error</div>
-            ) : (
-              <>
-                <Image
-                  fill
-                  src={file.url}
-                  alt={file.publicId}
-                  className="object-cover"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeFile(file)}
-                  className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </>
-            )}
+            {renderItemContent(file)}
           </div>
         ))}
 

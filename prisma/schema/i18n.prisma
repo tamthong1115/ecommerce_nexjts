@@ -1,0 +1,124 @@
+enum KeySource {
+  CODE
+  DB
+}
+
+enum KeyStatus {
+  ACTIVE
+  DEPRECATED
+}
+
+enum TranslationTier {
+  SHARED
+  FEATURE
+}
+
+enum UiKind {
+  BUTTON
+  LABEL
+  TITLE
+  MESSAGE
+  ERROR
+  HELP
+}
+
+enum TranslationValueStatus {
+  DRAFT
+  PUBLISHED
+  NEEDS_REVIEW
+}
+
+enum RevisionAction {
+  UPDATE
+  PUBLISH
+  ROLLBACK
+  IMPORT
+  RESET
+}
+
+model TranslationKey {
+  id          String          @id @default(uuid()) @db.Uuid
+  namespace   String
+  key         String
+  description String?
+  source      KeySource       @default(CODE)
+  status      KeyStatus       @default(ACTIVE)
+  tier        TranslationTier @default(FEATURE)
+  kind        UiKind          @default(MESSAGE)
+  maxLength   Int?
+  params      String[]        @default([])
+  usage       Json?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  values TranslationValue[]
+
+  @@unique([namespace, key])
+  @@index([namespace])
+  @@index([tier])
+  @@index([status])
+  @@map("translation_key")
+}
+
+model TranslationValue {
+  id             String                 @id @default(uuid()) @db.Uuid
+  keyId          String                 @db.Uuid
+  locale         String
+  value          String                 @db.Text
+  baseValue      String?                @db.Text
+  status         TranslationValueStatus @default(PUBLISHED)
+  publishedValue String?                @db.Text
+  updatedById    String?                @db.Uuid
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  key       TranslationKey        @relation(fields: [keyId], references: [id], onDelete: Cascade)
+  revisions TranslationRevision[]
+
+  @@unique([keyId, locale])
+  @@index([locale, status])
+  @@map("translation_value")
+}
+
+model TranslationRevision {
+  id        String         @id @default(uuid()) @db.Uuid
+  valueId   String         @db.Uuid
+  oldValue  String?        @db.Text
+  newValue  String         @db.Text
+  action    RevisionAction @default(UPDATE)
+  actorId   String?        @db.Uuid
+  createdAt DateTime       @default(now())
+
+  value TranslationValue @relation(fields: [valueId], references: [id], onDelete: Cascade)
+
+  @@index([valueId])
+  @@index([createdAt])
+  @@map("translation_revision")
+}
+
+model GlossaryTerm {
+  id        String   @id @default(uuid()) @db.Uuid
+  locale    String
+  term      String
+  preferred String
+  forbidden String[] @default([])
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([locale, term])
+  @@index([locale])
+  @@map("glossary_term")
+}
+
+model SupportedLocale {
+  code      String   @id
+  name      String
+  enabled   Boolean  @default(true)
+  fallback  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("supported_locale")
+}
+

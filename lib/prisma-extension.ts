@@ -2,7 +2,7 @@ import { Prisma } from '@prisma/client';
 import { getTraceContext } from './request-context';
 
 const AUDITED_MODELS = ['Shop', 'Product', 'Order', 'Category', 'Voucher', 'Warehouse', 'User'];
-const SOFT_DELETE_MODELS = ['Shop', 'Product', 'User'];
+const SOFT_DELETE_MODELS = ['Shop', 'Product', 'Address'];
 const AUDIT_FIELDS_MODELS = ['Shop', 'Product'];
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

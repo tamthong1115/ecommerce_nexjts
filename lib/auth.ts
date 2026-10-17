@@ -101,8 +101,11 @@ export const auth = betterAuth({
     emailOTP({
       async sendVerificationOTP({ email, otp }) {
 
-        if (devConfig.mockEmails) {
-          console.log('Verification OTP:', otp);
+        if (devConfig.mockEmails || devConfig.mockOtp) {
+          console.log('\n========================================');
+          console.log(`[MOCK OTP] Email: ${email}`);
+          console.log(`[MOCK OTP] CODE:  ${otp}`);
+          console.log('========================================\n');
           return;
         }
         await sendNotification({

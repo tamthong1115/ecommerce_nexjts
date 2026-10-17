@@ -267,13 +267,20 @@ export const disableVoucherService = async (
     throw new ServiceError('Voucher not found', 404);
   }
 
-  const isOwner = voucher.shopId === null;
-  const isMember =
+  const isPlatformVoucher = voucher.shopId === null;
+  const isShopMember =
     voucher.shop && voucher.shop.members && voucher.shop.members.length > 0;
 
-  if (!isAdmin && !isOwner && !isMember) {
+  if (isPlatformVoucher) {
+    if (!isAdmin) {
+      throw new ServiceError(
+        'You do not have permission to disable platform vouchers',
+        403
+      );
+    }
+  } else if (!isAdmin && !isShopMember) {
     throw new ServiceError(
-      'You do not have permission to disable this voucher',
+      'You do not have permission to disable this shop voucher',
       403
     );
   }

@@ -132,6 +132,47 @@ export function SortableTable<TData>({
   const isRefetching = loading && rowCount > 0;
   const skeletonRowCount = Math.min(table.getState().pagination?.pageSize || 5, 8);
 
+  const renderTableBodyRows = () => {
+    if (isInitialLoading) {
+      return Array.from({ length: skeletonRowCount }).map((_, rowIndex) => (
+        <TableRow key={`skeleton-row-${rowIndex}`}>
+          {columns.map((_, colIndex) => (
+            <TableCell key={`skeleton-col-${colIndex}`} className="py-3">
+              <Skeleton className="h-5 w-full max-w-[85%]" />
+            </TableCell>
+          ))}
+        </TableRow>
+      ));
+    }
+
+    if (rowCount === 0) {
+      return (
+        <TableRow>
+          <TableCell
+            colSpan={columns.length}
+            className="h-24 text-center text-muted-foreground"
+          >
+            {emptyMessage}
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    const RowComponent = CustomDraggableRow || DraggableTableRow;
+
+    return (
+      <SortableContext items={dataIds} strategy={verticalListSortingStrategy}>
+        {table.getRowModel().rows.map((row) => (
+          <RowComponent
+            key={row.id}
+            row={row}
+            enableDragAndDrop={isDndEnabled}
+          />
+        ))}
+      </SortableContext>
+    );
+  };
+
   return (
     <>
       <div className="relative overflow-hidden rounded-lg border">
@@ -174,48 +215,7 @@ export function SortableTable<TData>({
                 isRefetching && 'opacity-60 transition-opacity pointer-events-none'
               )}
             >
-              {/* Skeleton Rows on initial load (prevents layout shift) */}
-              {isInitialLoading ? (
-                Array.from({ length: skeletonRowCount }).map((_, rowIndex) => (
-                  <TableRow key={`skeleton-row-${rowIndex}`}>
-                    {columns.map((_, colIndex) => (
-                      <TableCell key={`skeleton-col-${colIndex}`} className="py-3">
-                        <Skeleton className="h-5 w-full max-w-[85%]" />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : rowCount !== 0 ? (
-                <SortableContext
-                  items={dataIds}
-                  strategy={verticalListSortingStrategy}
-                >
-                  {table.getRowModel().rows.map((row) =>
-                    CustomDraggableRow ? (
-                      <CustomDraggableRow
-                        key={row.id}
-                        row={row}
-                        enableDragAndDrop={isDndEnabled}
-                      />
-                    ) : (
-                      <DraggableTableRow
-                        key={row.id}
-                        row={row}
-                        enableDragAndDrop={isDndEnabled}
-                      />
-                    )
-                  )}
-                </SortableContext>
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center text-muted-foreground"
-                  >
-                    {emptyMessage}
-                  </TableCell>
-                </TableRow>
-              )}
+              {renderTableBodyRows()}
             </TableBody>
           </Table>
         </DndContext>

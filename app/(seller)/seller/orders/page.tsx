@@ -116,26 +116,49 @@ export default function SellerOrderPage() {
         if (date) params.append('date', date.toString()); //Date params ?date=...
         if (shopId !== 'all') params.append('shopId', shopId); //Shop params ?shopId=...
 
-        const res = await fetchApi<OrderResponseData>(
+        const res = await fetchApi<OrderDTO[]>(
           `/api/seller/orders?${params.toString()}`,
           {
             cache: 'no-store',
           }
         );
 
-        if (res.success && res.data) {
-          const {
-            orders: newOrders,
-            pagination: newPagination,
-            nextCursor: newCursor,
-          } = res.data;
-          setOrders((prev) => (isNewTab ? newOrders : [...prev, ...newOrders]));
-          // setNextCursor(res.data.nextCursor);
-          // setHasMore(!!res.data.nextCursor);
-          setPageCount(newPagination.totalPages);
+        if (!res.success || !res.data) {
+          if (isNewTab) {
+            setOrders([]);
+          }
+          setPageCount(0);
+          setHasMore(false);
+          return;
+        }
+
+        let incomingOrders: OrderDTO[] = [];
+        if (Array.isArray(res.data)) {
+          incomingOrders = res.data;
+        } else if ((res.data as any).orders) {
+          incomingOrders = (res.data as any).orders;
+        }
+
+        if (isNewTab) {
+          setOrders(incomingOrders);
+        } else {
+          setOrders((prev) => [...prev, ...incomingOrders]);
+        }
+
+        const paginationMeta =
+          res.meta?.pagination ?? (res.data as any)?.pagination;
+        if (paginationMeta) {
+          setPageCount(paginationMeta.totalPages);
+          setHasMore(paginationMeta.hasNextPage);
+        } else {
+          setPageCount(0);
+          setHasMore(false);
         }
       } catch (error) {
         console.error('Failed to fetch orders', error);
+        if (isNewTab) {
+          setOrders([]);
+        }
       } finally {
         setIsLoading(false);
         setIsInitialLoad(false);
@@ -207,6 +230,76 @@ export default function SellerOrderPage() {
     },
     [isLoading, hasMore, nextCursor, fetchOrders]
   );
+
+  const renderOrdersContent = () => {
+    if (isInitialLoad) {
+      return (
+        <div className="flex flex-col items-center justify-center py-20 gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-muted-foreground font-medium">
+            Đang tải dữ liệu...
+          </p>
+        </div>
+      );
+    }
+
+    if (orders.length === 0) {
+      return (
+        <div className="py-10 bg-card rounded-xl border border-dashed border-border">
+          <EmptyState
+            imageSrc="/empty-order.png"
+            title="Chưa có đơn hàng nào ở trạng thái này"
+          />
+        </div>
+      );
+    }
+
+    if (activeTab === 'ALL') {
+      return (
+        <div className="bg-background-secondary border-border border-2 rounded-lg">
+          <DataTable
+            columns={columns(t, handleRefresh)}
+            data={orders}
+            pageCount={pageCount}
+            pagination={pagination}
+            onPaginationChange={setPagination}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {orders.map((order, index) => {
+          const isLastElement = orders.length === index + 1;
+          return (
+            <div
+              key={order.id}
+              ref={isLastElement ? lastOrderElementRef : null}
+            >
+              <SellerOrderCard
+                order={order}
+                t={t}
+                onUpdateSuccess={handleRefresh}
+              />
+            </div>
+          );
+        })}
+
+        {isLoading && (
+          <div className="py-4 flex justify-center">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
+        )}
+
+        {!hasMore && (
+          <p className="text-center text-sm text-muted-foreground py-4">
+            Đã hiển thị hết đơn hàng.
+          </p>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="p-6 w-full max-w-6xl mx-auto">
@@ -336,65 +429,7 @@ export default function SellerOrderPage() {
 
           {/* Data */}
           <TabsContent value={activeTab} className=" mt-3 w-full space-y-6">
-            {isInitialLoad && (
-              <div className="flex flex-col items-center justify-center py-20 gap-3">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                <p className="text-muted-foreground font-medium">
-                  Đang tải dữ liệu...
-                </p>
-              </div>
-            )}
-
-            {activeTab === 'ALL' && !isInitialLoad && orders.length > 0 ? (
-              <div className="bg-background-secondary border-border border-2 rounded-lg">
-                <DataTable
-                  columns={columns(t, handleRefresh)}
-                  data={orders as OrderDTO[]}
-                  pageCount={pageCount}
-                  pagination={pagination}
-                  onPaginationChange={setPagination}
-                />
-              </div>
-            ) : !isInitialLoad && orders.length > 0 ? (
-              <div className="space-y-4">
-                {orders.map((order, index) => {
-                  const isLastElement = orders.length === index + 1;
-                  return (
-                    <div
-                      key={order.id}
-                      ref={isLastElement ? lastOrderElementRef : null}
-                    >
-                      <SellerOrderCard
-                        order={order}
-                        t={t}
-                        onUpdateSuccess={handleRefresh}
-                      />
-                    </div>
-                  );
-                })}
-
-                {isLoading && (
-                  <div className="py-4 flex justify-center">
-                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                  </div>
-                )}
-
-                {!hasMore && (
-                  <p className="text-center text-sm text-muted-foreground py-4">
-                    Đã hiển thị hết đơn hàng.
-                  </p>
-                )}
-              </div>
-            ) : (
-              !isInitialLoad && (
-                <div className="py-10 bg-card rounded-xl border border-dashed border-border">
-                  <EmptyState
-                    imageSrc="/empty-order.png"
-                    title="Chưa có đơn hàng nào ở trạng thái này"
-                  />
-                </div>
-              )
-            )}
+            {renderOrdersContent()}
           </TabsContent>
         </Tabs>
       </div>

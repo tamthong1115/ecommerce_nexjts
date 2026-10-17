@@ -36,7 +36,7 @@ export async function updateProfileAction(formData: FormData) {
 
     // revalidate by role
     const session = await getSessionUser();
-    const role = session?.user?.role?.toUpperCase?.();
+    const role = session?.user?.role?.toLowerCase?.();
 
     if (role === Role.admin) {
       revalidatePath(paths.manager.account.edit);

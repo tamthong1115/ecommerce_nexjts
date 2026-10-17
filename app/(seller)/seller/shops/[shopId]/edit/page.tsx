@@ -28,6 +28,7 @@ import { toast } from 'sonner';
 import { ShopStatus } from '@/lib/generated/prisma';
 import { Loader } from 'lucide-react';
 import { Uploader } from '@/features/shared/components/file-uploader/uploader';
+import { useTranslations } from 'next-intl';
 
 const editShopSchema = z.object({
   name: z.string().min(1, 'Name is required').max(200),
@@ -55,6 +56,7 @@ export default function EditShopPage() {
   const router = useRouter();
   const params = useParams();
   const shopId = params.shopId as string;
+  const t = useTranslations('seller');
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -120,10 +122,10 @@ export default function EditShopPage() {
         throw new Error(error.error || 'Update failed');
       }
 
-      toast.success('Shop updated successfully');
+      toast.success(t('shop_settings.update_success'));
       router.push('/seller/shops');
     } catch (err: any) {
-      toast.error(err.message || 'Failed to update shop');
+      toast.error(err.message || t('shop_settings.update_failed'));
     } finally {
       setSubmitting(false);
     }
@@ -134,7 +136,7 @@ export default function EditShopPage() {
       <Card className="mx-auto max-w-3xl mt-8">
         <CardContent className="py-10 text-center flex items-center justify-center gap-2">
           <Loader className="size-4 animate-spin" />
-          Loading shop details...
+          {t('shop_settings.load_failed')}
         </CardContent>
       </Card>
     );

@@ -2,8 +2,11 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { ReactNode } from 'react';
 import AppSidebarServer from '../../features/manager/_components/app-sidebar-server';
 import { SiteHeader } from '../../features/manager/_components/site-header';
+import { requireAdmin } from '@/lib/require-admin';
 
-export default function Layout({ children }: { children: ReactNode }) {
+export default async function Layout({ children }: { children: ReactNode }) {
+  await requireAdmin();
+
   return (
     <SidebarProvider
       style={

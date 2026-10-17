@@ -13,17 +13,19 @@ import Currency = $Enums.Currency;
 import redisClient from '@/lib/redis';
 import { Decimal } from '@/lib/generated/prisma/runtime/client';
 
-export async function POST(req: NextRequest) {
-  const localIntent: { id: string } | null = null;
+import { withAuth } from '@/lib/with-auth';
+import { env } from '@/lib/env';
+
+export const POST = withAuth(async (userId: string, req: NextRequest) => {
   try {
     const { orderIds } = await req.json();
-    const origin = process.env.NEXT_PUBLIC_BASE_URL!;
+    const origin = env.NEXT_PUBLIC_BASE_URL;
 
     const order = await getOrdersCanPay(orderIds);
 
-    if (order.length === 0) {
+    if (order.length === 0 || order.some((o) => o.userId !== userId)) {
       return ResponseFactory.toNextResponse(
-        ResponseFactory.error({ message: 'Order Not Found', code: 400 })
+        ResponseFactory.error({ message: 'Order Not Found', code: 404 })
       );
     }
 
@@ -85,5 +87,14 @@ export async function POST(req: NextRequest) {
       currency: Currency.USD,
       expiresAt: expiresAt,
     });
-  } catch (error) {}
-}
+
+    return ResponseFactory.toNextResponse(
+      ResponseFactory.success({
+        data: { url: session.url },
+        message: 'Payment session created',
+      })
+    );
+  } catch (error) {
+    return ResponseFactory.toNextResponse(ResponseFactory.handleError(error));
+  }
+});

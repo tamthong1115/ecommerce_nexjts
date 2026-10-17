@@ -18,9 +18,17 @@
   },
 
   "not_found_page": {
+    "not_found": "Trang không tồn tại",
+    "desc": "Trang mà bạn đang tìm kiếm không tồn tại nữa!.",
+    "return": "Quay lại",
     "t_not_found": "Trang không tồn tại",
     "t_desc": "Trang mà bạn đang tìm kiếm không tồn tại nữa!.",
     "t_return": "Quay lại"
+  },
+  "unauthorized_page": {
+    "title": "Truy cập bị từ chối (403)",
+    "desc": "Tài khoản của bạn không có quyền hạn cần thiết để truy cập khu vực này. Vui lòng liên hệ quản trị viên hoặc sử dụng tài khoản phù hợp.",
+    "return_home": "Về trang chủ"
   },
 
   "footer": {

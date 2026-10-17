@@ -128,6 +128,14 @@ export class ResponseFactory {
       });
     }
 
+    if (error && typeof error === 'object' && 'name' in error && (error.name === 'ForbiddenError' || error.name === 'UnauthorizedError' || error.name === 'AuthzError')) {
+      const authzErr = error as unknown as { message: string; statusCode?: number };
+      return ResponseFactory.error({
+        message: authzErr.message,
+        code: (authzErr.statusCode as any) || HttpStatus.FORBIDDEN,
+      });
+    }
+
     if (error instanceof ZodError) {
       return ResponseFactory.error({
         message: 'Validation Error',

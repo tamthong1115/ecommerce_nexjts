@@ -40,7 +40,8 @@
     "t_of": "of",
     "t_rows_selected": "rows selected.",
     "t_rows_per_page": "Rows per page",
-    "t_page": "Page"
+    "t_page": "Page",
+    "t_no_product_found": "Không có dữ liệu."
   },
   "admin_search_bar": {
     "t_search_action": "Search",
@@ -50,6 +51,7 @@
     "t_title": "Title",
     "t_shopId": "Shop ID",
     "t_ownerId": "Owner ID",
-    "t_email": "Email"
+    "t_email": "Email",
+    "t_region": "Vùng"
   }
 }

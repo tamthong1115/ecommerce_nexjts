@@ -115,18 +115,29 @@ export function readTable(
 }
 
 function writeCellValue(cell: Cell, value: unknown, type?: EType): void {
+  if (value === undefined || value === null || value === '') {
+    cell.value = '';
+    return;
+  }
+
   if (type === EType.FORMULA) {
     cell.value = { formula: String(value) };
     return;
   }
   
   if (value instanceof Date || type === EType.DATE) {
-    cell.value = value instanceof Date ? value : new Date(String(value));
+    if (value instanceof Date) {
+      cell.value = value;
+      return;
+    }
+    const parsed = new Date(String(value));
+    cell.value = isNaN(parsed.getTime()) ? String(value) : parsed;
     return;
   }
   
   if (type === EType.NUMBER || typeof value === 'number') {
-    cell.value = Number(value);
+    const num = Number(value);
+    cell.value = isNaN(num) ? String(value) : num;
     return;
   }
   

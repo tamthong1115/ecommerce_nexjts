@@ -1,4 +1,4 @@
-import { $Enums } from '@prisma/client';
+import { $Enums } from '@/lib/generated/prisma';
 import VoucherType = $Enums.VoucherType;
 
 export interface RecommendResponseDTO {

@@ -343,34 +343,32 @@ function TableCellViewer({
                 <div className="flex flex-col gap-3">
                   <Label htmlFor="visibility">{t('t_icon')}</Label>
                   <div className="flex flex-row gap-2 justify-start items-center">
-                    {detail && detail.imageUrl !== null ? (
-                      <Image
-                        src={detail.imageUrl}
-                        alt="icon"
-                        width={30}
-                        height={30}
-                      />
-                    ) : previewUrl ? (
-                      <Image
-                        src={previewUrl}
-                        alt="icon"
-                        width={30}
-                        height={30}
-                      />
-                    ) : (
-                      <p className="italic">{t('t_empty')}</p>
-                    )}
+                    {(() => {
+                      const iconSrc = previewUrl || detail?.imageUrl;
+                      if (iconSrc) {
+                        return (
+                          <Image
+                            src={iconSrc}
+                            alt="icon"
+                            width={30}
+                            height={30}
+                          />
+                        );
+                      }
+                      return <p className="italic">{t('t_empty')}</p>;
+                    })()}
                     <Button
                       type="button"
                       onClick={() =>
                         document.getElementById('input-image-file')?.click()
                       }
                     >
-                      {previewUrl
-                        ? t('t_change')
-                        : detail?.imageUrl && detail?.imageUrl.length
-                          ? t('t_change')
-                          : t('t_add')}
+                      {(() => {
+                        if (previewUrl || (detail?.imageUrl && detail.imageUrl.length > 0)) {
+                          return t('t_change');
+                        }
+                        return t('t_add');
+                      })()}
                     </Button>
 
                     <FormField

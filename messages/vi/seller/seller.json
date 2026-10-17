@@ -74,6 +74,11 @@
           "percent": "Phần trăm"
         }
       }
+    },
+    "shop_settings": {
+      "update_success": "Cập nhật thông tin cửa hàng thành công",
+      "update_failed": "Cập nhật cửa hàng thất bại",
+      "load_failed": "Không thể tải thông tin cửa hàng"
     }
   }
 }

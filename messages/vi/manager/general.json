@@ -51,6 +51,7 @@
     "t_of": "của",
     "t_rows_selected": "số dòng đã chọn.",
     "t_rows_per_page": "Dòng mỗi trang",
-    "t_page": "Trang"
+    "t_page": "Trang",
+    "t_no_category_found": "No categories found"
   }
 }

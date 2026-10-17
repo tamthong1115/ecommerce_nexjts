@@ -49,6 +49,7 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 import SearchBar from '../../../features/manager/_components/search-bar';
 import TabTableView from '../../../features/manager/_components/tab-table-view';
+import { ExportExcelButton } from '@/features/shared/components/table/export-excel-button';
 import { useUserColumns } from '@/features/manager/users/components/columns';
 
 const UsersPage = () => {
@@ -196,6 +197,11 @@ const UsersPage = () => {
             <TabsTrigger value="all-banned">{t('t_tab_banned')}</TabsTrigger>
           </TabsList>
           <div className="flex items-center gap-2">
+            <ExportExcelButton
+              table={table}
+              filename="danh-sach-nguoi-dung.xlsx"
+              sheetName="Người dùng"
+            />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button

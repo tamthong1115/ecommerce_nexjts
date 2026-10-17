@@ -1,0 +1,191 @@
+enum PromotionKind {
+  PERCENT_OFF
+  FIXED_OFF
+  SHIPPING_OFF
+  TIERED
+  GIFT
+  PRICE_OVERRIDE
+}
+
+enum PromotionTarget {
+  ITEM
+  SHOP_ORDER
+  CART
+  SHIPPING
+}
+
+enum SponsorType {
+  PLATFORM
+  SHOP
+  SPLIT
+}
+
+enum OwnerType {
+  PLATFORM
+  SHOP
+}
+
+enum StackMode {
+  EXCLUSIVE
+  STACKABLE
+}
+
+enum PromotionStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ENDED
+}
+
+enum RedemptionStatus {
+  RESERVED
+  COMMITTED
+  RELEASED
+}
+
+model Promotion {
+  id               String          @id @default(uuid()) @db.Uuid
+  code             String?         @unique
+  name             String
+  description      String?
+  kind             PromotionKind
+  target           PromotionTarget
+  ownerType        OwnerType
+  shopId           String?         @db.Uuid
+  sponsor          SponsorType     @default(SHOP)
+  platformSharePct Int             @default(0)
+
+  requiresCode     Boolean         @default(false)
+  startAt          DateTime
+  endAt            DateTime
+  status           PromotionStatus @default(ACTIVE)
+
+  minSubtotal      Decimal?        @db.Decimal(14, 2)
+  minQuantity      Int?
+  currency         Currency        @default(VND)
+
+  percentage       Decimal?        @db.Decimal(5, 2)
+  fixedAmount      Decimal?        @db.Decimal(14, 2)
+  maxDiscount      Decimal?        @db.Decimal(14, 2)
+  overridePrice    Decimal?        @db.Decimal(14, 2)
+
+  usageLimit       Int?
+  usedCount        Int             @default(0)
+  perUserLimit     Int?            @default(1)
+  budget           Decimal?        @db.Decimal(14, 2)
+  usedBudget       Decimal         @default(0) @db.Decimal(14, 2)
+  stockLimit       Int?
+  usedStock        Int             @default(0)
+
+  stackMode        StackMode       @default(STACKABLE)
+  stackGroupId     String?         @db.Uuid
+  priority         Int             @default(100)
+  reducesTaxBase   Boolean         @default(true)
+
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  shop             Shop?           @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  stackGroup       PromotionGroup? @relation(fields: [stackGroupId], references: [id])
+  tiers            PromotionTier[]
+  gifts            PromotionGift[]
+  scopes           PromotionScope[]
+  redemptions      PromotionRedemption[]
+  applications     PromotionApplication[]
+
+  @@index([status, startAt, endAt])
+  @@index([ownerType, shopId])
+  @@map("promotion")
+}
+
+model PromotionGroup {
+  id          String      @id @default(uuid()) @db.Uuid
+  name        String
+  maxApplied  Int         @default(1)
+  promotions  Promotion[]
+
+  @@map("promotion_group")
+}
+
+model PromotionScope {
+  id           String    @id @default(uuid()) @db.Uuid
+  promotionId  String    @db.Uuid
+  scopeType    String
+  targetId     String    @db.Uuid
+  isExcluded   Boolean   @default(false)
+
+  promotion    Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+
+  @@index([promotionId, scopeType, targetId])
+  @@map("promotion_scope")
+}
+
+model PromotionTier {
+  id           String    @id @default(uuid()) @db.Uuid
+  promotionId  String    @db.Uuid
+  from         Decimal   @db.Decimal(14, 2)
+  to           Decimal?  @db.Decimal(14, 2)
+  benefitType  String
+  value        Decimal   @db.Decimal(14, 2)
+  maxDiscount  Decimal?  @db.Decimal(14, 2)
+
+  promotion    Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+
+  @@map("promotion_tier")
+}
+
+model PromotionGift {
+  id                  String    @id @default(uuid()) @db.Uuid
+  promotionId         String    @db.Uuid
+  triggerMinSubtotal  Decimal?  @db.Decimal(14, 2)
+  giftVariantId       String    @db.Uuid
+  giftQty             Int       @default(1)
+  maxGiftsPerOrder    Int?
+
+  promotion           Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+
+  @@map("promotion_gift")
+}
+
+model PromotionRedemption {
+  id           String           @id @default(uuid()) @db.Uuid
+  promotionId  String           @db.Uuid
+  userId       String           @db.Uuid
+  orderId      String?          @db.Uuid
+  orderDraftId String?          @db.Uuid
+  status       RedemptionStatus @default(RESERVED)
+  reservedAt   DateTime         @default(now())
+  committedAt  DateTime?
+  releasedAt   DateTime?
+
+  promotion    Promotion        @relation(fields: [promotionId], references: [id], onDelete: Restrict)
+  order        Order?           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([promotionId, orderId, userId])
+  @@index([userId, status])
+  @@map("promotion_redemption")
+}
+
+model PromotionApplication {
+  id            String      @id @default(uuid()) @db.Uuid
+  promotionId   String      @db.Uuid
+  orderId       String?     @db.Uuid
+  orderDraftId  String?     @db.Uuid
+  orderItemId   String?     @db.Uuid
+  shopId        String?     @db.Uuid
+  amount        Decimal     @db.Decimal(14, 2)
+  sponsor       SponsorType
+  platformShare Decimal     @default(0) @db.Decimal(14, 2)
+  shopShare     Decimal     @default(0) @db.Decimal(14, 2)
+  snapshot      Json?
+
+  promotion     Promotion   @relation(fields: [promotionId], references: [id])
+  order         Order?      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderDraft    OrderDraft? @relation(fields: [orderDraftId], references: [id], onDelete: Cascade)
+  orderItem     OrderItem?  @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([orderDraftId])
+  @@map("promotion_application")
+}

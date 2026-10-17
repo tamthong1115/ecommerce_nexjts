@@ -2,11 +2,11 @@ import { ResponseFactory } from '@/lib/api-response';
 import { deleteFromCloudinary, uploadToCloudinary } from '@/lib/cloudinary';
 import { prisma } from '@/lib/db';
 import { Prisma } from '@/lib/generated/prisma';
-import { withAuth } from '@/lib/with-auth';
+import { withAdmin } from '@/lib/with-auth';
 import { HttpStatus } from '@/types/api'; // Updated import
 import { NextRequest } from 'next/server';
 
-export const GET = withAuth(async (userId: string, request: NextRequest) => {
+export const GET = withAdmin(async (userId: string, request: NextRequest) => {
   try {
     const searchParams = request.nextUrl.searchParams;
 
@@ -57,7 +57,7 @@ export const GET = withAuth(async (userId: string, request: NextRequest) => {
   }
 });
 
-export const POST = withAuth(async (userId: string, request: NextRequest) => {
+export const POST = withAdmin(async (userId: string, request: NextRequest) => {
   try {
     const formData = await request.formData();
     const file = formData.get('image') as File | null;
@@ -130,7 +130,7 @@ export const POST = withAuth(async (userId: string, request: NextRequest) => {
   }
 });
 
-export const PUT = withAuth(async (userId: string, request: NextRequest) => {
+export const PUT = withAdmin(async (userId: string, request: NextRequest) => {
   try {
     const formData = await request.formData();
     const id = formData.get('id') as string;
@@ -198,7 +198,7 @@ export const PUT = withAuth(async (userId: string, request: NextRequest) => {
   }
 });
 
-export const DELETE = withAuth(async (userId: string, request: NextRequest) => {
+export const DELETE = withAdmin(async (userId: string, request: NextRequest) => {
   try {
     const searchParams = request.nextUrl.searchParams;
     const categoryId = searchParams.get('id');

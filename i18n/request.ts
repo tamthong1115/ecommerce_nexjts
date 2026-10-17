@@ -31,32 +31,16 @@ const MESSAGE_DOMAINS = [
   'manager/statistic',
   'manager/user',
   'manager/warehouse',
+  'manager/access',
+  'manager/i18n',
   'seller/seller',
 ] as const;
 
-async function loadMessagesForLocale(locale: Locale): Promise<Record<string, unknown>> {
-  const loadedModules = await Promise.all(
-    MESSAGE_DOMAINS.map(async (domain) => {
-      try {
-        const mod = await import(`../messages/${locale}/${domain}.json`);
-        return mod.default;
-      } catch {
-        try {
-          const fallbackMod = await import(`../messages/${defaultLocale}/${domain}.json`);
-          return fallbackMod.default;
-        } catch {
-          return {};
-        }
-      }
-    })
-  );
-
-  return Object.assign({}, ...loadedModules);
-}
+import { loadMessages } from '@/lib/i18n/load';
 
 export default getRequestConfig(async () => {
   const locale = await getUserLocale();
-  const messages = await loadMessagesForLocale(locale);
+  const messages = await loadMessages(locale);
 
   return {
     locale,

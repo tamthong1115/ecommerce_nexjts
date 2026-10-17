@@ -8,10 +8,29 @@ import { prisma } from '@/lib/db';
 import PaymentStatus = $Enums.PaymentStatus;
 import Currency = $Enums.Currency;
 import { Decimal } from '@prisma/client-runtime-utils';
+import { withAuth } from '@/lib/with-auth';
+import { env } from '@/lib/env';
 
-export async function POST(req: NextRequest) {
+export const POST = withAuth(async (userId: string, req: NextRequest) => {
   try {
     const { draftId } = await req.json();
+
+    if (!draftId) {
+      return ResponseFactory.toNextResponse(
+        ResponseFactory.error({ message: 'Missing draftId', code: 400 })
+      );
+    }
+
+    const draft = await prisma.orderDraft.findFirst({
+      where: { id: draftId, userId },
+      select: { id: true },
+    });
+
+    if (!draft) {
+      return ResponseFactory.toNextResponse(
+        ResponseFactory.error({ message: 'Draft not found or access denied', code: 404 })
+      );
+    }
 
     const result = await createOrder(prisma, draftId);
     if (!result.success) {
@@ -48,7 +67,7 @@ export async function POST(req: NextRequest) {
     return ResponseFactory.toNextResponse(
       ResponseFactory.success({
         data: {
-          url: `${process.env.NEXT_PUBLIC_BASE_URL!}/success`,
+          url: `${env.NEXT_PUBLIC_BASE_URL}/success`,
         },
       })
     );
@@ -61,4 +80,4 @@ export async function POST(req: NextRequest) {
       })
     );
   }
-}
+});

@@ -1,11 +1,11 @@
 import { ResponseFactory } from '@/lib/api-response';
 import { prisma } from '@/lib/db';
 import { Prisma, Visibility } from '@/lib/generated/prisma';
-import { withAuth } from '@/lib/with-auth';
+import { withAdmin } from '@/lib/with-auth';
 import { NextRequest } from 'next/server';
 import { HttpStatus } from '@/types/api';
 
-export const GET = withAuth(async (userId: string, request: NextRequest) => {
+export const GET = withAdmin(async (userId: string, request: NextRequest) => {
   const { searchParams } = new URL(request.url);
 
   const page = Math.max(1, Number(searchParams.get('page')) || 1);
@@ -63,7 +63,7 @@ export const GET = withAuth(async (userId: string, request: NextRequest) => {
   return ResponseFactory.toNextResponse(response);
 });
 
-export const PUT = withAuth(async (userId: string, request: NextRequest) => {
+export const PUT = withAdmin(async (userId: string, request: NextRequest) => {
   try {
     const body = await request.json();
     const { id, visibility } = body;

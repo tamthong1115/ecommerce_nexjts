@@ -67,6 +67,7 @@ import { FaCheckCircle } from 'react-icons/fa';
 import { FiXCircle } from 'react-icons/fi';
 import SearchBar from '../../../features/manager/_components/search-bar';
 import TabTableView from '../../../features/manager/_components/tab-table-view';
+import { ExportExcelButton } from '@/features/shared/components/table/export-excel-button';
 import { TableCellViewer } from '../../../features/manager/product/components/table-cell-viewer';
 
 const ProductsPage = () => {
@@ -149,8 +150,8 @@ const ProductsPage = () => {
       enableHiding: false,
     },
     {
-      accessorKey: 'title', // Keep data key
-      header: t('t_product_name'), // Use i18n key
+      accessorKey: 'title',
+      header: t('t_product_name'),
       cell: ({ row }) => {
         return (
           <TableCellViewer
@@ -162,20 +163,22 @@ const ProductsPage = () => {
       enableHiding: false,
     },
     {
-      accessorKey: t('t_shop_name'),
+      id: 'shop',
+      accessorFn: (row) => row.shop?.name ?? '',
       header: t('t_shop_name'),
       cell: ({ row }) => (
         <div className="w-full flex flex-row gap-2 justify-start items-center">
           <Avatar>
-            <AvatarImage src={row.original.shop.logoUrl} alt="shopLogo" />
+            <AvatarImage src={row.original.shop?.logoUrl} alt="shopLogo" />
             <AvatarFallback>UK</AvatarFallback>
           </Avatar>
-          <div>{row.original.shop.name}</div>
+          <div>{row.original.shop?.name}</div>
         </div>
       ),
     },
     {
-      accessorKey: t('t_visibility'),
+      id: 'visibility',
+      accessorKey: 'visibility',
       header: t('t_visibility'),
       cell: ({ row }) => (
         <Badge variant="outline" className="text-muted-foreground px-1.5">
@@ -191,25 +194,28 @@ const ProductsPage = () => {
       ),
     },
     {
-      accessorKey: t('t_variant_count'),
+      id: 'variantCount',
+      accessorFn: (row) => row._count?.variants ?? 0,
       header: () => (
         <div className="w-fit text-right">{t('t_variant_count')}</div>
-      ), // Use i18n key
+      ),
       cell: ({ row }) => (
         <div className="w-full text-right">
-          {row.original._count.variants.toString()}
+          {row.original._count?.variants?.toString() ?? '0'}
         </div>
       ),
     },
     {
-      accessorKey: t('t_created_at'),
+      id: 'createdAt',
+      accessorKey: 'createdAt',
       header: t('t_created_at'),
       cell: ({ row }) => {
         return <div className="w-32">{formatDay(row.original.createdAt)}</div>;
       },
     },
     {
-      accessorKey: t('t_updated_at'),
+      id: 'updatedAt',
+      accessorKey: 'updatedAt',
       header: t('t_updated_at'),
       cell: ({ row }) => {
         return <div className="w-32">{formatDay(row.original.updatedAt)}</div>;
@@ -319,6 +325,11 @@ const ProductsPage = () => {
             </TabsTrigger>
           </TabsList>
           <div className="flex items-center gap-2">
+            <ExportExcelButton
+              table={table}
+              filename="danh-sach-san-pham.xlsx"
+              sheetName="Sản phẩm"
+            />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button

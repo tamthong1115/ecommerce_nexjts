@@ -42,6 +42,65 @@ export function NotificationBell({ role, className }: NotificationBellProps) {
     // if (notification.referenceType === 'ORDER') router.push(`/orders/${notification.referenceId}`);
   };
 
+  const renderNotificationList = () => {
+    if (isLoading && notifications.length === 0) {
+      return (
+        <div className="flex h-32 items-center justify-center text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin mr-2" />
+          <span>Loading...</span>
+        </div>
+      );
+    }
+
+    if (notifications.length === 0) {
+      return (
+        <div className="flex h-32 flex-col items-center justify-center gap-2 text-muted-foreground">
+          <Bell className="h-8 w-8 opacity-20" />
+          <span className="text-sm">No notifications yet</span>
+        </div>
+      );
+    }
+
+    return notifications.map((n: NotificationItemDTO) => (
+      <button
+        key={n.id}
+        onClick={() => handleItemClick(n)}
+        className={cn(
+          'flex w-full flex-col gap-1 border-b px-4 py-3 text-left transition-colors hover:bg-muted/50 focus:outline-none',
+          !n.isRead
+            ? 'bg-blue-50/40 dark:bg-blue-900/10'
+            : 'bg-background'
+        )}
+      >
+        <div className="flex w-full justify-between gap-2">
+          <span
+            className={cn(
+              'text-sm font-medium leading-none',
+              !n.isRead && 'text-primary'
+            )}
+          >
+            {n.title}
+          </span>
+          <span className="shrink-0 text-[10px] text-muted-foreground">
+            {formatDistanceToNow(new Date(n.createdAt), {
+              addSuffix: true,
+            })}
+          </span>
+        </div>
+        <p className="text-xs text-muted-foreground line-clamp-2">
+          {n.body}
+        </p>
+
+        {!n.isRead && (
+          <div className="mt-1 flex items-center gap-1 text-[10px] text-blue-600 font-medium">
+            <div className="h-1.5 w-1.5 rounded-full bg-blue-600" />
+            Unread
+          </div>
+        )}
+      </button>
+    ));
+  };
+
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
@@ -75,58 +134,7 @@ export function NotificationBell({ role, className }: NotificationBellProps) {
         {/* List Content */}
         <ScrollArea className="h-[400px]">
           <div className="flex flex-col">
-            {isLoading && notifications.length === 0 ? (
-              <div className="flex h-32 items-center justify-center text-muted-foreground">
-                <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                <span>Loading...</span>
-              </div>
-            ) : notifications.length === 0 ? (
-              <div className="flex h-32 flex-col items-center justify-center gap-2 text-muted-foreground">
-                <Bell className="h-8 w-8 opacity-20" />
-                <span className="text-sm">No notifications yet</span>
-              </div>
-            ) : (
-              notifications.map((n: NotificationItemDTO) => (
-                <button
-                  key={n.id}
-                  onClick={() => handleItemClick(n)}
-                  className={cn(
-                    'flex w-full flex-col gap-1 border-b px-4 py-3 text-left transition-colors hover:bg-muted/50 focus:outline-none',
-                    !n.isRead
-                      ? 'bg-blue-50/40 dark:bg-blue-900/10'
-                      : 'bg-background'
-                  )}
-                >
-                  <div className="flex w-full justify-between gap-2">
-                    <span
-                      className={cn(
-                        'text-sm font-medium leading-none',
-                        !n.isRead && 'text-primary'
-                      )}
-                    >
-                      {n.title}
-                    </span>
-                    <span className="shrink-0 text-[10px] text-muted-foreground">
-                      {/* Requires date-fns, or use new Date(n.createdAt).toLocaleDateString() */}
-                      {formatDistanceToNow(new Date(n.createdAt), {
-                        addSuffix: true,
-                      })}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground line-clamp-2">
-                    {n.body}
-                  </p>
-
-                  {/* Navigation */}
-                  {!n.isRead && (
-                    <div className="mt-1 flex items-center gap-1 text-[10px] text-blue-600 font-medium">
-                      <div className="h-1.5 w-1.5 rounded-full bg-blue-600" />
-                      Unread
-                    </div>
-                  )}
-                </button>
-              ))
-            )}
+            {renderNotificationList()}
 
             {/* Load More Trigger */}
             {hasNextPage && (

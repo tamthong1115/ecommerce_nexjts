@@ -32,7 +32,15 @@
       "t_child_categories": "Danh mục con",
       "t_no_child": "Không có danh mục con",
       "t_submit_action": "Lưu thay đổi",
-      "t_cancel_action": "Hủy"
+      "t_cancel_action": "Hủy",
+      "t_action_noti": "Action",
+      "t_update_desc_noti": "Updated category information successfully!",
+      "t_copy_desc_noti": "Copied information successfully!",
+      "t_del_desc_noti": "Deleted product category successfully!",
+      "t_action_failed_noti": "Action failed",
+      "t_update_failed_desc_noti": "Failed to update information!",
+      "t_copy_failed_desc_noti": "Failed to copy information!",
+      "t_del_failed_desc_noti": "Failed to delete product category!"
     },
     "category_new_form": {
       "t_name_schema": "Tên không được để trống",
@@ -52,7 +60,18 @@
       "t_parent_category": "Danh mục cha",
       "t_belong_category": "Thuộc danh mục",
       "t_cancel_action": "Hủy",
-      "t_submit_action": "Đồng ý"
-    }
+      "t_submit_action": "Đồng ý",
+      "t_action_noti": "Action",
+      "t_create_desc_noti": "Product category created successfully.",
+      "t_del_desc_noti": "Product category deleted successfully!",
+      "t_action_failed_noti": "Action failed",
+      "t_create_failed_desc_noti": "Failed to create category."
+    },
+    "t_action_noti": "Action",
+    "t_copy_desc_noti": "Information copied successfully!",
+    "t_del_desc_noti": "Piroduct category deleted successfully!",
+    "t_action_failed_noti": "Action failed",
+    "t_copy_failed_desc_noti": "Failed to copy information!",
+    "t_del_failed_desc_noti": "Failed to delete product category!"
   }
 }

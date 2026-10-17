@@ -32,6 +32,36 @@ export default function OrderPage() {
     });
   }, [status]);
 
+  const renderContent = () => {
+    if (isPending) {
+      return (
+        <div className="flex flex-col items-center justify-center py-16 gap-3">
+          <Loading />
+          <p className="text-gray-500">{t('loading')}</p>
+        </div>
+      );
+    }
+
+    if (data.orders.length === 0) {
+      return (
+        <div className="py-16">
+          <EmptyState
+            imageSrc="/empty-order.png"
+            title={t('empty_title')}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <ul className="space-y-4">
+        {data.orders.map((o) => (
+          <OrderCardItem key={o.id} o={o} t={t} />
+        ))}
+      </ul>
+    );
+  };
+
   return (
     <div className="p-6 w-full">
       {/* TABS */}
@@ -81,26 +111,7 @@ export default function OrderPage() {
           </TabsList>
 
           <TabsContent value={status} className="mt-6 w-full">
-            {/* Loading */}
-            {isPending ? (
-              <div className="flex flex-col items-center justify-center py-16 gap-3">
-                <Loading />
-                <p className="text-gray-500">{t('loading')}</p>
-              </div>
-            ) : data.orders.length > 0 ? (
-              <ul className="space-y-4">
-                {data.orders.map((o) => (
-                  <OrderCardItem key={o.id} o={o} t={t} />
-                ))}
-              </ul>
-            ) : (
-              <div className="py-16">
-                <EmptyState
-                  imageSrc="/empty-order.png"
-                  title={t('empty_title')}
-                />
-              </div>
-            )}
+            {renderContent()}
           </TabsContent>
         </Tabs>
       </div>

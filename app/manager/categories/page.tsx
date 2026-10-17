@@ -67,6 +67,7 @@ import { FaCheckCircle } from 'react-icons/fa';
 import { FiXCircle } from 'react-icons/fi';
 import SearchBar from '../../../features/manager/_components/search-bar';
 import TabTableView from '../../../features/manager/_components/tab-table-view';
+import { ExportExcelButton } from '@/features/shared/components/table/export-excel-button';
 import { handleDelete } from '@/features/manager/category/funcs/funcs';
 
 const CategoryManagePage = () => {
@@ -150,7 +151,8 @@ const CategoryManagePage = () => {
         enableHiding: false,
       },
       {
-        accessorKey: t('t_category_name'),
+        id: 'name',
+        accessorKey: 'name',
         header: t('t_category_name'),
         cell: ({ row }) => {
           return (
@@ -160,7 +162,8 @@ const CategoryManagePage = () => {
         enableHiding: false,
       },
       {
-        accessorKey: t('t_serial'),
+        id: 'position',
+        accessorKey: 'position',
         header: t('t_serial'),
         cell: ({ row }) => (
           <div className="w-full flex flex-row gap-2 justify-start items-center">
@@ -169,7 +172,8 @@ const CategoryManagePage = () => {
         ),
       },
       {
-        accessorKey: t('t_is_active'),
+        id: 'isActive',
+        accessorFn: (row) => (row.isActive ? 'Có' : 'Không'),
         header: t('t_is_active'),
         cell: ({ row }) => (
           <Badge variant="outline" className="text-muted-foreground px-1.5">
@@ -183,18 +187,20 @@ const CategoryManagePage = () => {
         ),
       },
       {
-        accessorKey: t('t_children_count'),
+        id: 'childrenCount',
+        accessorFn: (row) => row._count?.children ?? 0,
         header: () => (
           <div className="w-fit text-right">{t('t_children_count')}</div>
         ),
         cell: ({ row }) => (
           <div className="w-full text-right">
-            {row.original._count.children.toString()}
+            {row.original._count?.children?.toString() ?? '0'}
           </div>
         ),
       },
       {
-        accessorKey: t('t_created_at'),
+        id: 'createdAt',
+        accessorKey: 'createdAt',
         header: t('t_created_at'),
         cell: ({ row }) => {
           return (
@@ -205,7 +211,8 @@ const CategoryManagePage = () => {
         },
       },
       {
-        accessorKey: t('t_updated_at'),
+        id: 'updatedAt',
+        accessorKey: 'updatedAt',
         header: t('t_updated_at'),
         cell: ({ row }) => {
           return (
@@ -335,6 +342,11 @@ const CategoryManagePage = () => {
             </TabsTrigger>
           </TabsList>
           <div className="flex items-center gap-2">
+            <ExportExcelButton
+              table={table}
+              filename="danh-sach-danh-muc.xlsx"
+              sheetName="Danh mục"
+            />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">

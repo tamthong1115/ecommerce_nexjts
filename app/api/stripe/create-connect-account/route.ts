@@ -29,35 +29,57 @@ export async function POST() {
   }
 
   try {
-    const account = await stripe.accounts.create({
-      type: 'express',
-      country: 'US',
-      email: session.user.email,
-      capabilities: {
-        card_payments: { requested: true },
-        transfers: { requested: true },
-      },
+    const dbUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { id: true, role: true, stripeAccount: true },
     });
+
+    let accountId = dbUser?.stripeAccount;
+    if (accountId) {
+      try {
+        await stripe.accounts.retrieve(accountId);
+      } catch {
+        accountId = null;
+      }
+    }
+
+    if (!accountId) {
+      const account = await stripe.accounts.create({
+        type: 'express',
+        country: 'US',
+        email: session.user.email,
+        capabilities: {
+          card_payments: { requested: true },
+          transfers: { requested: true },
+        },
+      });
+      accountId = account.id;
+    }
 
     await prisma.user.update({
       where: { id: session.user.id },
-      data: { stripeAccount: account.id, role: 'seller' },
+      data: {
+        stripeAccount: accountId,
+        ...(dbUser?.role !== 'admin' ? { role: 'seller' } : {}),
+      },
     });
 
+    const reqHeaders = await headers();
+    const origin =
+      reqHeaders.get('origin') ||
+      (reqHeaders.get('host')
+        ? `${reqHeaders.get('x-forwarded-proto') || 'http'}://${reqHeaders.get('host')}`
+        : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000');
+
     const accountLink = await stripe.accountLinks.create({
-      account: account.id,
-      refresh_url: `${process.env.NEXT_PUBLIC_BASE_URL}/seller/`,
-      return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/seller/`,
+      account: accountId,
+      refresh_url: `${origin}/signup-business`,
+      return_url: `${origin}/seller/shops/create`,
       type: 'account_onboarding',
     });
 
-    await auth.api.getSession({
-      headers: await headers(),
-      query: { disableCookieCache: true },
-    });
-
     return NextResponse.json(
-      { id: account.id, url: accountLink.url },
+      { id: accountId, url: accountLink.url },
       { status: 200 }
     );
   } catch (e: unknown) {

@@ -1,5 +1,3 @@
-'use server';
-
 import { notificationQueue } from '@/features/notification/server/queue/notification.queue';
 import { NotificationPayload } from '@/features/notification/types/notification.type';
 

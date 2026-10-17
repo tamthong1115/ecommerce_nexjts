@@ -59,10 +59,6 @@ const data = {
           title: 'Add Product',
           url: '/seller/products/create',
         },
-        {
-          title: 'Categories',
-          url: '/seller/products/categories',
-        },
       ],
     },
     {
@@ -96,54 +92,6 @@ const data = {
       icon: Wallet,
     },
   ],
-  navClouds: [
-    {
-      title: 'Capture',
-      icon: IconCamera,
-      isActive: true,
-      url: '#',
-      items: [
-        {
-          title: 'Active Proposals',
-          url: '#',
-        },
-        {
-          title: 'Archived',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Proposal',
-      icon: IconFileDescription,
-      url: '#',
-      items: [
-        {
-          title: 'Active Proposals',
-          url: '#',
-        },
-        {
-          title: 'Archived',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Prompts',
-      icon: IconFileAi,
-      url: '#',
-      items: [
-        {
-          title: 'Active Proposals',
-          url: '#',
-        },
-        {
-          title: 'Archived',
-          url: '#',
-        },
-      ],
-    },
-  ],
   navSecondary: [
     {
       title: 'Settings',
@@ -167,6 +115,17 @@ export function AppSidebarSeller({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
   const { data: session, isPending } = authClient.useSession();
+
+  const renderFooterUser = () => {
+    if (isPending) {
+      return <AppLoader label="Loading..." />;
+    }
+    if (session) {
+      return <NavSeller user={session.user} />;
+    }
+    return null;
+  };
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -190,13 +149,7 @@ export function AppSidebarSeller({
         <NavSecondarySeller items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        {isPending ? (
-          <>
-            <AppLoader label="Loading..." />
-          </>
-        ) : session ? (
-          <NavSeller user={session.user} />
-        ) : null}
+        {renderFooterUser()}
       </SidebarFooter>
     </Sidebar>
   );

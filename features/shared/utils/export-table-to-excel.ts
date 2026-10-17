@@ -43,6 +43,154 @@ function inferCellType(value: unknown): EType {
 /**
  * Dynamically exports TanStack Table content to an Excel file using /api/excel
  */
+import { toast } from 'sonner';
+
+function extractCellValue(row: any, col: any): unknown {
+  let val: unknown = undefined;
+
+  try {
+    val = row.getValue(col.id);
+  } catch {
+    val = undefined;
+  }
+
+  const original = row.original as Record<string, any> | undefined;
+
+  if ((val === undefined || val === null) && original) {
+    val = original[col.id];
+  }
+
+  if ((val === undefined || val === null) && original) {
+    const colIdLower = String(col.id).toLowerCase();
+    const headerLower =
+      typeof col.columnDef.header === 'string'
+        ? col.columnDef.header.toLowerCase()
+        : '';
+
+    if (
+      colIdLower.includes('shop') ||
+      colIdLower.includes('cửa hàng') ||
+      headerLower.includes('cửa hàng') ||
+      headerLower.includes('shop')
+    ) {
+      val = original.shop?.name ?? original.shopName ?? original.shop?.title;
+    } else if (
+      colIdLower.includes('owner') ||
+      colIdLower.includes('chủ') ||
+      headerLower.includes('chủ')
+    ) {
+      val = original.owner?.name ?? original.ownerName;
+    } else if (
+      colIdLower.includes('user') ||
+      colIdLower.includes('người dùng') ||
+      headerLower.includes('người dùng')
+    ) {
+      val = original.user?.name ?? original.name;
+    } else if (
+      colIdLower.includes('visibility') ||
+      colIdLower.includes('hiển thị') ||
+      headerLower.includes('hiển thị')
+    ) {
+      val = original.visibility;
+    } else if (
+      colIdLower.includes('variant') ||
+      colIdLower.includes('phiên bản') ||
+      headerLower.includes('phiên bản')
+    ) {
+      val = original._count?.variants ?? original.variantCount;
+    } else if (
+      colIdLower.includes('children') ||
+      colIdLower.includes('con') ||
+      headerLower.includes('danh mục con')
+    ) {
+      val = original._count?.children ?? original.childrenCount;
+    } else if (
+      colIdLower.includes('status') ||
+      colIdLower.includes('trạng thái') ||
+      headerLower.includes('trạng thái')
+    ) {
+      val = original.status;
+    } else if (
+      colIdLower.includes('serial') ||
+      colIdLower.includes('position') ||
+      colIdLower.includes('thứ tự') ||
+      headerLower.includes('thứ tự')
+    ) {
+      val = original.position ?? original.order ?? original.serial;
+    } else if (
+      colIdLower.includes('active') ||
+      colIdLower.includes('hoạt động') ||
+      headerLower.includes('hoạt động')
+    ) {
+      val =
+        original.isActive !== undefined
+          ? original.isActive
+            ? 'Có'
+            : 'Không'
+          : undefined;
+    } else if (
+      colIdLower.includes('verified') ||
+      colIdLower.includes('xác thực') ||
+      headerLower.includes('xác thực')
+    ) {
+      val =
+        original.emailVerified !== undefined
+          ? original.emailVerified
+            ? 'Đã xác thực'
+            : 'Chưa xác thực'
+          : undefined;
+    } else if (colIdLower.includes('email')) {
+      val = original.email;
+    } else if (
+      colIdLower.includes('rating') ||
+      colIdLower.includes('đánh giá') ||
+      headerLower.includes('đánh giá')
+    ) {
+      val =
+        original.ratingAvg !== undefined
+          ? original.ratingCount !== undefined
+            ? `${original.ratingAvg} (${original.ratingCount})`
+            : original.ratingAvg
+          : original.rating;
+    } else if (
+      colIdLower.includes('region') ||
+      colIdLower.includes('khu vực') ||
+      headerLower.includes('khu vực')
+    ) {
+      val = original.region;
+    } else if (
+      colIdLower.includes('create') ||
+      colIdLower.includes('tạo') ||
+      headerLower.includes('tạo')
+    ) {
+      val = original.createdAt;
+    } else if (
+      colIdLower.includes('update') ||
+      colIdLower.includes('cập nhật') ||
+      headerLower.includes('cập nhật')
+    ) {
+      val = original.updatedAt;
+    }
+  }
+
+  if (val !== null && typeof val === 'object' && !(val instanceof Date)) {
+    const obj = val as Record<string, any>;
+    if (typeof obj.name === 'string') return obj.name;
+    if (typeof obj.title === 'string') return obj.title;
+    if (typeof obj.label === 'string') return obj.label;
+    if (typeof obj.value === 'string' || typeof obj.value === 'number')
+      return obj.value;
+    if (Array.isArray(val)) return val.length;
+    return '';
+  }
+
+  if (val instanceof Date) {
+    return val.toISOString().slice(0, 10);
+  }
+
+  return val !== undefined && val !== null ? val : '';
+}
+
 export async function exportTableToExcel<TData>(
   table: TanstackTable<TData>,
   options: ExportTableToExcelOptions<TData> = {}
@@ -58,12 +206,10 @@ export async function exportTableToExcel<TData>(
     headerBackground = '#F1F5F9',
   } = options;
 
-  // 1. Filter exportable visible columns
   const visibleColumns = table.getVisibleFlatColumns().filter((col) => {
     if (!col.id || excludeColumnIds.includes(col.id.toLowerCase())) {
       return false;
     }
-    // Exclude special UI columns without accessors or headers
     if (typeof col.columnDef.header === 'function' && !col.id) {
       return false;
     }
@@ -74,7 +220,6 @@ export async function exportTableToExcel<TData>(
     throw new Error('No visible columns available to export');
   }
 
-  // 2. Resolve rows data
   let rowsToExport: Record<string, unknown>[] = [];
 
   if (customData && customData.length > 0) {
@@ -82,30 +227,35 @@ export async function exportTableToExcel<TData>(
   } else {
     const selectedRows = table.getSelectedRowModel().rows;
     const isExportingSelected = onlySelectedRows && selectedRows.length > 0;
-    
-    // Choose selected rows, all filtered rows, or current page rows
-    const sourceRows = isExportingSelected
+
+    let sourceRows = isExportingSelected
       ? selectedRows
       : exportAllPages
       ? table.getFilteredRowModel().rows
       : table.getRowModel().rows;
 
+    if (
+      sourceRows.length === 0 &&
+      table.getCoreRowModel().rows.length > 0 &&
+      !isExportingSelected
+    ) {
+      sourceRows = table.getCoreRowModel().rows;
+    }
+
+    if (sourceRows.length === 0) {
+      toast.warning('Không có dữ liệu để xuất Excel');
+      return;
+    }
+
     rowsToExport = sourceRows.map((row) => {
       const rowObj: Record<string, unknown> = {};
       visibleColumns.forEach((col) => {
-        let val: unknown = undefined;
-        try {
-          val = row.getValue(col.id);
-        } catch {
-          val = (row.original as any)?.[col.id];
-        }
-        rowObj[col.id] = val !== undefined ? val : '';
+        rowObj[col.id] = extractCellValue(row, col);
       });
       return rowObj;
     });
   }
 
-  // 3. Build ColumnMapping with auto-letters (A, B, C...) and headers
   const columnMappings: ColumnMapping[] = [];
   const calculatedWidths: Record<string, number> = {};
 
@@ -113,13 +263,11 @@ export async function exportTableToExcel<TData>(
     const colLetter = colNumToLetter(index + 1);
     const key = col.id;
 
-    // Resolve header label
     let headerText = formatColumnTitle(key);
     if (typeof col.columnDef.header === 'string') {
       headerText = col.columnDef.header;
     }
 
-    // Infer type from sample rows
     let inferredType = EType.TEXT;
     for (const row of rowsToExport) {
       const val = row[key];
@@ -136,7 +284,6 @@ export async function exportTableToExcel<TData>(
       type: inferredType,
     });
 
-    // Approximate column width based on header length and content
     const maxContentLen = Math.max(
       headerText.length,
       ...rowsToExport.slice(0, 50).map((r) => String(r[key] ?? '').length)

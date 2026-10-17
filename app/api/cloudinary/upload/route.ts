@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { uploadToCloudinary } from '@/lib/cloudinary';
+import { withAuth } from '@/lib/with-auth';
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (_userId: string, request: NextRequest) => {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
@@ -39,4 +40,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

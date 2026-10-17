@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { cartApi } from '../client/cart.api';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 export const CART_KEYS = {
   all: ['cart'] as const,
@@ -16,15 +17,16 @@ export function useCart() {
 
 export function useAddToCart() {
   const queryClient = useQueryClient();
+  const t = useTranslations('cart_page');
 
   return useMutation({
     mutationFn: cartApi.addToCart,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CART_KEYS.all });
-      toast.success('Added to cart successfully');
+      toast.success(t('add_to_cart_success'));
     },
     onError: (error) => {
-      toast.error('Failed to add to cart');
+      toast.error(t('add_to_cart_failed'));
       console.error(error);
     },
   });
@@ -32,6 +34,7 @@ export function useAddToCart() {
 
 export function useUpdateCart() {
   const queryClient = useQueryClient();
+  const t = useTranslations('cart_page');
 
   return useMutation({
     mutationFn: cartApi.updateCart,
@@ -61,7 +64,7 @@ export function useUpdateCart() {
     },
     onError: (err, newTodo, context: any) => {
       queryClient.setQueryData(CART_KEYS.details(), context.previousCart);
-      toast.error('Failed to update cart');
+      toast.error(t('update_cart_failed'));
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: CART_KEYS.all });
@@ -72,6 +75,7 @@ export function useUpdateCart() {
 
 export function useRemoveItem() {
   const queryClient = useQueryClient();
+  const t = useTranslations('cart_page');
 
   return useMutation({
     mutationFn: cartApi.removeItem,
@@ -90,11 +94,11 @@ export function useRemoveItem() {
         return { previousCart };
     },
     onSuccess: () => {
-      toast.success('Item removed');
+      toast.success(t('item_removed'));
     },
     onError: (err, variables, context: any) => {
         queryClient.setQueryData(CART_KEYS.details(), context.previousCart);
-        toast.error('Failed to remove item');
+        toast.error(t('t_remove_item_failed'));
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: CART_KEYS.all });
@@ -104,12 +108,13 @@ export function useRemoveItem() {
 
 export function useClearCart() {
   const queryClient = useQueryClient();
+  const t = useTranslations('cart_page');
 
   return useMutation({
     mutationFn: cartApi.clearCart,
     onSuccess: () => {
       queryClient.setQueryData(CART_KEYS.details(), (old: any) => ({ ...old, items: [] }));
-      toast.success('Cart cleared');
+      toast.success(t('cart_cleared'));
     },
     onSettled: () => {
        queryClient.invalidateQueries({ queryKey: CART_KEYS.all });

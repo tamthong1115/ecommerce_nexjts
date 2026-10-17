@@ -7,6 +7,8 @@ import { OrderWithRelations } from '@/types/order.data-types';
 import { OrderDTO } from '@/types/dtos/order.dto';
 import { DbClient } from '@/types/api';
 import { prisma } from '@/lib/db';
+import { allocateLargestRemainder } from '@/features/promotion/engine/allocate';
+import { reservePromotion } from '@/features/promotion/services/redemption.service';
 
 type CreateOrderResult =
   | { success: true; order: OrderWithRelations[] }
@@ -27,6 +29,7 @@ export async function createOrder(
       include: {
         items: true,
         vouchers: { include: { voucher: true } },
+        applications: { include: { promotion: true } },
       },
     });
 
@@ -47,64 +50,128 @@ export async function createOrder(
     const shopIds = Object.keys(itemsByShop);
     const timestamp = Date.now();
 
-    const createdOrders = await Promise.all(
-      shopIds.map(async (shopId, index) => {
-        const shopItems = itemsByShop[shopId];
+    const totalShippingOriginal =
+      Number(draft.shippingFee) + Number(draft.shippingDiscount);
+    const totalShippingDiscount = Number(draft.shippingDiscount);
+    const shopBaseShipping =
+      shopIds.length > 0 ? Math.round(totalShippingOriginal / shopIds.length) : 0;
 
-        const itemsTotal = shopItems.reduce(
-          (sum, item) => sum + Number(item.total),
-          0
-        );
+    const shippingDiscountAllocations = allocateLargestRemainder(
+      totalShippingDiscount,
+      shopIds.map((id) => ({ id, weight: 1 }))
+    );
 
-        const ratio = itemsTotal / Number(draft.itemsTotal);
+    const createdOrders: OrderWithRelations[] = [];
+    const reservedPromotionIds = new Set<string>();
 
-        const shippingFee = Number(draft.shippingFee);
-        const discountTotal = Number(draft.discountTotal) * ratio;
-        const grandTotal = itemsTotal + shippingFee - discountTotal;
+    for (let index = 0; index < shopIds.length; index++) {
+      const shopId = shopIds[index];
+      const shopItems = itemsByShop[shopId];
 
-        const orderNumber = `ORD-${timestamp}-${index + 1}`;
+      const shopItemsGross = shopItems.reduce(
+        (sum, item) => sum + Number(item.total),
+        0
+      );
+      const shopSubtotalNet = shopItems.reduce(
+        (sum, item) => sum + Number(item.unitPriceNet || 0) * item.quantity,
+        0
+      );
+      const shopTaxTotal = shopItems.reduce(
+        (sum, item) => sum + Number(item.taxAmount || 0),
+        0
+      );
 
-        return db.order.create({
-          data: {
-            orderNumber,
-            userId,
-            shopId,
-            status: draft.status,
-            paymentStatus: 'PENDING',
+      const shopShippingDiscount = shippingDiscountAllocations[shopId] || 0;
+      const shopShippingFee = Math.max(0, shopBaseShipping - shopShippingDiscount);
+      const shopItemDiscounts = shopItems.reduce(
+        (sum, item) => sum + Number(item.discount || 0),
+        0
+      );
+      const shopDiscountTotal = shopItemDiscounts + shopShippingDiscount;
+      const shopGrandTotal = shopItemsGross + shopShippingFee;
 
-            itemsTotal: new Prisma.Decimal(itemsTotal),
-            shippingFee: new Prisma.Decimal(shippingFee),
-            discountTotal: new Prisma.Decimal(discountTotal),
-            grandTotal: new Prisma.Decimal(grandTotal),
+      const orderNumber = `ORD-${timestamp}-${index + 1}`;
 
-            shippingAddress: draft.shippingInfor as Prisma.InputJsonValue,
-            notes: draft.notes,
+      const shopApplications = (draft.applications || []).filter(
+        (app) => app.shopId === shopId || (app.shopId === null && index === 0)
+      );
 
-            items: {
-              create: shopItems.map((item) => ({
-                productId: item.productId,
-                variantId: item.variantId,
-                shopId: item.shopId!,
-                quantity: item.quantity,
-                unitPrice: item.unitPrice,
-                total: item.total,
-                title: item.title,
-              })),
-            },
+      const order = await db.order.create({
+        data: {
+          orderNumber,
+          userId,
+          shopId,
+          status: draft.status,
+          paymentStatus: 'PENDING',
 
-            vouchers: {
-              create: draft.vouchers.map((v) => ({
+          itemsTotal: new Prisma.Decimal(shopItemsGross),
+          subtotalNet: new Prisma.Decimal(shopSubtotalNet),
+          shippingFee: new Prisma.Decimal(shopShippingFee),
+          shippingDiscount: new Prisma.Decimal(shopShippingDiscount),
+          discountTotal: new Prisma.Decimal(shopDiscountTotal),
+          taxTotal: new Prisma.Decimal(shopTaxTotal),
+          grandTotal: new Prisma.Decimal(shopGrandTotal),
+
+          shippingAddress: draft.shippingInfor as Prisma.InputJsonValue,
+          notes: draft.notes,
+
+          items: {
+            create: shopItems.map((item) => ({
+              productId: item.productId,
+              variantId: item.variantId,
+              shopId: item.shopId!,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              discount: item.discount,
+              total: item.total,
+              taxRate: item.taxRate,
+              unitPriceNet: item.unitPriceNet,
+              taxAmount: item.taxAmount,
+              isGift: item.isGift,
+              title: item.title,
+            })),
+          },
+
+          applications: {
+            create: shopApplications.map((app) => ({
+              promotion: { connect: { id: app.promotionId } },
+              amount: app.amount,
+              sponsor: app.sponsor,
+              platformShare: app.platformShare,
+              shopShare: app.shopShare,
+              shopId: app.shopId,
+              snapshot: app.snapshot as Prisma.InputJsonValue,
+            })),
+          },
+
+          vouchers: {
+            create: draft.vouchers
+              .filter((v) => !v.voucher.shopId || v.voucher.shopId === shopId)
+              .map((v) => ({
                 voucher: { connect: { id: v.voucherId } },
               })),
-            },
           },
-          include: {
-            items: true,
-            vouchers: { include: { voucher: true } },
-          },
-        });
-      })
-    );
+        },
+        include: {
+          items: true,
+          vouchers: { include: { voucher: true } },
+          applications: { include: { promotion: true } },
+        },
+      });
+
+      for (const app of shopApplications) {
+        if (!reservedPromotionIds.has(app.promotionId)) {
+          await reservePromotion(db, {
+            promotionId: app.promotionId,
+            userId,
+            orderId: order.id,
+          });
+          reservedPromotionIds.add(app.promotionId);
+        }
+      }
+
+      createdOrders.push(order as unknown as OrderWithRelations);
+    }
 
     await db.orderDraft.delete({
       where: { id: draft.id },

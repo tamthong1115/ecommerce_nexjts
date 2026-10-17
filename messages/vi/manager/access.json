@@ -1,0 +1,22 @@
+{
+  "admin_access": {
+    "title": "Quản Trị Quyền Hạn (RBAC)",
+    "description": "Quản lý vai trò bảo mật, ma trận phân quyền và phạm vi hoạt động của hệ thống.",
+    "refresh": "Làm mới",
+    "create_role": "Tạo vai trò mới",
+    "roles_title": "Danh Sách Vai Trò",
+    "roles_desc": "Các vai trò định sẵn và vai trò tùy biến trên toàn hệ thống",
+    "role_code_name": "Mã / Tên vai trò",
+    "scope": "Phạm vi",
+    "permissions_count": "Số quyền",
+    "users_count": "Người dùng",
+    "system_badge": "Hệ thống",
+    "permissions_title": "Từ Điển Quyền Hạn",
+    "permissions_desc": "Các quyền hạt nhân chi tiết đăng ký trong hệ thống",
+    "perm_key": "Mã quyền",
+    "perm_name": "Tên hiển thị",
+    "module": "Module",
+    "load_error": "Không thể tải danh sách quyền & vai trò"
+  }
+}
+

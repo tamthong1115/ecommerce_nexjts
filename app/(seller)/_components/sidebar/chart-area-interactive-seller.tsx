@@ -131,6 +131,90 @@ export function ChartAreaInteractiveSeller({
       ? 'All shops'
       : (shops.find((s) => s.id === selectedShopId)?.name ?? 'Selected shop');
 
+  const renderChartBody = () => {
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center h-[250px] text-muted-foreground text-sm">
+          Loading...
+        </div>
+      );
+    }
+
+    if (data.length === 0) {
+      return (
+        <div className="flex items-center justify-center h-[250px] text-muted-foreground text-sm">
+          No data found for this period.
+        </div>
+      );
+    }
+
+    return (
+      <AreaChart data={data}>
+        <defs>
+          <linearGradient id="fillOrders" x1="0" y1="0" x2="0" y2="1">
+            <stop
+              offset="5%"
+              stopColor="var(--color-totalOrders)"
+              stopOpacity={0.4}
+            />
+            <stop
+              offset="95%"
+              stopColor="var(--color-totalOrders)"
+              stopOpacity={0}
+            />
+          </linearGradient>
+          <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
+            <stop
+              offset="5%"
+              stopColor="var(--color-revenue)"
+              stopOpacity={0.8}
+            />
+            <stop
+              offset="95%"
+              stopColor="var(--color-revenue)"
+              stopOpacity={0.1}
+            />
+          </linearGradient>
+        </defs>
+        <CartesianGrid vertical={false} />
+        <XAxis
+          dataKey="date"
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+          minTickGap={32}
+          tickFormatter={(value) => {
+            const date = new Date(value);
+            return date.toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+            });
+          }}
+        />
+        <YAxis yAxisId="left" orientation="left" hide />
+        <YAxis yAxisId="right" orientation="right" hide />
+        <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+        <Area
+          yAxisId="left"
+          dataKey="revenue"
+          type="natural"
+          fill="url(#fillRevenue)"
+          stroke="var(--color-revenue)"
+          stackId="a"
+        />
+        <Area
+          yAxisId="right"
+          dataKey="totalOrders"
+          type="natural"
+          fill="url(#fillOrders)"
+          stroke="var(--color-totalOrders)"
+          strokeWidth={2}
+          stackId="b"
+        />
+      </AreaChart>
+    );
+  };
+
   return (
     <Card className="@container/card">
       <CardHeader>
@@ -202,79 +286,7 @@ export function ChartAreaInteractiveSeller({
           config={chartConfig}
           className="aspect-auto h-[250px] w-full"
         >
-          {loading ? (
-            <div className="flex items-center justify-center h-[250px] text-muted-foreground text-sm">
-              Loading...
-            </div>
-          ) : data.length === 0 ? (
-            <div className="flex items-center justify-center h-[250px] text-muted-foreground text-sm">
-              No data found for this period.
-            </div>
-          ) : (
-            <AreaChart data={data}>
-              <defs>
-                <linearGradient id="fillOrders" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="5%"
-                    stopColor="var(--color-totalOrders)"
-                    stopOpacity={0.4}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor="var(--color-totalOrders)"
-                    stopOpacity={0}
-                  />
-                </linearGradient>
-                <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="5%"
-                    stopColor="var(--color-revenue)"
-                    stopOpacity={0.8}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor="var(--color-revenue)"
-                    stopOpacity={0.1}
-                  />
-                </linearGradient>
-              </defs>
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="date"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                minTickGap={32}
-                tickFormatter={(value) => {
-                  const date = new Date(value);
-                  return date.toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                  });
-                }}
-              />
-              <YAxis yAxisId="left" orientation="left" hide />
-              <YAxis yAxisId="right" orientation="right" hide />
-              <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-              <Area
-                yAxisId="left"
-                dataKey="revenue"
-                type="natural"
-                fill="url(#fillRevenue)"
-                stroke="var(--color-revenue)"
-                stackId="a"
-              />
-              <Area
-                yAxisId="right"
-                dataKey="totalOrders"
-                type="natural"
-                fill="url(#fillOrders)"
-                stroke="var(--color-totalOrders)"
-                strokeWidth={2}
-                stackId="b"
-              />
-            </AreaChart>
-          )}
+          {renderChartBody()}
         </ChartContainer>
       </CardContent>
     </Card>

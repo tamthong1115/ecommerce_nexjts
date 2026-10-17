@@ -38,6 +38,65 @@ export const AppSidebar = ({
   const t = useTranslations('home_layout.app_sidebar');
   //console.log('top category:', topCategories);
 
+  const renderCategories = () => {
+    if (loading) {
+      return (
+        <div className="w-full space-y-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={i}
+              className="w-full px-3 py-4 rounded-lg transition-all"
+            >
+              <div className="flex flex-row gap-1.5 items-center">
+                <Skeleton className="h-5 w-5 rounded-full" />
+                <Skeleton className="h-4 w-36" />
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="px-3 py-4 text-sm text-destructive">
+          {t('load_failed')}
+        </div>
+      );
+    }
+
+    return topCategories.map((item, key) => (
+      <div
+        key={key}
+        className="w-full hover:bg-secondary hover:text-primary hover:cursor-pointer px-3 py-4 rounded-lg transition-all"
+      >
+        <a
+          href={`/search?category=${item.slug}&page=1&limit=20`}
+          className="flex flex-row gap-1.5 justify-start items-center"
+        >
+          {item.imageUrl ? (
+            <Image
+              src={item.imageUrl}
+              alt={item.name}
+              width={20}
+              height={20}
+              className="rounded-2xl"
+            />
+          ) : (
+            <IconComponent
+              slug={item.slug}
+              size={20}
+              color="var(--primary)"
+            />
+          )}
+          <p className="text-sm">
+            {t.has(item.slug) ? t(item.slug) : item.name}
+          </p>
+        </a>
+      </div>
+    ));
+  };
+
   return (
     <div {...props}>
       <div className="w-full overflow-y-auto min-h-[calc(100vh-120px)] scrollbar-hide ">
@@ -49,54 +108,7 @@ export const AppSidebar = ({
             </p>
 
             <div className="flex flex-col justify-start items-start pl-2">
-              {loading ? (
-                <div className="w-full space-y-2">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="w-full px-3 py-4 rounded-lg transition-all"
-                    >
-                      <div className="flex flex-row gap-1.5 items-center">
-                        <Skeleton className="h-5 w-5 rounded-full" />
-                        <Skeleton className="h-4 w-36" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : error ? (
-                <div className="px-3 py-4 text-sm text-destructive">
-                  {t('load_failed')}
-                </div>
-              ) : (
-                topCategories.map((item, key) => (
-                  <div
-                    key={key}
-                    className="w-full hover:bg-secondary hover:text-primary hover:cursor-pointer px-3 py-4 rounded-lg transition-all"
-                  >
-                    <a
-                      href={`/search?category=${item.slug}&page=1&limit=20`}
-                      className="flex flex-row gap-1.5 justify-start items-center"
-                    >
-                      {item.imageUrl ? (
-                        <Image
-                          src={item.imageUrl}
-                          alt={item.name}
-                          width={20}
-                          height={20}
-                          className="rounded-2xl"
-                        />
-                      ) : (
-                        <IconComponent
-                          slug={item.slug}
-                          size={20}
-                          color="var(--primary)"
-                        />
-                      )}
-                      <p className="text-sm">{t(item.slug)}</p>
-                    </a>
-                  </div>
-                ))
-              )}
+              {renderCategories()}
             </div>
           </div>
 

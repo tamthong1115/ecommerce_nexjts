@@ -13,6 +13,9 @@ import { prepareOrderForCheckout } from '@/features/payment/payment.usecases';
 import { Decimal } from '@prisma/client-runtime-utils';
 import { prisma } from '@/lib/db';
 
+import { withAuth } from '@/lib/with-auth';
+import { env } from '@/lib/env';
+
 type CheckoutPayload = {
   id: string;
   url: string;
@@ -21,7 +24,7 @@ type CheckoutPayload = {
   metadata?: Record<string, string>;
 };
 
-export async function POST(req: NextRequest) {
+export const POST = withAuth(async (userId: string, req: NextRequest) => {
   let localIntent: { id: string } | null = null;
   let inventoryReserved = false;
   let draftItems: { variantId: string; quantity: number }[] = [];
@@ -29,7 +32,25 @@ export async function POST(req: NextRequest) {
   try {
     //lấy đơn hàng nháp
     const { draftId, body } = await req.json();
-    const origin = process.env.NEXT_PUBLIC_BASE_URL!;
+
+    if (!draftId) {
+      return ResponseFactory.toNextResponse(
+        ResponseFactory.error({ message: 'Missing draftId', code: 400 })
+      );
+    }
+
+    const draft = await prisma.orderDraft.findFirst({
+      where: { id: draftId, userId },
+      select: { id: true },
+    });
+
+    if (!draft) {
+      return ResponseFactory.toNextResponse(
+        ResponseFactory.error({ message: 'Draft not found or access denied', code: 404 })
+      );
+    }
+
+    const origin = env.NEXT_PUBLIC_BASE_URL;
     const idenKey = body.idempotencyKey;
 
     //Check idenKey avoid double click
@@ -151,4 +172,4 @@ export async function POST(req: NextRequest) {
       })
     );
   }
-}
+});

@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db';
-import { ActionSource, ActionType } from '@prisma/client';
+import { ActionSource, ActionType } from '@/lib/generated/prisma';
 import { getTraceContext } from '@/lib/request-context';
 
 export interface LogActionOptions {

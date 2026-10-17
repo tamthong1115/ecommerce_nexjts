@@ -149,6 +149,19 @@ export async function POST(req: Request) {
         },
       });
 
+      const currentUser = await tx.user.findUnique({
+        where: { id: ownerId },
+        select: { role: true },
+      });
+
+      await tx.user.update({
+        where: { id: ownerId },
+        data: {
+          shopCount: { increment: 1 },
+          ...(currentUser?.role !== 'admin' ? { role: 'seller' } : {}),
+        },
+      });
+
       return newShop;
     });
 

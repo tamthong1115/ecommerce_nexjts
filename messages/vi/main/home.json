@@ -58,7 +58,8 @@
       "extensions": "Tiện ích",
       "promotion": "Ưu đãi thẻ, ví",
       "pay_top_up": " Đóng tiền, nạp thẻ",
-      "pay_later": "Mua trước trả sau"
+      "pay_later": "Mua trước trả sau",
+      "load_failed": "Không thể tải danh mục"
     },
     "category_promotion_panel": {
       "deal_vip": "Deal riêng 50% VIP",

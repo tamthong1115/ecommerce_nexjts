@@ -87,6 +87,24 @@ export default function CartPage() {
     0
   );
 
+  const discount = selectedVouchers.reduce((totalDiscount, voucher) => {
+    if (voucher.minSubtotal && subtotal < Number(voucher.minSubtotal)) {
+      return totalDiscount;
+    }
+    let currentDiscount = 0;
+    if (voucher.type === 'PERCENT') {
+      currentDiscount = (subtotal * Number(voucher.value)) / 100;
+      if (voucher.maxDiscount && currentDiscount > Number(voucher.maxDiscount)) {
+        currentDiscount = Number(voucher.maxDiscount);
+      }
+    } else if (voucher.type === 'FIXED') {
+      currentDiscount = Number(voucher.value);
+    }
+    return Math.min(totalDiscount + currentDiscount, subtotal);
+  }, 0);
+
+  const totalPayment = Math.max(0, subtotal - discount);
+
   const handleVoucherToggle = (voucher: VoucherResponseDTO) => {
     setSelectedVouchers((prev) => {
       const exists = prev.find((v) => v.id === voucher.id);
@@ -437,39 +455,13 @@ export default function CartPage() {
               <div className="flex items-center gap-3 justify-between">
                 <p className="text-text-secondary text-sm">{t('t_total')}</p>
                 <p className="text-foreground">
-                  {items
-                    .filter((item: any) =>
-                      selectedItem.some(
-                        (object) => object.variantId === item.variant.id
-                      )
-                    )
-                    .reduce(
-                      (total: number, item: any) =>
-                        total + Number(item.variant.price) * item.quantity,
-                      0
-                    )
-                    .toLocaleString('vi-VN')}{' '}
-                  ₫
+                  {subtotal.toLocaleString('vi-VN')} ₫
                 </p>
               </div>
               <div className="flex items-center gap-3 justify-between">
                 <p className="text-text-secondary text-sm">{t('t_discount')}</p>
                 <p className="text-success">
-                  -
-                  {items
-                    .filter((item: any) =>
-                      selectedItem.some(
-                        (object) => object.variantId === item.variant.id
-                      )
-                    )
-                    .reduce(
-                      (total: number, item: any) =>
-                        total +
-                        (Number(item.variant.price) * item.quantity) / 10,
-                      0
-                    )
-                    .toLocaleString('vi-VN')}{' '}
-                  ₫
+                  -{discount.toLocaleString('vi-VN')} ₫
                 </p>
               </div>
               <Separator />
@@ -478,21 +470,7 @@ export default function CartPage() {
                   {t('t_total_payment')}
                 </p>
                 <p className="text-error font-semibold">
-                  {items
-                    .filter((item: any) =>
-                      selectedItem.some(
-                        (object) => object.variantId === item.variant.id
-                      )
-                    )
-                    .reduce(
-                      (total: number, item: any) =>
-                        total +
-                        (Number(item.variant.price) * item.quantity -
-                          (Number(item.variant.price) * item.quantity) / 10),
-                      0
-                    )
-                    .toLocaleString('vi-VN')}{' '}
-                  ₫
+                  {totalPayment.toLocaleString('vi-VN')} ₫
                 </p>
               </div>
               <Button

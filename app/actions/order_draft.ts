@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { Prisma, Voucher } from '@/lib/generated/prisma';
 import { createOrderDraftSchema } from '@/lib/validation/orderDraft';
+import { priceCheckoutUsecase } from '@/features/promotion/usecases/price-checkout.usecase';
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 import { customAlphabet } from 'nanoid';
@@ -35,7 +36,9 @@ export async function getOrderDrafts(draftId?: string) {
       orderNumber: true,
       itemsTotal: true,
       shippingFee: true,
+      shippingDiscount: true,
       discountTotal: true,
+      taxTotal: true,
       grandTotal: true,
       shippingInfor: true,
       vouchers: {
@@ -55,12 +58,32 @@ export async function getOrderDrafts(draftId?: string) {
           },
         },
       },
+      applications: {
+        include: {
+          promotion: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+              kind: true,
+              target: true,
+              sponsor: true,
+            },
+          },
+        },
+      },
       items: {
         select: {
+          id: true,
           title: true,
           quantity: true,
           unitPrice: true,
+          discount: true,
           total: true,
+          taxRate: true,
+          unitPriceNet: true,
+          taxAmount: true,
+          isGift: true,
           product: {
             select: {
               shop: {
@@ -89,7 +112,9 @@ export async function getOrderDrafts(draftId?: string) {
     ...draft,
     itemsTotal: draft.itemsTotal.toNumber(),
     shippingFee: draft.shippingFee.toNumber(),
+    shippingDiscount: draft.shippingDiscount ? draft.shippingDiscount.toNumber() : 0,
     discountTotal: draft.discountTotal.toNumber(),
+    taxTotal: draft.taxTotal ? draft.taxTotal.toNumber() : 0,
     grandTotal: draft.grandTotal.toNumber(),
     vouchers: draft.vouchers.map((v) => ({
       ...v.voucher,
@@ -101,10 +126,28 @@ export async function getOrderDrafts(draftId?: string) {
         ? v.voucher.minSubtotal.toNumber()
         : null,
     })),
+    applications: (draft.applications || []).map((a) => ({
+      id: a.id,
+      promotionId: a.promotionId,
+      code: a.promotion?.code ?? null,
+      name: a.promotion?.name ?? '',
+      kind: a.promotion?.kind,
+      target: a.promotion?.target,
+      sponsor: a.sponsor,
+      amount: a.amount.toNumber(),
+      platformShare: a.platformShare.toNumber(),
+      shopShare: a.shopShare.toNumber(),
+      shopId: a.shopId,
+    })),
     items: draft.items.map((item) => ({
       ...item,
       unitPrice: item.unitPrice.toNumber(),
+      discount: item.discount.toNumber(),
       total: item.total.toNumber(),
+      taxRate: item.taxRate.toNumber(),
+      unitPriceNet: item.unitPriceNet ? item.unitPriceNet.toNumber() : null,
+      taxAmount: item.taxAmount.toNumber(),
+      isGift: item.isGift,
     })),
   };
 
@@ -174,16 +217,36 @@ export async function createOrderDraft(
   };
 
   try {
-    // Fetch product + variant details
     const variantIds = items.map((i) => i.variantId);
     const dbVariants = await prisma.productVariant.findMany({
       where: { id: { in: variantIds } },
-      include: { product: true },
+      include: {
+        product: {
+          select: {
+            id: true,
+            shopId: true,
+            categoryId: true,
+            title: true,
+            taxRate: true,
+          },
+        },
+      },
     });
 
     const variantMap = new Map(dbVariants.map((v) => [v.id, v]));
 
-    const itemDetails = [];
+    interface DraftItemDetail {
+      productId: string;
+      variantId: string;
+      shopId: string;
+      categoryId: string | null;
+      quantity: number;
+      unitPrice: number;
+      title: string;
+      taxRate: number;
+    }
+
+    const itemDetails: DraftItemDetail[] = [];
     for (const item of items) {
       const variant = variantMap.get(item.variantId);
 
@@ -205,152 +268,156 @@ export async function createOrderDraft(
         productId: variant.product.id,
         variantId: variant.id,
         shopId: variant.product.shopId,
+        categoryId: variant.product.categoryId,
         quantity: item.quantity,
         unitPrice: Number(variant.price),
         title: variant.name || variant.product.title,
-        total: Number(variant.price) * item.quantity,
+        taxRate: variant.product.taxRate ? Number(variant.product.taxRate) : 0.1,
       });
     }
 
-    // Fetch Voucher Details
-    const voucherDetails: Voucher[] = [];
-    if (voucher && voucher.length > 0) {
-      const voucherCodes = voucher.map((voucher) => voucher.code);
-      const voucherDb = await prisma.voucher.findMany({
-        where: { code: { in: voucherCodes } },
-      });
+    const appliedCodes = voucher
+      ? voucher.map((v) => v.code.trim()).filter(Boolean)
+      : [];
 
-      const now = new Date();
-      for (const vCode of voucherCodes) {
-        const vc = voucherDb.find((v) => v.code === vCode);
-        if (!vc)
-          return { success: false, error: `Voucher not exist: ${vCode}` };
-
-        if (vc.startAt > now || vc.endAt < now || !vc.isActive) {
-          return { success: false, error: `Voucher ${vCode} expired` };
-        }
-        voucherDetails.push(vc);
-      }
-    }
-
-    // 4️⃣ Group items by shop & Calculate Shop Subtotals
-    const itemsByShop = itemDetails.reduce(
-      (acc, item) => {
-        if (!acc[item.shopId]) acc[item.shopId] = [];
-        acc[item.shopId].push(item);
-        return acc;
-      },
-      {} as Record<string, typeof itemDetails>
-    );
-
-    let shopGroups = Object.entries(itemsByShop).map(([shopId, items]) => {
-      const subtotal = items.reduce((s, i) => s + i.total, 0);
-      return {
-        shopId,
-        items,
-        subtotal,
-        shopDiscount: 0,
-      };
-    });
+    const matchedLegacyVouchers =
+      appliedCodes.length > 0
+        ? await prisma.voucher.findMany({
+            where: { code: { in: appliedCodes } },
+          })
+        : [];
 
     const BASE_SHIPPING = 30000;
+    const shopIds = Array.from(new Set(itemDetails.map((i) => i.shopId)));
+    const shippingRates = shopIds.map((shopId) => ({
+      shopId,
+      fee: BASE_SHIPPING,
+      taxRate: 0,
+    }));
 
-    // 5️⃣ Apply Shop Vouchers FIRST
-    let totalShopDiscount = 0;
-
-    shopGroups = shopGroups.map((shop) => {
-      const shopVoucher = voucherDetails.find((v) => v.shopId === shop.shopId);
-      let discount = 0;
-      if (shopVoucher) {
-        if (shop.subtotal >= Number(shopVoucher.minSubtotal)) {
-          if (shopVoucher.type === 'PERCENT') {
-            discount = (shop.subtotal * Number(shopVoucher.value)) / 100;
-            if (
-              shopVoucher.maxDiscount &&
-              Number(shopVoucher.maxDiscount) > 0
-            ) {
-              discount = Math.min(discount, Number(shopVoucher.maxDiscount));
-            }
-          } else if (shopVoucher.type === 'FIXED') {
-            discount = Number(shopVoucher.value);
-          }
-        }
-      }
-      discount = Math.min(discount, shop.subtotal);
-      totalShopDiscount += discount;
-      return { ...shop, shopDiscount: discount };
+    const pricingResult = await priceCheckoutUsecase(prisma, {
+      items: itemDetails.map((i) => ({
+        id: i.variantId,
+        productId: i.productId,
+        variantId: i.variantId,
+        shopId: i.shopId,
+        categoryId: i.categoryId ?? undefined,
+        title: i.title,
+        originalUnitPrice: i.unitPrice,
+        quantity: i.quantity,
+        taxRate: i.taxRate,
+      })),
+      shippingRates,
+      appliedCodes,
+      userId,
+      currency: (data.currency as 'VND' | 'USD') || 'VND',
     });
 
-    // 6️⃣  Apply Platform/Shipping Vouchers
-    const platformVouchers = voucherDetails.filter((v) => v.shopId === null);
+    const rejectedUserCode = pricingResult.rejectedPromotions.find(
+      (r) => r.code && appliedCodes.includes(r.code)
+    );
+    if (rejectedUserCode) {
+      return {
+        success: false,
+        error: `Mã khuyến mãi ${rejectedUserCode.code} không thể áp dụng: ${rejectedUserCode.reason}`,
+      };
+    }
 
-    const totalSubtotal = shopGroups.reduce((s, x) => s + x.subtotal, 0);
-    const totalSubtotalAfterShopDiscount = totalSubtotal - totalShopDiscount;
+    const giftItemsToCreate = [];
+    if (pricingResult.giftsToAdd && pricingResult.giftsToAdd.length > 0) {
+      const giftVariantIds = pricingResult.giftsToAdd.map((g) => g.variantId);
+      const giftVariants = await prisma.productVariant.findMany({
+        where: { id: { in: giftVariantIds } },
+        include: {
+          product: {
+            select: { id: true, shopId: true, title: true },
+          },
+        },
+      });
+      const giftVariantMap = new Map(giftVariants.map((v) => [v.id, v]));
 
-    let totalPlatformDiscount = 0;
-    let totalShippingDiscount = 0;
-
-    platformVouchers.forEach((v) => {
-      if (totalSubtotalAfterShopDiscount >= Number(v.minSubtotal)) {
-        if (v.type === 'SHIPPING') {
-          totalShippingDiscount += Number(v.value);
-        } else {
-          let discount = 0;
-          if (v.type === 'PERCENT') {
-            discount = (totalSubtotalAfterShopDiscount * Number(v.value)) / 100;
-            if (v.maxDiscount && Number(v.maxDiscount) > 0) {
-              discount = Math.min(discount, Number(v.maxDiscount));
-            }
-          } else if (v.type === 'FIXED') {
-            discount = Number(v.value);
-          }
-          totalPlatformDiscount += discount;
+      for (const gift of pricingResult.giftsToAdd) {
+        const gVar = giftVariantMap.get(gift.variantId);
+        if (gVar && gVar.product) {
+          giftItemsToCreate.push({
+            productId: gVar.product.id,
+            variantId: gVar.id,
+            shopId: gVar.product.shopId,
+            quantity: gift.quantity,
+            unitPrice: new Prisma.Decimal(0),
+            discount: new Prisma.Decimal(0),
+            total: new Prisma.Decimal(0),
+            taxRate: new Prisma.Decimal(0),
+            unitPriceNet: new Prisma.Decimal(0),
+            taxAmount: new Prisma.Decimal(0),
+            isGift: true,
+            title: `[Quà tặng] ${gVar.name || gVar.product.title}`,
+          });
         }
       }
-    });
-
-    // 7️⃣ Final Calculations
-    const totalBaseShipping = BASE_SHIPPING * shopGroups.length;
-    const finalShippingFee = Math.max(
-      0,
-      totalBaseShipping - totalShippingDiscount
-    );
-    const finalTotalDiscount = totalShopDiscount + totalPlatformDiscount;
-    const finalGrandTotal = Math.max(
-      0,
-      totalSubtotal + finalShippingFee - finalTotalDiscount
-    );
-
-    const itemsTotalDecimal = new Prisma.Decimal(totalSubtotal);
-    const shippingFeeDecimal = new Prisma.Decimal(finalShippingFee);
-    const discountTotalDecimal = new Prisma.Decimal(finalTotalDiscount);
-    const grandTotalDecimal = new Prisma.Decimal(finalGrandTotal);
+    }
 
     const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 8);
     const timestamp = dayjs().format('YYYYMMDD_HHmm');
     const orderNumber = `ORD-${timestamp}-${nanoid()}`;
 
-    // 8️Create new draft
+    await prisma.orderDraft.deleteMany({
+      where: { userId },
+    });
+
     const newDraft = await prisma.orderDraft.create({
       data: {
         userId,
-        orderNumber: orderNumber,
+        orderNumber,
         status: 'AWAITING_PAYMENT',
-        itemsTotal: itemsTotalDecimal,
-        shippingFee: shippingFeeDecimal,
-        discountTotal: discountTotalDecimal,
-        grandTotal: grandTotalDecimal,
+        itemsTotal: new Prisma.Decimal(pricingResult.summary.itemsTotalGross),
+        shippingFee: new Prisma.Decimal(pricingResult.summary.shippingFeeFinal),
+        shippingDiscount: new Prisma.Decimal(pricingResult.summary.shippingFeeDiscount),
+        discountTotal: new Prisma.Decimal(pricingResult.summary.discountTotal),
+        taxTotal: new Prisma.Decimal(pricingResult.summary.taxTotal),
+        grandTotal: new Prisma.Decimal(pricingResult.summary.grandTotal),
         notes,
         shippingInfor,
         items: {
-          create: itemDetails.map((i) => ({
-            ...i,
-            total: new Prisma.Decimal(i.total),
-            unitPrice: new Prisma.Decimal(i.unitPrice),
+          create: [
+            ...pricingResult.items.map((line) => {
+              const matched = itemDetails.find((d) => d.variantId === line.variantId);
+              return {
+                productId: matched?.productId || '',
+                variantId: line.variantId,
+                shopId: line.shopId,
+                quantity: line.quantity,
+                unitPrice: new Prisma.Decimal(line.effectiveUnitPrice),
+                discount: new Prisma.Decimal(line.discountTotal),
+                total: new Prisma.Decimal(line.grossTotal),
+                taxRate: new Prisma.Decimal(line.taxRate),
+                unitPriceNet: new Prisma.Decimal(
+                  line.quantity > 0 ? line.netTotal / line.quantity : 0
+                ),
+                taxAmount: new Prisma.Decimal(line.taxAmount),
+                isGift: line.isGift,
+                title: matched?.title || '',
+              };
+            }),
+            ...giftItemsToCreate,
+          ],
+        },
+        applications: {
+          create: pricingResult.appliedPromotions.map((app) => ({
+            promotion: { connect: { id: app.promotionId } },
+            amount: new Prisma.Decimal(app.totalDiscount),
+            sponsor: app.sponsor,
+            platformShare: new Prisma.Decimal(app.platformShare),
+            shopShare: new Prisma.Decimal(app.shopShare),
+            shopId:
+              app.appliedToShopIds && app.appliedToShopIds.length === 1
+                ? app.appliedToShopIds[0]
+                : null,
+            snapshot: app as unknown as Prisma.InputJsonValue,
           })),
         },
         vouchers: {
-          create: voucherDetails.map((v) => ({
+          create: matchedLegacyVouchers.map((v) => ({
             voucher: { connect: { id: v.id } },
           })),
         },

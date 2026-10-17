@@ -7,7 +7,8 @@
       "t_3months": "90 ngày",
       "t_months": "12 tháng",
       "t_data_from": "Số liệu từ",
-      "t_most_recent": "gần nhất"
+      "t_most_recent": "gần nhất",
+      "t_empty": "No data"
     },
     "chart_order_state_rate": {
       "t_title": "Tỉ lệ trạng thái đơn hàng",
@@ -55,7 +56,17 @@
       "t_sku_code": "Mã SKU",
       "t_price": "Giá",
       "t_variant": "Sản phẩm con",
-      "t_cancel_action": "Thoát"
+      "t_cancel_action": "Thoát",
+      "t_process_failed_noti": "Process Failed",
+      "t_conn_failed_desc_noti": "Cannot connect to server!",
+      "t_action_noti": "Action",
+      "t_update_desc_noti": "Category information updated successfully!",
+      "t_copy_desc_noti": "Information copied successfully!",
+      "t_del_desc_noti": "Product deleted successfully!",
+      "t_action_failed_noti": "Action Failed",
+      "t_update_failed_desc_noti": "Failed to update information!",
+      "t_copy_failed_desc_noti": "Failed to copy information!",
+      "t_del_failed_desc_noti": "Failed to delete product!"
     },
     "table_top_product": {
       "t_action_noti": "Hành động",

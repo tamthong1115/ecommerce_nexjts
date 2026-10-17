@@ -1,6 +1,7 @@
 import { $Enums } from '@/lib/generated/prisma';
 import { StockManager } from '@/lib/stock-manager';
 import { customerPaidOrderSuccessUsecase } from '@/features/payment_transaction/payment_transaction.usecases';
+import { commitRedemptions, releaseRedemptions } from '@/features/promotion/services/redemption.service';
 import IntentStatus = $Enums.IntentStatus;
 import 'dotenv/config';
 import { prisma } from '@/lib/db';
@@ -57,8 +58,8 @@ export async function handleStripeWebhook(eventType: string, session: any) {
         },
       });
 
-      // Logic User Success (Hoa hồng, v.v.)
       for (const od of payment.orders) {
+        await commitRedemptions(tx, { orderId: od.order.id });
         await customerPaidOrderSuccessUsecase(
           tx,
           od.order.shopId!,
@@ -96,6 +97,7 @@ export async function handleStripeWebhook(eventType: string, session: any) {
       });
 
       for (const od of payment.orders) {
+        await releaseRedemptions(tx, { orderId: od.order.id });
         for (const item of od.order.items) {
           await tx.productVariant.update({
             where: { id: item.variantId! },

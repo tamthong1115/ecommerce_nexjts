@@ -117,14 +117,10 @@ export const ProductItem = ({
               {item.title}
             </p>
           </CardTitle>
-          {showDesc ? (
+          {showDesc && item.description ? (
             <CardDescription className="px-2 py-1">
               <div className="w-full">
-                <p className="line-clamp-2 text-sm mb-1">
-                  {item.description
-                    ? item.description
-                    : 'Đây là 1 sản phẩm cực tốt tốt ở đâu thì mua đi r biết'}
-                </p>
+                <p className="line-clamp-2 text-sm mb-1">{item.description}</p>
               </div>
             </CardDescription>
           ) : null}

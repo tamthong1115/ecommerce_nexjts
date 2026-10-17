@@ -54,19 +54,14 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
     },
     teams: [
       {
-        name: '2T3H Inc',
+        name: 'Platform Admin',
         logo: GalleryVerticalEnd,
         plan: 'Enterprise',
       },
       {
-        name: 'Acme Corp.',
+        name: 'Operations',
         logo: AudioWaveform,
-        plan: 'Startup',
-      },
-      {
-        name: 'Evil Corp.',
-        logo: Command,
-        plan: 'Free',
+        plan: 'Internal',
       },
     ],
     navMain: [
@@ -210,6 +205,14 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         url: '#',
         icon: Settings2,
         items: [
+          {
+            title: 'Phân quyền & Vai trò (RBAC)',
+            url: '/manager/access',
+          },
+          {
+            title: 'Quản lý đa ngôn ngữ (i18n)',
+            url: '/manager/i18n',
+          },
           {
             title: t('t_general'),
             url: '#',

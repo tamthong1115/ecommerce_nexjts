@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/table';
 import { VoucherDataTablePagination } from '@/features/voucher/components/voucher-pagination';
 import { VoucherResponseDTO } from '@/features/voucher/types/voucher.dto';
+import { ExportExcelButton } from '@/features/shared/components/table/export-excel-button';
 
 interface DataTableProps<TData extends VoucherResponseDTO, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -49,6 +50,13 @@ export function DataTable<TData extends VoucherResponseDTO, TValue>({
 
   return (
     <>
+      <div className="flex items-center justify-end px-4 py-2">
+        <ExportExcelButton
+          table={VoucherTable}
+          filename="danh-sach-voucher.xlsx"
+          sheetName="Vouchers"
+        />
+      </div>
       <div className="overflow-hidden px-4 py-2">
         <Table>
           <TableHeader>

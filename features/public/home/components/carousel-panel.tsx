@@ -43,7 +43,7 @@ export const CarouselPanel = () => {
             <CarouselItem key={index} className="pl-4 basis-full md:basis-1/2">
               <Card className="border-0 shadow-none bg-transparent rounded-xl">
                 <CardContent className="flex items-center justify-center p-4 aspect-2/1 relative overflow-hidden rounded-xl z-1">
-                  <Link href={'/test'} className="rounded-xl">
+                  <Link href="/search" className="rounded-xl">
                     <Image
                       src={imagePath}
                       alt={`Banner ${index + 1}`}

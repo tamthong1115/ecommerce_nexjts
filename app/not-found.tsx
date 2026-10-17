@@ -17,16 +17,16 @@ export default function NotFound() {
       <div className="w-full h-full flex flex-col justify-center items-center">
         <h1 className="text-9xl font-bold text-primary">404</h1>
         <h2 className="mb-4 text-2xl font-semibold text-primary/80">
-          {t('t_not_found')}
+          {t('not_found')}
         </h2>
-        <p className="mb-8 text-center text-gray-500 max-w-md">{t('t_desc')}</p>
+        <p className="mb-8 text-center text-gray-500 max-w-md">{t('desc')}</p>
         <Button
           variant={'outline'}
           type="button"
           className="hover:cursor-pointer"
           onClick={() => router.back()}
         >
-          {t('t_return')}
+          {t('return')}
         </Button>
       </div>
     </div>

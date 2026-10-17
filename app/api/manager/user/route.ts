@@ -1,12 +1,12 @@
 import { ResponseFactory } from '@/lib/api-response';
 import { prisma } from '@/lib/db';
 import { Prisma } from '@/lib/generated/prisma';
-import { withAuth } from '@/lib/with-auth';
+import { withAdmin } from '@/lib/with-auth';
 import { HttpStatus } from '@/types/api';
 import { NextRequest } from 'next/server';
 
 //api to get list of user
-export const GET = withAuth(async (userId: string, request: NextRequest) => {
+export const GET = withAdmin(async (userId: string, request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url);
     const page = Number(searchParams.get('page')) || 1;

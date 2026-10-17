@@ -9,6 +9,14 @@ import {
 import { NotificationRole, NotificationType } from '@/lib/generated/prisma';
 
 // Mock the dependencies that cause side-effects
+vi.mock('@/lib/db', () => ({
+  prisma: {
+    notification: {
+      create: vi.fn(),
+    },
+  },
+}));
+
 vi.mock('@/features/notification/server/email/email.factory', () => ({
   EmailProviderFactory: {
     getProvider: vi.fn(() => ({

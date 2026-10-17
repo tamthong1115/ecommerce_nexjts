@@ -64,7 +64,21 @@
       }
     },
     "voucher_page": {
-      "filter": {}
+      "filter": {
+        "choose_shop": "Chọn cửa hàng",
+        "placeholder": "Thời gian",
+        "select": {
+          "all": "Tất cả",
+          "shipping": "Vận chuyển",
+          "fix": "Cố định",
+          "percent": "Phần trăm"
+        }
+      }
+    },
+    "shop_settings": {
+      "update_success": "Shop updated successfully",
+      "update_failed": "Failed to update shop",
+      "load_failed": "Failed to load shop information"
     }
   }
 }

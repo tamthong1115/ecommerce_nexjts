@@ -104,7 +104,7 @@ export function SearchFiltersPanel({
                     : 'text-text hover:bg-secondary/50'
                 }`}
               >
-                {c(cat.slug)}
+                {c.has(cat.slug) ? c(cat.slug) : cat.name}
               </button>
             ))}
           </div>

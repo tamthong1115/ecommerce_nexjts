@@ -52,11 +52,9 @@ const HeaderClient = ({ user }: { user: HeaderUser }) => {
 
   const t = useTranslations('home_layout');
   const n = useTranslations('' + 'customer.user_navbar');
-  const handleHome = () => {
-    router.push('/');
-  };
+
   return (
-    <div className="w-full h-fit  flex flex-col justify-center items-center relative">
+    <div className="w-full h-fit flex flex-col justify-center items-center relative">
       {/* logo, searching zone and tags  */}
       <div
         className={
@@ -65,9 +63,9 @@ const HeaderClient = ({ user }: { user: HeaderUser }) => {
       >
         <div className="w-[80%] h-fit p-2 flex flex-row justify-center items-center gap-4">
           {/* logo and slogan */}
-          <div
+          <Link
+            href="/"
             className="w-[10%] flex flex-col gap-1 justify-center items-center cursor-pointer"
-            onClick={() => handleHome()}
           >
             <Image
               width={200}
@@ -77,7 +75,7 @@ const HeaderClient = ({ user }: { user: HeaderUser }) => {
               className=""
             />
             <p className="text-primary">{t('slogan')}</p>
-          </div>
+          </Link>
           {/* searching bar and tags  */}
           <div className="w-full flex flex-col justify-start items-start gap-1">
             {/* searching bar, change language*/}
@@ -170,53 +168,67 @@ const HeaderClient = ({ user }: { user: HeaderUser }) => {
             </div>
             {/* tags  */}
             <div className="flex flex-row justify-start items-center gap-3 text-primary text-sm">
-              <Link href={''}>{t('electronics')}</Link>
-              <Link href={''}>{t('vehicles')}</Link>
-              <Link href={''}>{t('mom_baby')}</Link>
-              <Link href={''}>{t('beauty')}</Link>
-              <Link href={''}>{t('house')}</Link>
-              <Link href={''}>{t('book')}</Link>
-              <Link href={''}>{t('sports')}</Link>
+              <Link href="/search?category=electronics" className="hover:underline">
+                {t('electronics')}
+              </Link>
+              <Link href="/search?category=automotive-motorcycles" className="hover:underline">
+                {t('vehicles')}
+              </Link>
+              <Link href="/search?category=baby-toys" className="hover:underline">
+                {t('mom_baby')}
+              </Link>
+              <Link href="/search?category=beauty-personal-care" className="hover:underline">
+                {t('beauty')}
+              </Link>
+              <Link href="/search?category=home-living" className="hover:underline">
+                {t('house')}
+              </Link>
+              <Link href="/search?category=books-stationery" className="hover:underline">
+                {t('book')}
+              </Link>
+              <Link href="/search?category=sports-outdoors" className="hover:underline">
+                {t('sports')}
+              </Link>
             </div>
           </div>
         </div>
       </div>
       <Separator />
       {/* slogans */}
-      <div className="w-full h-10 pt-2 pr-2 pl-2 flex flex-row justify-center items-center gap-4 text-text font-medium text-xs bg-background-secondary">
-        <Link href="" className="flex gap-1">
+      <div className="w-full h-10 pt-2 pr-2 pl-2 flex flex-row justify-center items-center gap-4 text-text font-medium text-xs bg-background-secondary overflow-x-auto">
+        <span className="flex items-center gap-1 shrink-0">
           <Handshake className="w-4 h-4 text-primary" />
           {t('commitment')}
-        </Link>
-        <Link href="" className="flex gap-1">
+        </span>
+        <span className="flex items-center gap-1 shrink-0">
           <BadgeCheck className="w-4 h-4 text-primary" />
           {t('genuine_goods')}
-        </Link>
-        <Separator orientation="vertical" />
-        <Link href="" className="flex gap-1">
+        </span>
+        <Separator orientation="vertical" className="h-4" />
+        <span className="flex items-center gap-1 shrink-0">
           <Truck className="w-4 h-4 text-primary" />
           {t('free_ship_all')}
-        </Link>
-        <Separator orientation="vertical" />
-        <Link href="" className="flex gap-1">
+        </span>
+        <Separator orientation="vertical" className="h-4" />
+        <span className="flex items-center gap-1 shrink-0">
           <Rotate3D className="w-4 h-4 text-primary" />
           {t('refund_200')}
-        </Link>
-        <Separator orientation="vertical" />
-        <Link href="" className="flex gap-1">
+        </span>
+        <Separator orientation="vertical" className="h-4" />
+        <span className="flex items-center gap-1 shrink-0">
           <Undo2 className="w-4 h-4 text-primary" />
           {t('return_30_days')}
-        </Link>
-        <Separator orientation="vertical" />
-        <Link href="" className="flex gap-1">
+        </span>
+        <Separator orientation="vertical" className="h-4" />
+        <span className="flex items-center gap-1 shrink-0">
           <Timer className="w-4 h-4 text-primary" />
           {t('fast_delivery_2h')}
-        </Link>
-        <Separator orientation="vertical" />
-        <Link href="" className="flex gap-1">
+        </span>
+        <Separator orientation="vertical" className="h-4" />
+        <span className="flex items-center gap-1 shrink-0">
           <Tag className="w-4 h-4 text-primary" />
           {t('super_cheap_price')}
-        </Link>
+        </span>
       </div>
     </div>
   );

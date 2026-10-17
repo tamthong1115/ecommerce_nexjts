@@ -27,15 +27,20 @@ model Order {
   user              User                @relation(fields: [userId], references: [id])
   shop              Shop?               @relation(fields: [shopId], references: [id], onDelete: Restrict)
   items             OrderItem[]
-  shipments         Shipment[]
-  refunds           Refund[]
-  vouchers          OrderVoucher[]
-  ReturnRequest     ReturnRequest[]
-  drafts            OrderDraft?
-  Message           Message[]
-  payments          OrderPayment[]
-  orderSlots        OrderSlot[]
-  VoucherRedemption VoucherRedemption[]
+  shipments             Shipment[]
+  refunds               Refund[]
+  vouchers              OrderVoucher[]
+  applications          PromotionApplication[]
+  redemptions           PromotionRedemption[]
+  ReturnRequest         ReturnRequest[]
+  drafts                OrderDraft?
+  Message               Message[]
+  payments              OrderPayment[]
+  orderSlots            OrderSlot[]
+  VoucherRedemption     VoucherRedemption[]
+
+  subtotalNet           Decimal?            @db.Decimal(14, 2)
+  shippingDiscount      Decimal             @default(0) @db.Decimal(14, 2)
 
   @@index([userId, placedAt])
   @@index([shopId, status])
@@ -43,51 +48,59 @@ model Order {
 }
 
 model OrderItem {
-  id           String          @id @default(uuid()) @db.Uuid
-  orderId      String?         @db.Uuid
-  orderDraftId String?         @db.Uuid
-  productId    String          @db.Uuid
-  shopId       String?         @db.Uuid
-  variantId    String?         @db.Uuid
-  title        String
-  sku          String?
-  unitPrice    Decimal         @db.Decimal(14, 2)
-  quantity     Int
-  discount     Decimal         @default(0) @db.Decimal(14, 2)
-  total        Decimal         @db.Decimal(14, 2)
-  metadata     Json?
-  orderDraft   OrderDraft?     @relation(fields: [orderDraftId], references: [id], onDelete: Cascade)
-  order        Order?          @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product      Product         @relation(fields: [productId], references: [id])
-  shop         Shop?           @relation(fields: [shopId], references: [id], onDelete: Restrict)
-  variant      ProductVariant? @relation(fields: [variantId], references: [id])
-  ReturnItem   ReturnItem[]
-  review       Review?
+  id                    String                 @id @default(uuid()) @db.Uuid
+  orderId               String?                @db.Uuid
+  orderDraftId          String?                @db.Uuid
+  productId             String                 @db.Uuid
+  shopId                String?                @db.Uuid
+  variantId             String?                @db.Uuid
+  title                 String
+  sku                   String?
+  unitPrice             Decimal                @db.Decimal(14, 2)
+  quantity              Int
+  discount              Decimal                @default(0) @db.Decimal(14, 2)
+  total                 Decimal                @db.Decimal(14, 2)
+  taxRate               Decimal                @default(0.10) @db.Decimal(4, 2)
+  unitPriceNet          Decimal?               @db.Decimal(14, 2)
+  taxAmount             Decimal                @default(0) @db.Decimal(14, 2)
+  isGift                Boolean                @default(false)
+  metadata              Json?
+  orderDraft            OrderDraft?            @relation(fields: [orderDraftId], references: [id], onDelete: Cascade)
+  order                 Order?                 @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product               Product                @relation(fields: [productId], references: [id])
+  shop                  Shop?                  @relation(fields: [shopId], references: [id], onDelete: Restrict)
+  variant               ProductVariant?        @relation(fields: [variantId], references: [id])
+  ReturnItem            ReturnItem[]
+  review                Review?
+  promotionApplications PromotionApplication[]
 
   @@index([orderId])
   @@map("order_item")
 }
 
 model OrderDraft {
-  id            String         @id @default(uuid()) @db.Uuid
-  orderNumber   String         @unique
-  orderId       String?        @unique @db.Uuid
-  userId        String         @unique @db.Uuid
-  placedAt      DateTime       @default(now())
-  updatedAt     DateTime       @default(now()) @updatedAt
-  status        OrderStatus    @default(PENDING)
-  paymentStatus PaymentStatus  @default(PENDING)
-  currency      Currency       @default(VND)
-  itemsTotal    Decimal        @db.Decimal(14, 2)
-  shippingFee   Decimal        @default(0) @db.Decimal(14, 2)
-  discountTotal Decimal        @default(0) @db.Decimal(14, 2)
-  grandTotal    Decimal        @db.Decimal(14, 2)
-  shippingInfor Json
-  notes         String?
-  order         Order?         @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  user          User           @relation(fields: [userId], references: [id])
-  items         OrderItem[]
-  vouchers      OrderVoucher[]
+  id               String                 @id @default(uuid()) @db.Uuid
+  orderNumber      String                 @unique
+  orderId          String?                @unique @db.Uuid
+  userId           String                 @unique @db.Uuid
+  placedAt         DateTime               @default(now())
+  updatedAt        DateTime               @default(now()) @updatedAt
+  status           OrderStatus            @default(PENDING)
+  paymentStatus    PaymentStatus          @default(PENDING)
+  currency         Currency               @default(VND)
+  itemsTotal       Decimal                @db.Decimal(14, 2)
+  shippingFee      Decimal                @default(0) @db.Decimal(14, 2)
+  shippingDiscount Decimal                @default(0) @db.Decimal(14, 2)
+  discountTotal    Decimal                @default(0) @db.Decimal(14, 2)
+  taxTotal         Decimal                @default(0) @db.Decimal(14, 2)
+  grandTotal       Decimal                @db.Decimal(14, 2)
+  shippingInfor    Json
+  notes            String?
+  order            Order?                 @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user             User                   @relation(fields: [userId], references: [id])
+  items            OrderItem[]
+  vouchers         OrderVoucher[]
+  applications     PromotionApplication[]
 
   @@index([userId, placedAt])
   @@index([orderId])

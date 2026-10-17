@@ -4,6 +4,7 @@ import { $Enums } from '@/lib/generated/prisma';
 import { StockManager } from '@/lib/stock-manager';
 import { syncCurrencyRate } from '@/lib/sync-currency-rate';
 import { paySettleQueueUsecase } from '@/features/payment_transaction/payment_transaction.usecases';
+import { releaseRedemptions } from '@/features/promotion/services/redemption.service';
 import { CRON_QUEUE_NAME, cronQueue, newConnection } from './config';
 
 export const CRON_JOBS = {
@@ -58,6 +59,8 @@ async function handleCleanupExpiredOrders() {
           },
         });
         if (count === 0) return false;
+
+        await releaseRedemptions(tx, { orderId: order.id });
 
         for (const item of order.items) {
           if (item.variantId) {

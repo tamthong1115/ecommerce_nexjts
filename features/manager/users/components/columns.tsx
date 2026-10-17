@@ -18,6 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { IconDotsVertical, IconGripVertical } from '@tabler/icons-react';
 import { useSortable } from '@dnd-kit/sortable';
+import { Can } from '@/lib/authz/client';
 
 export const useUserColumns = ({
   t,
@@ -61,7 +62,8 @@ export const useUserColumns = ({
         enableHiding: false,
       },
       {
-        accessorKey: t('t_user_name'),
+        id: 'name',
+        accessorKey: 'name',
         header: t('t_user_name'),
         cell: ({ row }) => {
           return (
@@ -71,14 +73,17 @@ export const useUserColumns = ({
         enableHiding: false,
       },
       {
-        accessorKey: t('t_email'),
+        id: 'email',
+        accessorKey: 'email',
         header: () => <div className="w-fit text-right">{t('t_email')}</div>,
         cell: ({ row }) => (
           <div className="w-full text-right">{row.original.email}</div>
         ),
       },
       {
-        accessorKey: t('t_email_verified'),
+        id: 'emailVerified',
+        accessorFn: (row) =>
+          row.emailVerified ? t('t_verified') : t('t_no_verified'),
         header: t('t_email_verified'),
         cell: ({ row }) => (
           <Badge variant="outline" className="text-muted-foreground px-1.5">
@@ -93,9 +98,9 @@ export const useUserColumns = ({
           </Badge>
         ),
       },
-
       {
-        accessorKey: t('t_created_at'),
+        id: 'createdAt',
+        accessorKey: 'createdAt',
         header: t('t_created_at'),
         cell: ({ row }) => {
           return (
@@ -106,7 +111,8 @@ export const useUserColumns = ({
         },
       },
       {
-        accessorKey: t('t_updated_at'),
+        id: 'updatedAt',
+        accessorKey: 'updatedAt',
         header: t('t_updated_at'),
         cell: ({ row }) => {
           return (
@@ -141,10 +147,12 @@ export const useUserColumns = ({
                   {t('t_copy_action')}
                 </Button>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive">
-                {t('t_del_action')}
-              </DropdownMenuItem>
+              <Can permission="platform:users:delete">
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="destructive">
+                  {t('t_del_action')}
+                </DropdownMenuItem>
+              </Can>
             </DropdownMenuContent>
           </DropdownMenu>
         ),

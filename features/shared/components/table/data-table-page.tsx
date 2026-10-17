@@ -225,8 +225,8 @@ export function DataTablePage<TData>({
   }, [reorder, legacyEnableDragAndDrop]);
 
   const resolvedExportExcel = useMemo<ExportExcelConfig | null>(() => {
-    if (exportExcel === true) {
-      return { enabled: true };
+    if (exportExcel === false) {
+      return null;
     }
     if (typeof exportExcel === 'object') {
       return { enabled: true, ...exportExcel };
@@ -238,7 +238,7 @@ export function DataTablePage<TData>({
         onExport: legacyOnExportExcel,
       };
     }
-    return null;
+    return { enabled: true };
   }, [exportExcel, legacyEnableExportExcel, legacyExportFilename, legacyOnExportExcel]);
 
   const handleExport = async () => {

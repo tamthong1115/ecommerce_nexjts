@@ -1,0 +1,115 @@
+//================== Prisma Schema =================//
+// File: prisma/schema/authz.prisma
+// Schema for Fine-Grained Role-Based Access Control (RBAC)
+//==================================================//
+
+enum PermissionScope {
+  PLATFORM
+  SHOP
+  BOTH
+}
+
+enum PermissionEffect {
+  ALLOW
+  DENY
+}
+
+model Permission {
+  id          String          @id @default(uuid()) @db.Uuid
+  key         String          @unique
+  displayName String?
+  resource    String
+  action      String
+  module      String?
+  description String?
+  scope       PermissionScope @default(BOTH)
+  createdAt   DateTime        @default(now())
+
+  rolePermissions     RolePermission[]
+  permissionOverrides PermissionOverride[]
+
+  @@map("permission")
+}
+
+model AuthRole {
+  id          String          @id @default(uuid()) @db.Uuid
+  key         String
+  name        String
+  description String?
+  scope       PermissionScope @default(PLATFORM)
+  shopId      String?         @db.Uuid
+  isSystem    Boolean         @default(false)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  shop            Shop?            @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  rolePermissions RolePermission[]
+  userRoles       UserRole[]
+
+  @@unique([key, shopId])
+  @@index([shopId])
+  @@map("role")
+}
+
+model RolePermission {
+  id           String           @id @default(uuid()) @db.Uuid
+  roleId       String           @db.Uuid
+  permissionId String           @db.Uuid
+  effect       PermissionEffect @default(ALLOW)
+  conditions   Json?
+  createdAt    DateTime         @default(now())
+
+  role       AuthRole   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permission")
+}
+
+model UserRole {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  roleId    String   @db.Uuid
+  shopId    String?  @db.Uuid
+  createdAt DateTime @default(now())
+
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role AuthRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  shop Shop?    @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId, shopId])
+  @@index([userId, shopId])
+  @@map("user_role")
+}
+
+model PermissionOverride {
+  id           String           @id @default(uuid()) @db.Uuid
+  userId       String           @db.Uuid
+  permissionId String           @db.Uuid
+  shopId       String?          @db.Uuid
+  effect       PermissionEffect
+  conditions   Json?
+  expiresAt    DateTime?
+  createdAt    DateTime         @default(now())
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  shop       Shop?      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permissionId, shopId])
+  @@index([userId, shopId])
+  @@map("permission_override")
+}
+
+model PermissionAuditLog {
+  id           String   @id @default(uuid()) @db.Uuid
+  actorId      String   @db.Uuid
+  targetUserId String?  @db.Uuid
+  roleId       String?  @db.Uuid
+  action       String
+  before       Json?
+  after        Json?
+  createdAt    DateTime @default(now())
+
+  @@map("permission_audit_log")
+}

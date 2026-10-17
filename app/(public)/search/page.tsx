@@ -139,6 +139,106 @@ export default function SearchPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const renderSearchResults = () => {
+    if (loading) {
+      return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton
+              key={i}
+              className="h-[300px] rounded-lg bg-background-secondary"
+            />
+          ))}
+        </div>
+      );
+    }
+
+    if (!products || products.length === 0) {
+      return (
+        <Card className="border-none shadow-sm">
+          <CardContent className="py-16 text-center">
+            <div className="mx-auto w-24 h-24 bg-secondary rounded-full flex items-center justify-center mb-4">
+              <span className="text-3xl">🔍</span>
+            </div>
+            <h3 className="text-lg font-medium text-text">
+              {t('t_not_found')}
+            </h3>
+            <p className="text-text-secondary">{t('t_not_found_desc')}</p>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return (
+      <>
+        {/* Product Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+          {products.map((product) => (
+            <ProductItem
+              key={product.id}
+              item={{
+                id: product.id,
+                title: product.title,
+                description: product.description || 'no desctiption',
+                minPrice: Number(product.minPrice),
+                ratingAvg: product.ratingAvg.toString(),
+                ratingCount: product.ratingCount,
+                imageUrl: product.imageUrl || '',
+                voucher: product.voucher,
+                origin: product.origin || '',
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Pagination */}
+        {pagination.totalPages > 1 && (
+          <div className="mt-8 flex items-center justify-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              className="bg-background-secondary hover:bg-secondary"
+              onClick={() => handlePageChange(1)}
+              disabled={pagination.page === 1}
+            >
+              <ChevronsLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="bg-background-secondary hover:bg-secondary"
+              onClick={() => handlePageChange(pagination.page - 1)}
+              disabled={pagination.page === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-sm font-medium px-4 text-foreground">
+              {pagination.page} / {pagination.totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="icon"
+              className="bg-background-secondary hover:bg-secondary"
+              onClick={() => handlePageChange(pagination.page + 1)}
+              disabled={pagination.page === pagination.totalPages}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="bg-background-secondary hover:bg-secondary"
+              onClick={() => handlePageChange(pagination.totalPages)}
+              disabled={pagination.page === pagination.totalPages}
+            >
+              <ChevronsRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+      </>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6">
@@ -174,95 +274,7 @@ export default function SearchPage() {
               onFilterChange={handleFilterChange}
             />
 
-            {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <Skeleton
-                    key={i}
-                    className="h-[300px] rounded-lg bg-background-secondary"
-                  />
-                ))}
-              </div>
-            ) : !products || products.length === 0 ? (
-              <Card className="border-none shadow-sm">
-                <CardContent className="py-16 text-center">
-                  <div className="mx-auto w-24 h-24 bg-secondary rounded-full flex items-center justify-center mb-4">
-                    <span className="text-3xl">🔍</span>
-                  </div>
-                  <h3 className="text-lg font-medium text-text">
-                    {t('t_not_found')}
-                  </h3>
-                  <p className="text-text-secondary">{t('t_not_found_desc')}</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <>
-                {/* Product Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-                  {products.map((product) => (
-                    <ProductItem
-                      key={product.id}
-                      item={{
-                        id: product.id,
-                        title: product.title,
-                        description: product.description || 'no desctiption',
-                        minPrice: Number(product.minPrice),
-                        ratingAvg: product.ratingAvg.toString(),
-                        ratingCount: product.ratingCount,
-                        imageUrl: product.imageUrl || '',
-                        voucher: product.voucher,
-                        origin: product.origin || '',
-                      }}
-                    />
-                  ))}
-                </div>
-
-                {/* Pagination */}
-                {pagination.totalPages > 1 && (
-                  <div className="mt-8 flex items-center justify-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="bg-background-secondary hover:bg-secondary"
-                      onClick={() => handlePageChange(1)}
-                      disabled={pagination.page === 1}
-                    >
-                      <ChevronsLeft className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="bg-background-secondary hover:bg-secondary"
-                      onClick={() => handlePageChange(pagination.page - 1)}
-                      disabled={pagination.page === 1}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <span className="text-sm font-medium px-4 text-foreground">
-                      {pagination.page} / {pagination.totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="bg-background-secondary hover:bg-secondary"
-                      onClick={() => handlePageChange(pagination.page + 1)}
-                      disabled={pagination.page === pagination.totalPages}
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="bg-background-secondary hover:bg-secondary"
-                      onClick={() => handlePageChange(pagination.totalPages)}
-                      disabled={pagination.page === pagination.totalPages}
-                    >
-                      <ChevronsRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
+            {renderSearchResults()}
           </main>
         </div>
       </div>

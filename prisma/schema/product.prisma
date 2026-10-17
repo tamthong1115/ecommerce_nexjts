@@ -14,6 +14,7 @@ model Product {
   soldCount      Int               @default(0)
   minPrice       Decimal           @db.Decimal(14, 2)
   maxPrice       Decimal           @db.Decimal(14, 2)
+  taxRate        Decimal           @default(0.10) @db.Decimal(4, 2)
   currency       Currency          @default(VND)
   keywords       String[]
   Message        Message[]

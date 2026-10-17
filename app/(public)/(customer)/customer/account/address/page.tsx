@@ -195,6 +195,33 @@ export default function AddressPage() {
     );
   };
 
+  const renderAddressList = () => {
+    if (isPendingTransition) {
+      return <p className="text-center mt-10">{t('loading')}</p>;
+    }
+
+    if (address.length === 0) {
+      return (
+        <div className="mt-12 flex flex-col items-center gap-4 text-muted-foreground">
+          <MapPinX className="w-12 h-12 opacity-50" />
+          <p className="text-xl font-medium">{t('empty')}</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="mt-6 grid gap-4">
+        {address.map((addr) => (
+          <AddressCard
+            key={addr.id}
+            address={addr}
+            onSuccess={() => handleDefaultChanged(addr.id)}
+          />
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="p-4 w-full min-h-fit">
       <div className="w-full flex justify-between items-center gap-6">
@@ -340,24 +367,7 @@ export default function AddressPage() {
           </DialogContent>
         </Dialog>
       </div>
-      {isPendingTransition ? (
-        <p className="text-center mt-10">{t('loading')}</p>
-      ) : address.length > 0 ? (
-        <div className="mt-6 grid gap-4">
-          {address.map((addr) => (
-            <AddressCard
-              key={addr.id}
-              address={addr}
-              onSuccess={() => handleDefaultChanged(addr.id)}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="mt-12 flex flex-col items-center gap-4 text-muted-foreground">
-          <MapPinX className="w-12 h-12 opacity-50" />
-          <p className="text-xl font-medium">{t('empty')}</p>
-        </div>
-      )}
+      {renderAddressList()}
     </div>
   );
 }

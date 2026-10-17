@@ -1,19 +1,10 @@
 import { NextRequest } from 'next/server';
 import { ResponseFactory } from '@/lib/api-response';
-import { auth } from '@/lib/auth';
-import { headers } from 'next/headers';
+import { withAdmin } from '@/lib/with-auth';
 import { getAdminVouchersService } from '@/features/voucher/services/voucher.service';
 
-export async function GET(req: NextRequest) {
+export const GET = withAdmin(async (_userId: string, req: NextRequest) => {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-    if (!session || session.user.role !== 'admin') {
-      return ResponseFactory.toNextResponse(
-        ResponseFactory.error({ message: 'Unathorized', code: 401 })
-      );
-    }
 
     const { searchParams } = new URL(req.url);
     const page = Number(searchParams.get('page')) || 1;
@@ -38,4 +29,4 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     return ResponseFactory.toNextResponse(ResponseFactory.handleError(error));
   }
-}
+});

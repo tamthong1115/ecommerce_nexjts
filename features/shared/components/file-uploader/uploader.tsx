@@ -133,35 +133,47 @@ export function Uploader({ value = null, onChange }: UploaderProps) {
     }
   };
 
+  const renderFileContent = () => {
+    if (!file) return null;
+
+    if (file.uploading) {
+      return (
+        <RenderUploadingState
+          progress={file.progress}
+          file={{} as File}
+        />
+      );
+    }
+
+    if (file.error) {
+      return <div className="p-2 text-red-500 text-center text-sm">Error</div>;
+    }
+
+    return (
+      <>
+        <Image
+          src={file.url}
+          fill
+          className="object-cover"
+          alt={file.publicId}
+        />
+        <button
+          type="button"
+          onClick={removeFile}
+          className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition"
+        >
+          <Trash2 size={16} />
+        </button>
+      </>
+    );
+  };
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4">
         {file ? (
           <div className="relative group border rounded overflow-hidden h-32">
-            {file.uploading ? (
-              <RenderUploadingState
-                progress={file.progress}
-                file={{} as File}
-              />
-            ) : file.error ? (
-              <div className="p-2 text-red-500 text-center text-sm">Error</div>
-            ) : (
-              <>
-                <Image
-                  src={file.url}
-                  fill
-                  className="object-cover"
-                  alt={file.publicId}
-                />
-                <button
-                  type="button"
-                  onClick={removeFile}
-                  className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </>
-            )}
+            {renderFileContent()}
           </div>
         ) : (
           <div

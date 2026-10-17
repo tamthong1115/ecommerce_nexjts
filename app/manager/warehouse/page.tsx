@@ -52,6 +52,7 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 import SearchBar from '../../../features/manager/_components/search-bar';
 import TabTableView from '../../../features/manager/_components/tab-table-view';
+import { ExportExcelButton } from '@/features/shared/components/table/export-excel-button';
 import { useWarehouseColumns } from '@/features/manager/warehouse/components/columns';
 import { NewWarehouseForm } from '@/features/manager/warehouse/components/new-warehouse-form';
 
@@ -181,6 +182,11 @@ const WarehouseManagePage = () => {
             <TabsTrigger value="all-full">{t('t_tab_full')}</TabsTrigger>
           </TabsList>
           <div className="flex items-center gap-2">
+            <ExportExcelButton
+              table={table}
+              filename="danh-sach-kho-hang.xlsx"
+              sheetName="Kho hàng"
+            />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">

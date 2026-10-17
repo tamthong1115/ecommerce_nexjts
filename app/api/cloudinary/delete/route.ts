@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { deleteFromCloudinary } from '@/lib/cloudinary';
+import { withAuth } from '@/lib/with-auth';
 
-export async function DELETE(request: NextRequest) {
+export const DELETE = withAuth(async (_userId: string, request: NextRequest) => {
   try {
     const { publicId } = await request.json();
 
@@ -21,4 +22,4 @@ export async function DELETE(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

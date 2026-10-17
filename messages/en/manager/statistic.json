@@ -33,9 +33,9 @@
       "t_months": "12 months",
       "t_data_from": "Data from",
       "t_most_recent": "most recent",
-      "t_label_1": "Quantity"
+      "t_label_1": "Quantity",
+      "t_empty": "Không có dữ liệu"
     },
-
     "product_drawer": {
       "t_process_failed_noti": "Process Failed",
       "t_conn_failed_desc_noti": "Cannot connect to server!",

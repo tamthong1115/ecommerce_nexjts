@@ -1,25 +1,12 @@
 import { NextRequest } from 'next/server';
 import { ResponseFactory } from '@/lib/api-response';
-import { auth } from '@/lib/auth';
-import { headers } from 'next/headers';
+import { withAdmin } from '@/lib/with-auth';
 import { ActionType } from '@prisma/client';
 import { getActionLogsService } from '@/features/manager/logs/services/action-log.service';
 import { HttpStatus } from '@/types/api';
 
-export async function GET(req: NextRequest) {
+export const GET = withAdmin(async (_userId: string, req: NextRequest) => {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session || session.user.role !== 'admin') {
-      return ResponseFactory.toNextResponse(
-        ResponseFactory.error({
-          message: 'Unauthorized',
-          code: HttpStatus.UNAUTHORIZED,
-        })
-      );
-    }
 
     const { searchParams } = new URL(req.url);
     const page = Number(searchParams.get('page')) || 1;
@@ -52,4 +39,4 @@ export async function GET(req: NextRequest) {
   } catch (err) {
     return ResponseFactory.toNextResponse(ResponseFactory.handleError(err));
   }
-}
+});

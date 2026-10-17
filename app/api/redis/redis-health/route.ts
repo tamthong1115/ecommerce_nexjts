@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { redisClient } from '@/lib/redis';
+import { withAdmin } from '@/lib/with-auth';
 
-export async function GET() {
+export const GET = withAdmin(async () => {
   try {
     const pong = await redisClient.ping();
 
@@ -20,4 +21,4 @@ export async function GET() {
       { status: 500 }
     );
   }
-}
+});

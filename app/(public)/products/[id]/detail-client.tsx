@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useParams, usePathname } from 'next/navigation';
 import { Prisma } from '@/lib/generated/prisma';
 import { useTranslations } from 'next-intl';
@@ -78,22 +78,22 @@ const DetailPage = ({
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [upsellOpen, setUpsellOpen] = useState(false);
 
-  // Khởi tạo variant mặc định sau khi data load
-  if (data && !selVariant && data.variants.length > 0) {
-    const first = data.variants[0];
-    setSelVariant({
-      id: first.id,
-      name: first.name,
-      price: first.price,
-      amount: 1,
-      image: first.image,
-    });
-  }
+  useEffect(() => {
+    if (data && !selVariant && data.variants.length > 0) {
+      const first = data.variants[0];
+      setSelVariant({
+        id: first.id,
+        name: first.name,
+        price: first.price,
+        amount: 1,
+        image: first.image,
+      });
+    }
+  }, [data, selVariant]);
 
-  // Kiểm tra auth một lần
-  if (!isLoggedIn) {
+  useEffect(() => {
     authClient.getSession().then((s) => setIsLoggedIn(!!s.data));
-  }
+  }, []);
 
   // ── Business logic ────────────────────────────────────────────────────────
   const basePrice = selVariant ? Number(selVariant.price) : 0;

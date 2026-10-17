@@ -42,6 +42,10 @@ model Shop {
   members                 ShopMember[]
   slots                   Slot[]
   Voucher                 Voucher[]
+  promotions              Promotion[]
+  roles                   AuthRole[]
+  userRoles               UserRole[]
+  permissionOverrides     PermissionOverride[]
 
   createdById     String? @db.Uuid
   updatedById     String? @db.Uuid

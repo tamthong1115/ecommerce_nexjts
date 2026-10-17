@@ -65,7 +65,8 @@ export const useWarehouseColumns = ({
         enableHiding: false,
       },
       {
-        accessorKey: t('t_warehouse_name'),
+        id: 'name',
+        accessorKey: 'name',
         header: t('t_warehouse_name'),
         cell: ({ row }) => {
           return (
@@ -75,7 +76,8 @@ export const useWarehouseColumns = ({
         enableHiding: false,
       },
       {
-        accessorKey: t('t_region'),
+        id: 'region',
+        accessorKey: 'region',
         header: t('t_region'),
         cell: ({ row }) => (
           <div className="w-full flex flex-row gap-2 justify-start items-center">
@@ -84,7 +86,8 @@ export const useWarehouseColumns = ({
         ),
       },
       {
-        accessorKey: t('t_status'),
+        id: 'status',
+        accessorKey: 'status',
         header: t('t_status'),
         cell: ({ row }) => (
           <Badge variant="outline" className="text-muted-foreground px-1.5">
@@ -108,7 +111,8 @@ export const useWarehouseColumns = ({
         ),
       },
       {
-        accessorKey: t('t_created_at'),
+        id: 'createdAt',
+        accessorKey: 'createdAt',
         header: t('t_created_at'),
         cell: ({ row }) => {
           return (
@@ -122,7 +126,8 @@ export const useWarehouseColumns = ({
         },
       },
       {
-        accessorKey: t('t_updated_at'),
+        id: 'updatedAt',
+        accessorKey: 'updatedAt',
         header: t('t_updated_at'),
         cell: ({ row }) => {
           return (

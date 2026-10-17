@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db';
 import { Prisma } from '@/lib/generated/prisma';
-import { withAuth } from '@/lib/with-auth';
+import { withAdmin } from '@/lib/with-auth';
 import { NextRequest, NextResponse } from 'next/server';
 
 // build api for calculator revenue by a week, a month, 3 months and months
@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 // a month: show data (sum of each day) of 30 days lastest
 // 3 months: show data (sum of each day) of 3 months latests
 // months: show data (sum of each month) of 12 months lastest
-export const GET = withAuth(async (userId: string, request: NextRequest) => {
+export const GET = withAdmin(async (userId: string, request: NextRequest) => {
   const { searchParams } = new URL(request.url);
 
   //the elements that api will return

@@ -1,10 +1,10 @@
 import { ResponseFactory } from '@/lib/api-response';
 import { prisma } from '@/lib/db';
-import { withAuth } from '@/lib/with-auth';
+import { withAdmin } from '@/lib/with-auth';
 import { HttpStatus } from '@/types/api';
 import { NextRequest } from 'next/server';
 
-export const GET = withAuth(async (userId: string, request: NextRequest) => {
+export const GET = withAdmin(async (userId: string, request: NextRequest) => {
   try {
     if (!userId) {
       return ResponseFactory.toNextResponse(

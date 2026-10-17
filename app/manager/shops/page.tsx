@@ -65,6 +65,7 @@ import { IoMdCloseCircle } from 'react-icons/io';
 import { toast } from 'sonner';
 import SearchBar from '../../../features/manager/_components/search-bar';
 import TabTableView from '../../../features/manager/_components/tab-table-view';
+import { ExportExcelButton } from '@/features/shared/components/table/export-excel-button';
 import { TableCellViewer } from '../../../features/manager/shops/components/table-cell-viewer';
 
 const ShopsPage = () => {
@@ -184,7 +185,8 @@ const ShopsPage = () => {
       enableHiding: false,
     },
     {
-      accessorKey: t('t_shop_name'),
+      id: 'name',
+      accessorKey: 'name',
       header: t('t_shop_name'),
       cell: ({ row }) => {
         return (
@@ -194,20 +196,22 @@ const ShopsPage = () => {
       enableHiding: false,
     },
     {
-      accessorKey: t('t_owner_name'),
+      id: 'owner',
+      accessorFn: (row) => row.owner?.name ?? '',
       header: t('t_owner_name'),
       cell: ({ row }) => (
         <div className="w-full flex flex-row gap-2 justify-start items-center">
           <Avatar>
-            <AvatarImage src={row.original.owner.image} alt="shopLogo" />
+            <AvatarImage src={row.original.owner?.image} alt="shopLogo" />
             <AvatarFallback>UK</AvatarFallback>
           </Avatar>
-          <div>{row.original.owner.name}</div>
+          <div>{row.original.owner?.name}</div>
         </div>
       ),
     },
     {
-      accessorKey: t('t_status'),
+      id: 'status',
+      accessorKey: 'status',
       header: t('t_status'),
       cell: ({ row }) => (
         <Badge variant="outline" className="text-muted-foreground px-1.5">
@@ -225,7 +229,8 @@ const ShopsPage = () => {
       ),
     },
     {
-      accessorKey: t('t_rating'),
+      id: 'rating',
+      accessorFn: (row) => `${row.ratingAvg} (${row.ratingCount})`,
       header: () => <div className="w-fit text-right">{t('t_rating')}</div>,
       cell: ({ row }) => (
         <div className="w-full text-right">
@@ -234,7 +239,8 @@ const ShopsPage = () => {
       ),
     },
     {
-      accessorKey: t('t_created_at'),
+      id: 'createdAt',
+      accessorKey: 'createdAt',
       header: t('t_created_at'),
       cell: ({ row }) => {
         return (
@@ -245,7 +251,8 @@ const ShopsPage = () => {
       },
     },
     {
-      accessorKey: t('t_updated_at'),
+      id: 'updatedAt',
+      accessorKey: 'updatedAt',
       header: t('t_updated_at'),
       cell: ({ row }) => {
         return (
@@ -406,6 +413,11 @@ const ShopsPage = () => {
             <TabsTrigger value="all-closed">{t('t_tab_closed')}</TabsTrigger>
           </TabsList>
           <div className="flex items-center gap-2">
+            <ExportExcelButton
+              table={table}
+              filename="danh-sach-cua-hang.xlsx"
+              sheetName="Cửa hàng"
+            />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button

@@ -9,7 +9,7 @@ import { formatPrice } from '@/lib/utils';
 import { productItemType } from '@/types/public.data-types';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 interface ProductItemProps {
   item: productItemType;
@@ -20,18 +20,13 @@ export const ProductItemSm = ({
   item,
   renderSaleValue = true,
 }: ProductItemProps) => {
-  const router = useRouter();
-  const handleOpenDetail = (id: string) => {
-    router.push(`/products/${id}`);
-  };
+  const t = useTranslations('general');
 
   const renderSaleInfo = ({
     voucher,
   }: {
     voucher: { type: string; value: number; maxDiscount: number } | null;
   }) => {
-    const t = useTranslations('general');
-
     if (!voucher && !renderSaleValue) {
       return (
         <div className="flex items-center gap-2">
@@ -49,10 +44,7 @@ export const ProductItemSm = ({
           ? item.minPrice - (item.minPrice * Number(voucher.value)) / 100
           : item.minPrice - Number(voucher.value);
 
-      // Đảm bảo giá không bao giờ âm
       const discountedPrice = Math.max(0, calculatedPrice);
-
-      //console.log(discountedPrice);
 
       const promotionBadge =
         voucher.type === 'PERCENT' ? (
@@ -78,24 +70,24 @@ export const ProductItemSm = ({
                 rate: Number(t('t_rate')),
               })}
             </div>
-            {/* {originalPrice} */}
           </div>
           {promotionBadge}
         </div>
       );
     }
+    return null;
   };
 
   return (
-    <div
+    <Link
       key={item.id}
-      className={`flex flex-col justify-start items-start flex-1 border border-border border-2 rounded-lg hover:cursor-pointer`}
-      onClick={() => handleOpenDetail(item.id)}
+      href={`/products/${item.id}`}
+      className="flex flex-col justify-start items-start flex-1 border border-border border-2 rounded-lg hover:cursor-pointer"
     >
       <div className="relative w-full shrink-0 aspect-square overflow-hidden rounded-t-lg">
         <Image
           src={item.imageUrl}
-          alt="thumbnail"
+          alt={item.title || 'thumbnail'}
           sizes="auto"
           fill
           className="object-cover"
@@ -106,21 +98,18 @@ export const ProductItemSm = ({
           <CardTitle className="overflow-hidden">
             <p className="text-base font-normal line-clamp-1">{item.title}</p>
           </CardTitle>
-          <CardDescription>
-            <div className="w-full">
-              <p className="line-clamp-2 text-sm mb-1">
-                {item.description
-                  ? item.description
-                  : 'Sản phẩm này là độc nhất chỉ có 1 không 2  mà giá lại rẻ hãy mua ngay hôm nay'}
-              </p>
-            </div>
-            {/* <RatingStars value={Number(item.ratingAvg)} size={10} /> */}
-          </CardDescription>
+          {item.description ? (
+            <CardDescription>
+              <div className="w-full">
+                <p className="line-clamp-2 text-sm mb-1">{item.description}</p>
+              </div>
+            </CardDescription>
+          ) : null}
         </CardHeader>
         <CardContent className="flex flex-col justify-start items-start px-2 py-1">
           {renderSaleInfo({ voucher: item.voucher })}
         </CardContent>
       </Card>
-    </div>
+    </Link>
   );
 };

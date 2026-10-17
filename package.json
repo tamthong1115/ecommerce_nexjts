@@ -13,9 +13,15 @@
     "start": "next start",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
+    "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "check-format": "prettier --check .",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "i18n:check": "tsx scripts/i18n-check.ts",
+    "i18n:dupes": "tsx scripts/i18n-dupes.ts",
+    "i18n:sync": "tsx scripts/i18n-sync.ts",
+    "i18n:publish-all": "tsx scripts/i18n-publish-all.ts",
+    "i18n:export": "tsx scripts/i18n-export.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -152,12 +158,10 @@
     "typescript-eslint": "^8.47.0",
     "vitest": "^4.0.18"
   },
-  "pnpm": {
-    "overrides": {
-      "@types/react": "19.2.7",
-      "@types/react-dom": "19.2.3",
-      "@types/pg": "8.11.11",
-      "ioredis": "^5.10.0"
-    }
+  "overrides": {
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "@types/pg": "8.11.11",
+    "ioredis": "^5.10.0"
   }
 }

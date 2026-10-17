@@ -66,3 +66,6 @@ start-dev.sh
 /.agent
 /.gemini
 /.opencode
+/.claude
+/.idea
+/docs

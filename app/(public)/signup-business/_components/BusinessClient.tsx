@@ -32,14 +32,16 @@ export default function BusinessClient({ user }: BusinessClientProps) {
         return;
       }
 
-      if (!response.ok) throw new Error(data.message);
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to create seller account');
+      }
 
       if (data.url) {
         window.location.href = data.url;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert('Something went wrong');
+      toast.error(error?.message || 'Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
     }

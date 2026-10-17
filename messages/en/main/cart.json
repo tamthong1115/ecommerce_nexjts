@@ -17,6 +17,11 @@
     "t_promotion": "Promotion",
     "t_discount": "Direct Discount",
     "t_total_payment": "Total Payment",
-    "t_by_action": "Checkout"
+    "t_by_action": "Checkout",
+    "add_to_cart_success": "Added to cart successfully",
+    "add_to_cart_failed": "Failed to add to cart",
+    "update_cart_failed": "Failed to update cart",
+    "item_removed": "Item removed from cart",
+    "cart_cleared": "Cart cleared"
   }
 }

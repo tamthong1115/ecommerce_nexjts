@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeImageService } from '@/features/search/services/search.service';
+import { withAuth } from '@/lib/with-auth';
 
-export async function POST(req: NextRequest) {
+export const POST = withAuth(async (_userId: string, req: NextRequest) => {
   try {
     const formData = await req.formData();
     const file = formData.get('image') as File;
@@ -20,4 +21,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

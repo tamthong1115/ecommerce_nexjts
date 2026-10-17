@@ -26,6 +26,9 @@ export function sortObject(
   return sorted;
 }
 
+import { withAuth } from '@/lib/with-auth';
+import { env } from '@/lib/env';
+
 type CheckoutPayload = {
   id: string;
   url: string;
@@ -34,16 +37,34 @@ type CheckoutPayload = {
   metadata?: Record<string, string>;
 };
 
-export async function POST(req: NextRequest) {
+export const POST = withAuth(async (userId: string, req: NextRequest) => {
   let localIntent: { id: string } | null = null;
   let draftItems: { variantId: string; quantity: number }[] = [];
   let inventoryReserved = false;
 
   try {
     const { draftId, body } = await req.json();
+
+    if (!draftId) {
+      return ResponseFactory.toNextResponse(
+        ResponseFactory.error({ message: 'Missing draftId', code: 400 })
+      );
+    }
+
+    const draft = await prisma.orderDraft.findFirst({
+      where: { id: draftId, userId },
+      select: { id: true },
+    });
+
+    if (!draft) {
+      return ResponseFactory.toNextResponse(
+        ResponseFactory.error({ message: 'Draft not found or access denied', code: 404 })
+      );
+    }
+
     const ipAddr =
       req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '127.0.0.1';
-    const origin = process.env.NEXT_PUBLIC_BASE_URL!;
+    const origin = env.NEXT_PUBLIC_BASE_URL;
     const idenKey = body.idempotencyKey;
 
     const existed = await prisma.payment.findUnique({
@@ -149,7 +170,7 @@ export async function POST(req: NextRequest) {
       })
     );
   }
-}
+});
 //Get webhook
 export async function GET(req: NextRequest) {
   try {

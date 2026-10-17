@@ -49,7 +49,18 @@ export default async function ShopMemberPage({ params }: MemberPageProps) {
     );
   }
 
-  const isOwner = shop.ownerId === session.user.id;
+  const { loadSubject } = await import('@/lib/authz/load');
+  const { can } = await import('@/lib/authz/policy');
+  const subject = await loadSubject(session.user.id);
+
+  const canManageTeam =
+    shop.ownerId === session.user.id ||
+    (subject ? can(subject, 'shop:members:manage', { targetShopId: shopId }) : false) ||
+    (subject ? can(subject, '*') : false);
+
+  const canInviteTeam =
+    canManageTeam ||
+    (subject ? can(subject, 'shop:members:invite', { targetShopId: shopId }) : false);
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -63,7 +74,7 @@ export default async function ShopMemberPage({ params }: MemberPageProps) {
               Manage your shop team members and their roles
             </CardDescription>
           </div>
-          {isOwner && <InviteMemberDialog shopId={shopId} />}
+          {canInviteTeam && <InviteMemberDialog shopId={shopId} />}
         </CardHeader>
         <CardContent>
           <Table>
@@ -73,7 +84,7 @@ export default async function ShopMemberPage({ params }: MemberPageProps) {
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Joined Date</TableHead>
-                {isOwner && (
+                {canManageTeam && (
                   <TableHead className="text-right">Actions</TableHead>
                 )}
               </TableRow>
@@ -82,7 +93,7 @@ export default async function ShopMemberPage({ params }: MemberPageProps) {
               {shop.members.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={isOwner ? 5 : 4}
+                    colSpan={canManageTeam ? 5 : 4}
                     className="text-center h-24 text-muted-foreground"
                   >
                     No members found. Invite team members to collaborate.
@@ -122,7 +133,7 @@ export default async function ShopMemberPage({ params }: MemberPageProps) {
                     <TableCell className="text-muted-foreground">
                       {new Date(member.createdAt).toLocaleDateString()}
                     </TableCell>
-                    {isOwner && (
+                    {canManageTeam && (
                       <TableCell className="text-right">
                         {member.role !== 'OWNER' && (
                           <RemoveMemberButton

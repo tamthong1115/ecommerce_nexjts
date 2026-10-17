@@ -45,7 +45,23 @@
       "t_ban_reason": "Lí do khóa",
       "t_ban_expired": "Hạn khóa",
       "t_submit_action": "Lưu thay đổi",
-      "t_cancel_action": "Hủy"
-    }
+      "t_cancel_action": "Hủy",
+      "t_process_failed_noti": "Process Failed",
+      "t_conn_failed_desc_noti": "Could not connect to the server!",
+      "t_action_noti": "Action",
+      "t_update_desc_noti": "User information updated successfully!",
+      "t_copy_desc_noti": "Information copied successfully!",
+      "t_del_desc_noti": "User deleted successfully!",
+      "t_action_failed_noti": "Action Failed",
+      "t_update_failed_desc_noti": "Failed to update information!",
+      "t_copy_failed_desc_noti": "Failed to copy information!",
+      "t_del_failed_desc_noti": "Failed to delete user!"
+    },
+    "t_action_noti": "Action",
+    "t_copy_desc_noti": "Information copied successfully!",
+    "t_del_desc_noti": "User deleted successfully!",
+    "t_action_failed_noti": "Action failed",
+    "t_copy_failed_desc_noti": "Failed to copy information!",
+    "t_del_failed_desc_noti": "Failed to delete user!"
   }
 }

@@ -1,0 +1,22 @@
+{
+  "admin_access": {
+    "title": "Access Control (RBAC)",
+    "description": "Manage security roles, granular permission matrices, and system scope.",
+    "refresh": "Refresh",
+    "create_role": "Create new role",
+    "roles_title": "Role Directory",
+    "roles_desc": "Predefined system and custom roles across the platform",
+    "role_code_name": "Role Key / Name",
+    "scope": "Scope",
+    "permissions_count": "Permissions",
+    "users_count": "Users",
+    "system_badge": "System",
+    "permissions_title": "Permission Catalog",
+    "permissions_desc": "Granular core permissions registered in the system",
+    "perm_key": "Permission Key",
+    "perm_name": "Display Name",
+    "module": "Module",
+    "load_error": "Failed to load roles and permissions"
+  }
+}
+

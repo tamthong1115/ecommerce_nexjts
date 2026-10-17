@@ -1,9 +1,9 @@
 import { prisma } from '@/lib/db';
 import { Prisma } from '@/lib/generated/prisma';
-import { withAuth } from '@/lib/with-auth';
+import { withAdmin } from '@/lib/with-auth';
 import { NextRequest, NextResponse } from 'next/server';
 
-export const GET = withAuth(async (userId: string, request: NextRequest) => {
+export const GET = withAdmin(async (userId: string, request: NextRequest) => {
   const { searchParams } = new URL(request.url);
 
   // --- 1. Xử lý logic thời gian (Date Logic) ---

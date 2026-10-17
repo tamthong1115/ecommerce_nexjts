@@ -10,12 +10,11 @@ import {
   PasswordResetPayload,
   SystemPayload,
 } from '../../types/notification.type';
-import { NotificationType } from '@/lib/generated/prisma';
+import { ActionSource, ActionType, NotificationType } from '@/lib/generated/prisma';
 import { prisma } from '@/lib/db';
 import { resolveEmailProvider } from '@/features/notification/server/email/email-provider.resolver';
 import { SystemReminderEmail } from '@/features/notification/components/core/email-templates/system-reminder-email';
 import { logAction } from '@/lib/action-logger';
-import { ActionSource, ActionType } from '@prisma/client';
 
 export class EmailSender implements INotificationSender {
   readonly channel = ChannelType.EMAIL;

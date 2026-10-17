@@ -93,21 +93,15 @@ export function NavSeller({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem asChild>
-                <Link href="/public">
+                <Link href="/">
                   <HomeIcon />
                   Homepage
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/admin">
+                <Link href="/manager">
                   <IconDashboard />
-                  Dashboard
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/courses">
-                  <Tv2 />
-                  Courses
+                  Manager Panel
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>

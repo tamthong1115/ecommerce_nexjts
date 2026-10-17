@@ -12,15 +12,23 @@
   "general": {
     "t_currency": "USD",
     "t_rate": "25400",
-    "t_region": "US"
+    "t_region": "US",
+    "t_copy_action": "Sao chép ID",
+    "t_del_action": "Xóa"
   },
-
   "not_found_page": {
+    "not_found": "Page Not Found",
+    "desc": "The page you are looking for no longer exists.",
+    "return": "Go Back",
     "t_not_found": "Page Not Found",
     "t_desc": "The page you are looking for no longer exists.",
     "t_return": "Go Back"
   },
-
+  "unauthorized_page": {
+    "title": "Access Denied (403)",
+    "desc": "Your account does not have sufficient permissions to access this area. Please contact an administrator or switch to an authorized account.",
+    "return_home": "Back to Home"
+  },
   "footer": {
     "customer_support": "Customer Support",
     "hotline": "Hotline",

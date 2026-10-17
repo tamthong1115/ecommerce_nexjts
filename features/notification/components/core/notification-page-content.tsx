@@ -66,6 +66,122 @@ export function NotificationPageContent({
     markAllAsRead,
   } = useNotifications(role, activeType);
 
+  const renderMainContent = () => {
+    if (isLoading && notifications.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
+          <Loader2 className="h-8 w-8 animate-spin mb-4" />
+          <p>Loading notifications...</p>
+        </div>
+      );
+    }
+
+    if (notifications.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center py-24 text-muted-foreground border rounded-lg bg-muted/5 border-dashed">
+          <Bell className="h-10 w-10 mb-3 opacity-20" />
+          <p>No notifications found</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-3">
+        {notifications.map((n) => (
+          <Card
+            key={n.id}
+            onClick={() => !n.isRead && markAsRead(n.id)}
+            className={cn(
+              'group relative overflow-hidden transition-all hover:shadow-md cursor-pointer border-l-4',
+              !n.isRead
+                ? 'border-l-primary bg-card'
+                : 'border-l-transparent bg-muted/20 opacity-75 hover:opacity-100'
+            )}
+          >
+            <div className="flex p-4 gap-4">
+              {/* Icon/Image */}
+              <div className="shrink-0 mt-1">
+                {n.image ? (
+                  <Image
+                    src={n.image}
+                    alt={n.title}
+                    fill
+                    className="h-10 w-10 rounded-full object-cover bg-muted"
+                  />
+                ) : (
+                  <div
+                    className={cn(
+                      'flex h-10 w-10 items-center justify-center rounded-full',
+                      !n.isRead
+                        ? 'bg-primary/10 text-primary'
+                        : 'bg-muted text-muted-foreground'
+                    )}
+                  >
+                    <Bell className="h-5 w-5" />
+                  </div>
+                )}
+              </div>
+
+              {/* Text content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2">
+                  <h3
+                    className={cn(
+                      'text-sm font-semibold truncate',
+                      !n.isRead && 'text-primary'
+                    )}
+                  >
+                    {n.title}
+                  </h3>
+                  <span className="shrink-0 text-xs text-muted-foreground whitespace-nowrap">
+                    {formatDistanceToNow(new Date(n.createdAt), {
+                      addSuffix: true,
+                    })}
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                  {n.body}
+                </p>
+
+                {/* Optional Tag based on Type */}
+                {n.type === NotificationType.ORDER_SHIPPED && (
+                  <div className="mt-2">
+                    <Badge className="text-[10px] font-normal h-5">
+                      Order Shipped
+                    </Badge>
+                  </div>
+                )}
+                {n.type === NotificationType.ORDER_DELIVERED && (
+                  <div className="mt-2">
+                    <Badge className="text-[10px] font-normal h-5 bg-green-600">
+                      Order Delivered
+                    </Badge>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+        ))}
+
+        {hasNextPage && (
+          <div className="pt-4 flex justify-center">
+            <Button
+              variant="outline"
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+              className="w-full md:w-auto min-w-[150px]"
+            >
+              {isFetchingNextPage && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Load More
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className={cn('w-full max-w-5xl mx-auto p-4 md:p-6', className)}>
       {/* Header */}
@@ -101,112 +217,7 @@ export function NotificationPageContent({
 
         {/* Main List */}
         <main className="lg:col-span-3 space-y-4">
-          {isLoading && notifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
-              <Loader2 className="h-8 w-8 animate-spin mb-4" />
-              <p>Loading notifications...</p>
-            </div>
-          ) : notifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 text-muted-foreground border rounded-lg bg-muted/5 border-dashed">
-              <Bell className="h-10 w-10 mb-3 opacity-20" />
-              <p>No notifications found</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {notifications.map((n) => (
-                <Card
-                  key={n.id}
-                  onClick={() => !n.isRead && markAsRead(n.id)}
-                  className={cn(
-                    'group relative overflow-hidden transition-all hover:shadow-md cursor-pointer border-l-4',
-                    !n.isRead
-                      ? 'border-l-primary bg-card'
-                      : 'border-l-transparent bg-muted/20 opacity-75 hover:opacity-100'
-                  )}
-                >
-                  <div className="flex p-4 gap-4">
-                    {/* Icon/Image */}
-                    <div className="shrink-0 mt-1">
-                      {n.image ? (
-                        <Image
-                          src={n.image}
-                          alt={n.title}
-                          fill
-                          className="h-10 w-10 rounded-full object-cover bg-muted"
-                        />
-                      ) : (
-                        <div
-                          className={cn(
-                            'flex h-10 w-10 items-center justify-center rounded-full',
-                            !n.isRead
-                              ? 'bg-primary/10 text-primary'
-                              : 'bg-muted text-muted-foreground'
-                          )}
-                        >
-                          <Bell className="h-5 w-5" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2 mb-1">
-                        <p
-                          className={cn(
-                            'text-sm font-semibold truncate',
-                            !n.isRead && 'text-foreground'
-                          )}
-                        >
-                          {n.title}
-                        </p>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {formatDistanceToNow(new Date(n.createdAt), {
-                            addSuffix: true,
-                          })}
-                        </span>
-                      </div>
-
-                      <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-                        {n.body}
-                      </p>
-
-                      {/* Optional Tag based on Type */}
-                      {n.type === NotificationType.ORDER_SHIPPED && (
-                        <div className="mt-2">
-                          <Badge className="text-[10px] font-normal h-5">
-                            Order Shipped
-                          </Badge>
-                        </div>
-                      )}
-                      {n.type === NotificationType.ORDER_DELIVERED && (
-                        <div className="mt-2">
-                          <Badge className="text-[10px] font-normal h-5 bg-green-600">
-                            Order Delivered
-                          </Badge>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              ))}
-
-              {hasNextPage && (
-                <div className="pt-4 flex justify-center">
-                  <Button
-                    variant="outline"
-                    onClick={() => fetchNextPage()}
-                    disabled={isFetchingNextPage}
-                    className="w-full md:w-auto min-w-[150px]"
-                  >
-                    {isFetchingNextPage && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    )}
-                    Load More
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
+          {renderMainContent()}
         </main>
       </div>
     </div>

@@ -2,6 +2,7 @@ import { StockManager } from '@/lib/stock-manager';
 import { $Enums } from '@/lib/generated/prisma';
 import PaymentStatus = $Enums.PaymentStatus;
 import { customerPaidOrderSuccessUsecase } from '@/features/payment_transaction/payment_transaction.usecases';
+import { commitRedemptions, releaseRedemptions } from '@/features/promotion/services/redemption.service';
 import 'dotenv/config';
 import { prisma } from '@/lib/db';
 
@@ -73,6 +74,7 @@ export async function handleMomoWebhook(payload: any) {
       });
 
       for (const order of orderDetails) {
+        await commitRedemptions(tx, { orderId: order.id });
         await customerPaidOrderSuccessUsecase(
           tx,
           order.shopId!,
@@ -109,8 +111,8 @@ export async function handleMomoWebhook(payload: any) {
         },
       });
 
-      // 2. HOÀN KHO DATABASE
       for (const order of orderDetails) {
+        await releaseRedemptions(tx, { orderId: order.id });
         for (const item of order.items) {
           await tx.productVariant.update({
             where: { id: item.variantId! },

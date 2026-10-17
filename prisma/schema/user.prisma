@@ -24,10 +24,14 @@ model User {
   sessions      Session[]
   accounts      Account[]
 
-  role       Role      @default(user)
-  banned     Boolean?  @default(false)
-  banReason  String?
-  banExpires DateTime?
+  role         Role      @default(user)
+  authzVersion Int       @default(1)
+  banned       Boolean?  @default(false)
+  banReason    String?
+  banExpires   DateTime?
+
+  userRoles           UserRole[]
+  permissionOverrides PermissionOverride[]
 
   profile                   UserProfile?
   addresses                 Address[]
@@ -44,6 +48,7 @@ model User {
   messagesSentUser          Message[]                 @relation("MessageFromUser")
   ReturnRequest             ReturnRequest[]
   VoucherRedemption         VoucherRedemption[]
+  promotionRedemptions      PromotionRedemption[]
   OrderDraft                OrderDraft[]
   Slot                      Slot[]
   OrderSlot                 OrderSlot[]

@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { getSessionUser } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import UserNav from '@/features/account/components/user-nav';
+import { paths } from '@/lib/path';
 
 export default async function UserLayout({
   children,
@@ -11,7 +12,7 @@ export default async function UserLayout({
   const session = await getSessionUser();
 
   if (!session || !session.user) {
-    return redirect('/login');
+    return redirect(paths.login);
   }
 
   return (

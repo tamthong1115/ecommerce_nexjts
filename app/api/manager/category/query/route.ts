@@ -1,10 +1,10 @@
 import { ResponseFactory } from '@/lib/api-response';
 import { prisma } from '@/lib/db';
-import { withAuth } from '@/lib/with-auth';
+import { withAdmin } from '@/lib/with-auth';
 import { HttpStatus } from '@/types/api';
 import { NextRequest } from 'next/server';
 
-export const GET = withAuth(async (userId: string, request: NextRequest) => {
+export const GET = withAdmin(async (userId: string, request: NextRequest) => {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
 
@@ -59,7 +59,7 @@ export const GET = withAuth(async (userId: string, request: NextRequest) => {
   }
 });
 
-export const POST = withAuth(async (userId: string, request: NextRequest) => {
+export const POST = withAdmin(async (userId: string, request: NextRequest) => {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
 
